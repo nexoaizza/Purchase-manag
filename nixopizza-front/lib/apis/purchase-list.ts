@@ -16,19 +16,11 @@ export const getOrders = async (params?: any) => {
 export const getOrdersStats = async () => {
   try {
     const {
-      data: {
-        notAssignedOrders,
-        assignedOrders,
-        confirmedOrders,
-        paidOrders,
-        totalValue,
-      },
+      data: { pendingOrders, confirmedOrders, paidOrders, totalValue },
     } = await api.get("/orders/stats");
-
     return {
       success: true,
-      notAssignedOrders,
-      assignedOrders,
+      pendingOrders,
       confirmedOrders,
       paidOrders,
       totalValue,
@@ -39,7 +31,6 @@ export const getOrdersStats = async () => {
     return { success: false, message };
   }
 };
-
 
 export const createOrder = async (data: any) => {
   try {
