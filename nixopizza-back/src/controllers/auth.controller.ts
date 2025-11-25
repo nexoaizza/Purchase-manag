@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import User from "../models/user.model";
-import { generateTokens, verifyToken } from "../utils/Token";
+import { generateToken, verifyToken } from "../utils/Token";
 
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -30,11 +30,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const accessToken = generateTokens(
-      user._id as string,
-      user.role === "admin",
-      res
-    );
+    const token = generateToken(user._id as string, user.role === "admin");
 
     res.status(200).json({
       message: "Login successful",
@@ -48,7 +44,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         fullname: user.fullname,
         avatar: user.avatar,
       },
-      access_token: accessToken,
+      access_token: token,
     });
   } catch (error) {
     console.error("Login error:", error);
@@ -58,11 +54,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
 export const logout = async (_: Request, res: Response): Promise<void> => {
   try {
-    res.clearCookie("refresh_token", {
-      httpOnly: true,
-      sameSite: "none",
-      secure: true,
-    });
+    // With single-token auth there is no server-side session to clear;
+    // client should remove stored token on logout.
     res.status(200).json({ message: "Logout successful" });
   } catch (error) {
     console.error("Logout error:", error);
@@ -75,17 +68,31 @@ export const refreshTokens = async (
   res: Response
 ): Promise<void> => {
   try {
-    const refreshToken = req.cookies.refresh_token;
-    if (!refreshToken) {
-      res.status(401).json({ message: "Refresh token not found" });
+    // Expect current token in Authorization header and re-issue a fresh token
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith("Bearer ")) {
+      res.status(401).json({ message: "Unauthorized: No token provided" });
       return;
     }
+    const currentToken = authHeader.split(" ")[1];
 
-    const secret = process.env.REFRESH_SECRET || "default_refresh_secret_key";
-    const decoded = verifyToken(refreshToken, secret);
+    const ACCESS_SECRET = process.env.ACCESS_SECRET || "default_secret_key";
+    let decoded: any;
+    // First try strict verification (will fail if token expired)
+    try {
+      decoded = verifyToken(currentToken, ACCESS_SECRET);
+    } catch (err) {
+      // If verification fails, try verifying signature only (ignore expiration)
+      try {
+        decoded = verifyToken(currentToken, ACCESS_SECRET, { ignoreExpiration: true });
+      } catch (err2) {
+        res.status(400).json({ message: "Invalid token" });
+        return;
+      }
+    }
 
     if (typeof decoded === "string") {
-      res.status(400).json({ message: "Invalid refresh token" });
+      res.status(400).json({ message: "Invalid token" });
       return;
     }
 
@@ -101,13 +108,9 @@ export const refreshTokens = async (
       return;
     }
 
-    const accessToken = generateTokens(
-      user._id as string,
-      user.role === "admin",
-      res
-    );
+    const token = generateToken(user._id as string, user.role === "admin");
 
-    res.status(200).json({ message: "Tokens refreshed", accessToken });
+    res.status(200).json({ message: "Token refreshed", access_token: token });
   } catch (error: any) {
     res
       .status(500)
