@@ -18,6 +18,7 @@ import User from "./models/user.model";
 import taskRouter from "./routes/task.router";
 import supplierRouter from "./routes/supplier.router";
 import notificationRouter from "./routes/notification.router";
+import setupSwagger from "./config/swaggerSetup";
 
 dotenv.config();
 
@@ -35,6 +36,7 @@ const allowedOrigins = [
   process.env.ADMIN_ORIGIN ?? "",
   process.env.PROD_CLIENT_ORIGIN ?? "https://<your-client>.vercel.app",
   process.env.PROD_ADMIN_ORIGIN ?? "https://<your-admin>.vercel.app",
+  
 ];
 
 app.use(
@@ -51,6 +53,9 @@ app.use(
 app.get("/api/health", (_req: Request, res: Response) => {
   res.json({ ok: true });
 });
+
+  // Swagger UI
+  setupSwagger(app);
 
 app.use("/api/auth", authRouter);
 app.use("/api/admin", adminRouter);
