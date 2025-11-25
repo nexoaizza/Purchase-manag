@@ -26,10 +26,11 @@ import {
 import { useState } from "react";
 import { Label } from "@radix-ui/react-label";
 import { Input } from "../ui/input";
-import { IOrder } from "@/app/dashboard/purchases/page";
+import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
 import { updateOrder } from "@/lib/apis/purchase-list";
 import toast from "react-hot-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslations } from "next-intl";
 
 interface PurchaseOrderDialogProps {
   order: IOrder | null;
@@ -45,6 +46,7 @@ export function PurchaseOrderDialog({
   setPurchaseOrders,
 }: PurchaseOrderDialogProps) {
   if (!order) return null;
+  const t = useTranslations("purchases");
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [billFile, setBillFile] = useState<File | null>(null);
@@ -69,7 +71,7 @@ export function PurchaseOrderDialog({
     const file = e.target.files?.[0];
     if (file) {
       if (!file.type.match("image.*") && !file.type.match("application/pdf")) {
-        alert("Please select an image or PDF file");
+        alert(t("fileFormats"));
         return;
       }
 
@@ -97,7 +99,7 @@ export function PurchaseOrderDialog({
       message,
     } = await updateOrder(order?._id, formData);
     if (success) {
-      toast.success("Order confirmed successfully");
+      toast.success(t("orderConfirmed"));
       // Update the order in the parent component's state
       if (setPurchaseOrders && updatedOrder) {
         setPurchaseOrders((prevOrders: IOrder[]) =>
@@ -108,7 +110,7 @@ export function PurchaseOrderDialog({
       }
       onOpenChange(false);
     } else {
-      toast.error(message || "Failed to confirm order");
+      toast.error(message || t("unexpectedError"));
     }
   };
 
@@ -120,7 +122,7 @@ export function PurchaseOrderDialog({
       message,
     } = await updateOrder(order?._id, { status: "paid" });
     if (success) {
-      toast.success("Order paid successfully");
+      toast.success(t("orderConfirmed"));
 
       if (setPurchaseOrders && updatedOrder) {
         setPurchaseOrders((prevOrders: IOrder[]) =>
@@ -131,7 +133,7 @@ export function PurchaseOrderDialog({
       }
       onOpenChange(false);
     } else {
-      toast.error(message || "Failed to pay order");
+      toast.error(message || t("unexpectedError"));
     }
     console.log("end Confirming order as paid");
   };
@@ -142,10 +144,10 @@ export function PurchaseOrderDialog({
         <DialogHeader>
           <DialogTitle className="font-heading flex items-center gap-2">
             <Package className="h-5 w-5" />
-            Purchase Order Details
+            {t("purchaseOrders")}
           </DialogTitle>
           <DialogDescription>
-            Order {order.orderNumber} - {order.supplierId?.name}
+            {t("orderId")} {order.orderNumber} - {order.supplierId?.name}
           </DialogDescription>
         </DialogHeader>
         {currentStep === 0 ? (
@@ -154,7 +156,7 @@ export function PurchaseOrderDialog({
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Card>
                 <CardContent className="p-4">
-                  <div className="text-sm text-muted-foreground">Order ID</div>
+                  <div className="text-sm text-muted-foreground">{t("orderId")}</div>
                   <div className="font-mono font-medium">
                     {order.orderNumber}
                   </div>
@@ -162,7 +164,7 @@ export function PurchaseOrderDialog({
               </Card>
               <Card>
                 <CardContent className="p-4">
-                  <div className="text-sm text-muted-foreground">Status</div>
+                  <div className="text-sm text-muted-foreground">{t("statusHeader")}</div>
                   <Badge variant={getStatusColor(order.status) as any}>
                     {order.status}
                   </Badge>
@@ -171,16 +173,16 @@ export function PurchaseOrderDialog({
               <Card>
                 <CardContent className="p-4">
                   <div className="text-sm text-muted-foreground">
-                    Total Value
+                    {t("totalValueHeader")}
                   </div>
                   <div className="font-medium flex items-center gap-1">
-                    {order.totalAmount.toFixed(2)} DA
+                    {order.totalAmount.toFixed(2)} {t("da")}
                   </div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4">
-                  <div className="text-sm text-muted-foreground">Paid Date</div>
+                  <div className="text-sm text-muted-foreground">{t("paidDate")}</div>
                   <div className="font-medium flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
                     {order.paidDate
@@ -196,7 +198,7 @@ export function PurchaseOrderDialog({
               <CardHeader>
                 <CardTitle className="font-heading flex items-center gap-2">
                   <Building2 className="h-5 w-5" />
-                  Supplier Information
+                  {t("supplierSummary")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -237,7 +239,7 @@ export function PurchaseOrderDialog({
             {/* Order Items */}
             <Card>
               <CardHeader>
-                <CardTitle className="font-heading">Order Items</CardTitle>
+                <CardTitle className="font-heading">{t("itemsHeader")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -261,8 +263,8 @@ export function PurchaseOrderDialog({
                       </div>
                       <div className="text-right">
                         <div className="font-medium">
-                          {item.quantity} × {item.unitCost} DA =
-                          {(item.quantity * item.unitCost).toFixed(2)} DA
+                          {item.quantity} × {item.unitCost} {t("da")} =
+                          {(item.quantity * item.unitCost).toFixed(2)} {t("da")}
                         </div>
                       </div>
                     </div>
@@ -270,9 +272,9 @@ export function PurchaseOrderDialog({
                 </div>
                 <div className="mt-4 pt-4 border-t">
                   <div className="flex justify-between items-center font-medium">
-                    <span>Total Order Value:</span>
+                    <span>{t("totalAmount")}:</span>
                     <span className="text-lg">
-                      {order.totalAmount.toFixed(2)} DA
+                      {order.totalAmount.toFixed(2)} {t("da")}
                     </span>
                   </div>
                 </div>
@@ -285,7 +287,7 @@ export function PurchaseOrderDialog({
                 <CardHeader>
                   <CardTitle className="font-heading flex items-center gap-2">
                     <Upload className="h-5 w-5" />
-                    Bill (Bon)
+                    {t("bill")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -304,9 +306,9 @@ export function PurchaseOrderDialog({
                           )}
                         </div>
                         <div>
-                          <div className="font-medium">Bill Uploaded</div>
+                          <div className="font-medium">{t("uploadBillLabel")}</div>
                           <div className="text-sm text-muted-foreground">
-                            Click to view or download
+                            {t("downloadReceipt")}
                           </div>
                         </div>
                       </div>
@@ -322,7 +324,7 @@ export function PurchaseOrderDialog({
                           }}
                         >
                           <Download className="h-4 w-4" />
-                          View Bill
+                          {t("viewDetails")}
                         </Button>
                       </div>
                     </div>
@@ -365,10 +367,10 @@ export function PurchaseOrderDialog({
                             className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md cursor-pointer hover:opacity-90 transition-opacity"
                           >
                             <Upload className="h-4 w-4" />
-                            {billPreview ? "Change Bill" : "Upload Bill"}
+                            {billPreview ? t("changeBill") : t("uploadBillLabel")}
                           </Label>
                           <p className="text-xs text-muted-foreground">
-                            PNG, JPG, PDF up to 5MB
+                            {t("fileFormats")}
                           </p>
                           <Input
                             id="bill-upload"
@@ -395,12 +397,12 @@ export function PurchaseOrderDialog({
                         onClick={handleConfirmOrder}
                       >
                         <CheckCircle className="h-4 w-4" />
-                        Confirm Order
+                        {t("confirmButton")}
                       </Button>
                     ) : (
                       <Button variant="outline" disabled>
                         <CheckCircle className="h-4 w-4" />
-                        Upload Bill First
+                        {t("uploadBillFirst")}
                       </Button>
                     )
                   ) : (
@@ -409,20 +411,19 @@ export function PurchaseOrderDialog({
                       onClick={handleConfirmOrder}
                     >
                       <CheckCircle className="h-4 w-4" />
-                      Confirm Order
+                      {t("confirmButton")}
                     </Button>
                   )}
                 </>
               )}
               
-
               {order.status === "confirmed" && user?.role === "admin" && (
                 <Button
                   className="gap-2 bg-green-600 text-white hover:bg-green-700"
                   onClick={handleConfirmPaid}
                 >
                   <CheckCircle className="h-4 w-4" />
-                  Confirm Paid
+                  {t("confirmPaid")}
                 </Button>
               )}
 
@@ -430,7 +431,7 @@ export function PurchaseOrderDialog({
               {order.status === "paid" && (
                 <Button variant="outline" disabled>
                   <CheckCircle className="h-4 w-4" />
-                  Order Paid
+                  {t("paidStatus")}
                 </Button>
               )}
             </div>
@@ -439,7 +440,7 @@ export function PurchaseOrderDialog({
           <div>
             {/* Actions */}
             <div className="space-y-2">
-              <Label>Order bill</Label>
+              <Label>{t("bill")}</Label>
               <Input type="file" />
             </div>
             <div className="flex gap-2 justify-end">
@@ -448,7 +449,7 @@ export function PurchaseOrderDialog({
                   setCurrentStep(0);
                 }}
               >
-                Cancel
+                {t("cancel")}
               </Button>
               <Button
                 className="gap-2 bg-green-600 text-white hover:bg-green-700"

@@ -6,7 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Search, X } from "lucide-react";
 import { getProducts } from "@/lib/apis/products";
-import { IProduct } from "@/app/dashboard/products/page";
+import { IProduct } from "@/app/[locale]/dashboard/products/page";
 
 interface ProductSelectProps {
   products?: IProduct[];

@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, Package, TrendingDown } from "lucide-react";
 
@@ -10,6 +11,8 @@ export function AlertsOverview({
   high: number;
   medium: number;
 }) {
+  const t = useTranslations("alerts");
+  
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {/* Critical */}
@@ -17,7 +20,7 @@ export function AlertsOverview({
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-semibold text-muted-foreground">
-              Critical Alerts
+              {t("criticalAlerts")}
             </CardTitle>
             <div className="rounded-lg bg-destructive/10 p-2">
               <AlertTriangle className="h-4 w-4 text-destructive" />
@@ -26,7 +29,7 @@ export function AlertsOverview({
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-destructive">{critical}</div>
-          <p className="text-xs text-muted-foreground mt-1">Out of stock</p>
+          <p className="text-xs text-muted-foreground mt-1">{t("criticalDescription")}</p>
         </CardContent>
       </Card>
 
@@ -35,7 +38,7 @@ export function AlertsOverview({
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-semibold text-muted-foreground">
-              High Priority
+              {t("highPriority")}
             </CardTitle>
             <div className="rounded-lg bg-orange-500/10 p-2">
               <TrendingDown className="h-4 w-4 text-orange-500" />
@@ -45,7 +48,7 @@ export function AlertsOverview({
         <CardContent>
           <div className="text-2xl font-bold text-orange-600">{high}</div>
           <p className="text-xs text-muted-foreground mt-1">
-            Below 50% of min threshold
+            {t("highDescription")}
           </p>
         </CardContent>
       </Card>
@@ -55,7 +58,7 @@ export function AlertsOverview({
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-semibold text-muted-foreground">
-              Medium Priority
+              {t("mediumPriority")}
             </CardTitle>
             <div className="rounded-lg bg-amber-500/10 p-2">
               <Package className="h-4 w-4 text-amber-500" />
@@ -65,7 +68,7 @@ export function AlertsOverview({
         <CardContent>
           <div className="text-2xl font-bold text-amber-600">{medium}</div>
           <p className="text-xs text-muted-foreground mt-1">
-            Below min threshold
+            {t("mediumDescription")}
           </p>
         </CardContent>
       </Card>

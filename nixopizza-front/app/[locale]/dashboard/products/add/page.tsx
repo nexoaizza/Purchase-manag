@@ -4,6 +4,7 @@
 import type React from "react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,7 @@ import { createProduct } from "@/lib/apis/products";
 import { CategorySelect } from "@/components/ui/category-select";
 
 export default function AddProductPage() {
+  const t = useTranslations("products");
   const router = useRouter();
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -51,17 +53,17 @@ export default function AddProductPage() {
     e.preventDefault();
 
     if (!image) {
-      toast.error("Product image is required");
+      toast.error(t("uploadImageRequired"));
       return;
     }
 
     if (!selectedCategory) {
-      toast.error("Please select a category");
+      toast.error(t("selectCategoryRequired"));
       return;
     }
 
     if (!formData.unit) {
-      toast.error("Please select a unit");
+      toast.error(t("selectUnitRequired"));
       return;
     }
 
@@ -75,7 +77,7 @@ export default function AddProductPage() {
     const { success, message } = await createProduct(data);
 
     if (success) {
-      toast.success("Product Created Successfully");
+      toast.success(t("productCreatedSuccessfully"));
       router.push("/dashboard/products");
     } else {
       toast.error(message);
@@ -121,14 +123,14 @@ export default function AddProductPage() {
               className="gap-2 rounded-full"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back
+              {t("back")}
             </Button>
             <div>
               <h1 className="text-3xl font-heading font-bold text-gray-900">
-                Add New Product
+                {t("addNewProduct")}
               </h1>
               <p className="text-gray-600 mt-1">
-                Create a new product in your inventory system
+                {t("addProductDescription")}
               </p>
             </div>
           </div>
@@ -139,14 +141,14 @@ export default function AddProductPage() {
               className="gap-2 rounded-full px-4"
             >
               <X className="h-4 w-4" />
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               onClick={handleSubmit}
               className="gap-2 rounded-full px-6 bg-primary hover:bg-primary/90"
             >
               <Save className="h-4 w-4" />
-              Save Product
+              {t("saveProduct")}
             </Button>
           </div>
         </div>
@@ -162,10 +164,10 @@ export default function AddProductPage() {
                 </div>
                 <div>
                   <CardTitle className="font-heading text-xl">
-                    Basic Information
+                    {t("basicInformation")}
                   </CardTitle>
                   <CardDescription>
-                    Essential product details and identification
+                    {t("basicInformationDescription")}
                   </CardDescription>
                 </div>
               </div>
@@ -174,20 +176,20 @@ export default function AddProductPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="name" className="text-sm font-medium">
-                    Product Name *
+                    {t("productName")} *
                   </Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => handleInputChange("name", e.target.value)}
-                    placeholder="Enter product name"
+                    placeholder={t("productNamePlaceholder")}
                     required
                     className="py-5 border-2 border-input focus-visible:ring-2 focus-visible:ring-primary/30 rounded-lg"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="barcode" className="text-sm font-medium">
-                    Barcode 
+                    {t("barcode")}
                   </Label>
                   <Input
                     id="barcode"
@@ -195,7 +197,7 @@ export default function AddProductPage() {
                     onChange={(e) =>
                       handleInputChange("barcode", e.target.value)
                     }
-                    placeholder="Enter barcode"
+                    placeholder={t("barcodePlaceholder")}
                     className="py-5 border-2 border-input focus-visible:ring-2 focus-visible:ring-primary/30 rounded-lg"
                   />
                 </div>
@@ -209,29 +211,29 @@ export default function AddProductPage() {
                   <CategorySelect
                     selectedCategory={selectedCategory}
                     onCategoryChange={setSelectedCategory}
-                    placeholder="Select a category"
+                    placeholder={t("selectCategory")}
                     className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="unit" className="text-sm font-medium">
-                    Unit *
+                    {t("unit")} *
                   </Label>
                   <Select
                     value={formData.unit}
                     onValueChange={(value) => handleInputChange("unit", value)}
                   >
                     <SelectTrigger className="py-5 border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg">
-                      <SelectValue placeholder="Select unit" />
+                      <SelectValue placeholder={t("selectUnit")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="liter">Liter</SelectItem>
-                      <SelectItem value="kilogram">Kilogram</SelectItem>
-                      <SelectItem value="box">Box</SelectItem>
-                      <SelectItem value="piece">Piece</SelectItem>
-                      <SelectItem value="meter">Meter</SelectItem>
-                      <SelectItem value="pack">Pack</SelectItem>
-                      <SelectItem value="bottle">bottle</SelectItem>
+                      <SelectItem value="liter">{t("unitLiter")}</SelectItem>
+                      <SelectItem value="kilogram">{t("unitKilogram")}</SelectItem>
+                      <SelectItem value="box">{t("unitBox")}</SelectItem>
+                      <SelectItem value="piece">{t("unitPiece")}</SelectItem>
+                      <SelectItem value="meter">{t("unitMeter")}</SelectItem>
+                      <SelectItem value="pack">{t("unitPack")}</SelectItem>
+                      <SelectItem value="bottle">{t("unitBottle")}</SelectItem>
 
                     </SelectContent>
                   </Select>
@@ -257,7 +259,7 @@ export default function AddProductPage() {
               {/* Modern Image Upload */}
               <div className="space-y-2">
                 <Label htmlFor="image" className="text-sm font-medium">
-                  Product Image *
+                  {t("productImage")} *
                 </Label>
                 <div className="flex items-center gap-4">
                   {imagePreview ? (
@@ -287,10 +289,10 @@ export default function AddProductPage() {
                       className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md cursor-pointer hover:opacity-90 transition-opacity"
                     >
                       <Upload className="h-4 w-4" />
-                      {imagePreview ? "Change Image" : "Upload Image"}
+                      {imagePreview ? t("changeImage") : t("uploadImage")}
                     </Label>
                     <p className="text-xs text-muted-foreground">
-                      PNG, JPG up to 5MB
+                      {t("imageFormat")}
                     </p>
                     <Input
                       id="image-upload"
@@ -314,10 +316,10 @@ export default function AddProductPage() {
                 </div>
                 <div>
                   <CardTitle className="font-heading text-xl">
-                    Inventory Management
+                    {t("inventoryManagement")}
                   </CardTitle>
                   <CardDescription>
-                    Stock levels and inventory tracking
+                    {t("inventoryManagementDescription")}
                   </CardDescription>
                 </div>
               </div>
@@ -326,7 +328,7 @@ export default function AddProductPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="currentStock" className="text-sm font-medium">
-                    Initial Stock *
+                    {t("initialStock")} *
                   </Label>
                   <Input
                     id="currentStock"
@@ -346,7 +348,7 @@ export default function AddProductPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="minQty" className="text-sm font-medium">
-                    Minimum Quantity *
+                    {t("minimumStock")} *
                   </Label>
                   <Input
                     id="minQty"
@@ -366,7 +368,7 @@ export default function AddProductPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="recommendedQty" className="text-sm font-medium">
-                    Recommended Quantity
+                    {t("recommendedQuantity")}
                   </Label>
                   <Input
                     id="recommendedQty"

@@ -26,6 +26,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Upload, ImageIcon, X, Camera } from "lucide-react";
 import { createCategory } from "@/lib/apis/categories";
 import toast from "react-hot-toast";
+import { useTranslations } from "next-intl";
 
 // Placeholder for the Switch component
 export const Switch = ({
@@ -61,6 +62,7 @@ const defaultBudget: Budget = { period: "monthly", amount: 0, spent: 0 };
 
 export function AddCategoryDialog({ setCategories }: { setCategories: any }) {
   const [open, setOpen] = useState(false);
+  const t = useTranslations("categories");
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -85,7 +87,7 @@ export function AddCategoryDialog({ setCategories }: { setCategories: any }) {
 
     const { success, message, category } = await createCategory(formDataToSend);
     if (success) {
-      toast.success("Category Created Successffully");
+      toast.success(t("createdSuccessfully"));
       setCategories((prv: any) => [...prv, category]);
       setOpen(false);
       setFormData({
@@ -166,17 +168,16 @@ export function AddCategoryDialog({ setCategories }: { setCategories: any }) {
       <DialogTrigger asChild>
         <Button className="gap-2 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary transition-all duration-200 shadow-lg hover:shadow-xl">
           <Plus className="h-4 w-4" />
-          Add Category
+          {t("addCategory")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[650px] rounded-2xl">
         <DialogHeader className="text-center">
           <DialogTitle className="font-heading text-2xl bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-            Create New Category
+            {t("createNew")}
           </DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            Organize your items with a custom category and optional budget
-            tracking
+            {t("categoryDescription")}
           </DialogDescription>
         </DialogHeader>
 
@@ -216,7 +217,7 @@ export function AddCategoryDialog({ setCategories }: { setCategories: any }) {
                         <div className="text-center">
                           <Camera className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
                           <span className="text-xs text-muted-foreground">
-                            Upload Image
+                            {t("uploadImage")}
                           </span>
                         </div>
                       </div>
@@ -232,14 +233,14 @@ export function AddCategoryDialog({ setCategories }: { setCategories: any }) {
                             <Upload className="h-3 w-3" />
                             <span className="text-sm">
                               {formData.imagePreview
-                                ? "Change Image"
-                                : "Choose Image"}
+                                ? t("changeImage")
+                                : t("chooseImage")}
                             </span>
                           </Button>
                         </div>
 
                         <p className="text-xs text-muted-foreground mt-2">
-                          PNG, JPG, WEBP up to 5MB
+                          {t("imageFormat")}
                         </p>
                       </div>
                     </>
@@ -261,13 +262,13 @@ export function AddCategoryDialog({ setCategories }: { setCategories: any }) {
               <div className="space-y-4 mb-8">
                 <div className="space-y-2">
                   <Label htmlFor="name" className="font-semibold">
-                    Category Name *
+                    {t("categoryName")} *
                   </Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => handleInputChange("name", e.target.value)}
-                    placeholder="Enter category name"
+                    placeholder={t("categoryNamePlaceholder")}
                     className="rounded-lg transition-all duration-200 focus:ring-2 focus:ring-primary/20"
                     required
                   />
@@ -276,7 +277,7 @@ export function AddCategoryDialog({ setCategories }: { setCategories: any }) {
 
               <div className="space-y-2">
                 <Label htmlFor="description" className="font-semibold">
-                  Description
+                  {t("description")}
                 </Label>
                 <Textarea
                   id="description"
@@ -284,7 +285,7 @@ export function AddCategoryDialog({ setCategories }: { setCategories: any }) {
                   onChange={(e) =>
                     handleInputChange("description", e.target.value)
                   }
-                  placeholder="Describe this category..."
+                  placeholder={t("descriptionPlaceholder")}
                   rows={5}
                   className="rounded-lg resize-none transition-all duration-200 focus:ring-2 focus:ring-primary/20"
                 />
@@ -366,14 +367,14 @@ export function AddCategoryDialog({ setCategories }: { setCategories: any }) {
               onClick={() => setOpen(false)}
               className="rounded-lg border-2 transition-all duration-200"
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               type="submit"
               className="rounded-lg bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Create Category
+              {t("create")}
             </Button>
           </DialogFooter>
         </form>

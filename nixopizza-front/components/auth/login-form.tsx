@@ -16,6 +16,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff, Package } from "lucide-react";
 import { loginUser } from "@/lib/apis/auth";
+import { useTranslations } from "next-intl";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
@@ -25,28 +26,28 @@ export function LoginForm() {
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setIsLoading(true);
-  setError("");
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
 
-  try {
-    const { success, user, message } = await loginUser({ email, password });
+    try {
+      const { success, user, message } = await loginUser({ email, password });
 
-    if (success && user?.role === "admin") {
-      window.location.href = "/dashboard";
-    } else if (success && user?.role === "staff") {
-      window.location.href = "/dashboardstaff";
-    } else {
-      setError("Unknown role. Access denied.");
+      if (success && user?.role === "admin") {
+        window.location.href = "/dashboard";
+      } else if (success && user?.role === "staff") {
+        window.location.href = "/dashboardstaff";
+      } else {
+        setError("Unknown role. Access denied.");
+      }
+    } catch (err) {
+      setError("Login failed. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
-  } catch (err) {
-    setError("Login failed. Please try again.");
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
-
+  const t = useTranslations("LoginPage");
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
       <Card className="w-full max-w-md">
@@ -56,8 +57,8 @@ export function LoginForm() {
               <Package className="h-8 w-8 text-primary-foreground" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-heading">Welcome Back</CardTitle>
-          <CardDescription>Sign in to your inventory dashboard</CardDescription>
+          <CardTitle className="text-2xl font-heading">{t("Welcome Back")}</CardTitle>
+          <CardDescription>{t("Sign in to your inventory dashboard")}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -68,11 +69,11 @@ export function LoginForm() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("Email")}</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="Enter your email"
+                placeholder={t("Enter your email")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -80,12 +81,12 @@ export function LoginForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t("Password")}</Label>
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
+                  placeholder={t("Enter your password")}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -107,7 +108,7 @@ export function LoginForm() {
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Signing in..." : "Sign In"}
+              {isLoading ? t("Signing in...") : t("Sign In")}
             </Button>
           </form>
 

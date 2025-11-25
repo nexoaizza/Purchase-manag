@@ -1,3 +1,5 @@
+"use client";
+
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { DashboardStats } from "@/components/dashboard/dashboard-stats";
 import { InventoryChart } from "@/components/dashboard/inventory-chart";
@@ -7,17 +9,20 @@ import { TopSuppliers } from "@/components/dashboard/top-suppliers";
 import { LowStockWidget } from "@/components/dashboard/low-stock-widget";
 import SpendingChartPage from "@/components/dashboard/SpendingChartPage";
 import CategorySpendingChart from "@/components/dashboard/CategorySpendingChart";
+import { useTranslations } from "next-intl";
 
 export default function DashboardPage() {
+  const t = useTranslations("dashboard");
+  
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-heading font-bold text-foreground">
-            Dashboard
+            {t("title")}
           </h1>
           <p className="text-muted-foreground">
-            Welcome to your inventory management dashboard
+            {t("welcome")}
           </p>
         </div>
         <SpendingChartPage />

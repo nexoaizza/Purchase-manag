@@ -1,5 +1,6 @@
 // components/ui/products-table.tsx
 "use client";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,7 +29,7 @@ import {
 import { useRouter } from "next/navigation";
 import { deleteProduct } from "@/lib/apis/products";
 import toast from "react-hot-toast";
-import { IProduct } from "@/app/dashboard/products/page";
+import { IProduct } from "@/app/[locale]/dashboard/products/page";
 
 // Add this import at the top
 import { Pagination } from "@/components/ui/pagination";
@@ -50,23 +51,24 @@ export function ProductsTable({
   limit: number;
   setLimit: any;
 }) {
+  const t = useTranslations("products");
   const router = useRouter();
 
   const getStockStatus = (stock: number, minStock: number) => {
     if (stock === 0)
       return {
-        label: "Out of Stock",
+        label: t("outOfStock"),
         variant: "outline" as const,
         color: "text-destructive border-destructive",
       };
     if (stock <= minStock)
       return {
-        label: "Low Stock",
+        label: t("lowStock"),
         variant: "outline" as const,
         color: "text-amber-600 border-amber-600",
       };
     return {
-      label: "In Stock",
+      label: t("inStock"),
       variant: "outline" as const,
       color: "text-green-600 border-green-600",
     };
@@ -79,7 +81,7 @@ export function ProductsTable({
   const handleDelete = async (productId: string) => {
     const { success, message } = await deleteProduct(productId);
     if (success) {
-      toast.success("Product Deleted Successfully");
+      toast.success(t("productDeletedSuccess"));
       setProducts(products.filter((pro) => pro._id !== productId));
     } else {
       toast.error(message);
@@ -93,9 +95,9 @@ export function ProductsTable({
           <div className="mb-4 p-3 bg-muted rounded-full">
             <Package className="h-10 w-10 text-muted-foreground" />
           </div>
-          <h3 className="text-xl font-semibold mb-1">No products found</h3>
+          <h3 className="text-xl font-semibold mb-1">{t("noProductsFound")}</h3>
           <p className="text-muted-foreground mb-4">
-            You don't have any products with this filtration.
+            {t("noProductsMessage")}
           </p>
         </CardContent>
       </Card>
@@ -109,13 +111,13 @@ export function ProductsTable({
           <Table>
             <TableHeader className="bg-muted/50">
               <TableRow>
-                <TableHead className="rounded-tl-lg">Product</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Stock</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead className="rounded-tl-lg">{t("product")}</TableHead>
+                <TableHead>{t("categoryHeader")}</TableHead>
+                <TableHead>{t("stockHeader")}</TableHead>
+                <TableHead>{t("priceHeader")}</TableHead>
+                <TableHead>{t("statusHeader")}</TableHead>
                 <TableHead className="rounded-tr-lg text-right">
-                  Actions
+                  {t("actions")}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -147,7 +149,7 @@ export function ProductsTable({
                         <div>
                           <div className="font-medium">{product.name}</div>
                           <div className="text-sm text-muted-foreground">
-                            BARCODE: {product.barcode || "N/A"}
+                            {t("barcode")}: {product.barcode || "N/A"}
                           </div>
                         </div>
                       </div>
@@ -201,14 +203,14 @@ export function ProductsTable({
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => handleEdit(product)}>
                             <Edit className="h-4 w-4 mr-2" />
-                            Edit
+                            {t("edit")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="text-destructive"
                             onClick={() => handleDelete(product._id)}
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
+                            {t("delete")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -223,7 +225,7 @@ export function ProductsTable({
         {/* Add Pagination component here */}
         <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="text-sm text-muted-foreground">
-            Showing {products.length} of {totalPages * limit} products
+            {t("showingProducts")} {products.length} {t("of")} {totalPages * limit} {t("products")}
           </div>
           <Pagination
             currentPage={currentPage}

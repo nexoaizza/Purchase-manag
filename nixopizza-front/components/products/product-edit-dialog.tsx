@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -36,6 +37,7 @@ interface ProductEditDialogProps {
 }
 
 export function ProductEditDialog({ product, open, onOpenChange }: ProductEditDialogProps) {
+  const t = useTranslations("products");
   const [formData, setFormData] = useState({
     name: "",
     sku: "",
@@ -80,31 +82,31 @@ export function ProductEditDialog({ product, open, onOpenChange }: ProductEditDi
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle className="font-heading">{product ? "Edit Product" : "Add New Product"}</DialogTitle>
+          <DialogTitle className="font-heading">{product ? t("editProduct") : t("addNewProduct")}</DialogTitle>
           <DialogDescription>
-            {product ? "Update product information and inventory details." : "Add a new product to your inventory."}
+            {product ? t("editProductDescription") : t("addProductDescription")}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Product Name</Label>
+              <Label htmlFor="name">{t("productName")}</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
-                placeholder="Enter product name"
+                placeholder={t("productNamePlaceholder")}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="sku">SKU</Label>
+              <Label htmlFor="sku">{t("sku")}</Label>
               <Input
                 id="sku"
                 value={formData.sku}
                 onChange={(e) => handleInputChange("sku", e.target.value)}
-                placeholder="Enter SKU"
+                placeholder={t("skuPlaceholder")}
                 required
               />
             </div>
@@ -112,10 +114,10 @@ export function ProductEditDialog({ product, open, onOpenChange }: ProductEditDi
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="category">{t("category")}</Label>
               <Select value={formData.category} onValueChange={(value) => handleInputChange("category", value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
+                  <SelectValue placeholder={t("selectCategory")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="electronics">Electronics</SelectItem>
@@ -126,12 +128,12 @@ export function ProductEditDialog({ product, open, onOpenChange }: ProductEditDi
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="supplier">Supplier</Label>
+              <Label htmlFor="supplier">{t("supplier")}</Label>
               <Input
                 id="supplier"
                 value={formData.supplier}
                 onChange={(e) => handleInputChange("supplier", e.target.value)}
-                placeholder="Enter supplier name"
+                placeholder={t("supplierPlaceholder")}
                 required
               />
             </div>
@@ -139,7 +141,7 @@ export function ProductEditDialog({ product, open, onOpenChange }: ProductEditDi
 
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="stock">Current Stock</Label>
+              <Label htmlFor="stock">{product ? t("currentStock") : t("initialStock")}</Label>
               <Input
                 id="stock"
                 type="number"
@@ -151,7 +153,7 @@ export function ProductEditDialog({ product, open, onOpenChange }: ProductEditDi
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="minStock">Minimum Stock</Label>
+              <Label htmlFor="minStock">{t("minimumStock")}</Label>
               <Input
                 id="minStock"
                 type="number"
@@ -163,7 +165,7 @@ export function ProductEditDialog({ product, open, onOpenChange }: ProductEditDi
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="price">Price (DZA)</Label>
+              <Label htmlFor="price">{t("price")}</Label>
               <Input
                 id="price"
                 type="number"
@@ -178,21 +180,21 @@ export function ProductEditDialog({ product, open, onOpenChange }: ProductEditDi
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description (Optional)</Label>
+            <Label htmlFor="description">{t("description")}</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => handleInputChange("description", e.target.value)}
-              placeholder="Enter product description"
+              placeholder={t("descriptionPlaceholder")}
               rows={3}
             />
           </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t("cancel")}
             </Button>
-            <Button type="submit">{product ? "Update Product" : "Add Product"}</Button>
+            <Button type="submit">{product ? t("update") : t("addProductButton")}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

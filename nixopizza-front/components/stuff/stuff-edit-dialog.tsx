@@ -2,6 +2,7 @@
 
 import type React from "react";
 import { useState, useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,6 +38,7 @@ export function StuffEditDialog({
   open,
   onOpenChange,
 }: StuffEditDialogProps) {
+  const t = useTranslations("staff");
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -114,10 +116,10 @@ export function StuffEditDialog({
 
       const data = await updateStuff(stuff._id, payload);
       if (data.success) {
-        toast.success("Staff updated successfully!");
+        toast.success(t("staffUpdateSuccess"));
         onOpenChange(false);
       } else {
-        toast.error(data.message || "Failed to update staff");
+        toast.error(data.message || t("staffUpdateError"));
       }
     } catch (error) {
       console.error("Update staff error:", error);
@@ -129,16 +131,16 @@ export function StuffEditDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-heading">Edit Staff Member</DialogTitle>
+          <DialogTitle className="font-heading">{t("editStaffTitle")}</DialogTitle>
           <DialogDescription>
-            Update staff information and profile picture
+            {t("editStaffDescription")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
           {/* Avatar Upload */}
           <div className="space-y-2">
-            <Label>Profile Picture</Label>
+            <Label>{t("profilePicture")}</Label>
             <div
               onClick={triggerFileInput}
               className="flex flex-col items-center justify-center gap-3 p-6 border-2 border-dashed border-muted-foreground/25 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
@@ -159,9 +161,9 @@ export function StuffEditDialog({
                     <User className="h-6 w-6 text-primary" />
                   </div>
                   <div className="text-center">
-                    <p className="text-sm font-medium">Click to upload</p>
+                    <p className="text-sm font-medium">{t("clickToUpload")}</p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      PNG, JPG up to 5MB
+                      {t("uploadInfo")}
                     </p>
                   </div>
                 </>
@@ -178,12 +180,12 @@ export function StuffEditDialog({
 
           {/* Full Name */}
           <div className="space-y-2">
-            <Label htmlFor="fullname">Full Name *</Label>
+            <Label htmlFor="fullname">{t("fullName")} *</Label>
             <Input
               id="fullname"
               value={formData.fullname}
               onChange={(e) => handleInputChange("fullname", e.target.value)}
-              placeholder="Enter full name"
+              placeholder={t("fullNamePlaceholder")}
               required
             />
           </div>
@@ -191,18 +193,18 @@ export function StuffEditDialog({
           {/* Email & Phone */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
+              <Label htmlFor="email">{t("email")} *</Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleInputChange("email", e.target.value)}
-                placeholder="email@example.com"
+                placeholder={t("emailPlaceholder")}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
+              <Label htmlFor="phone">{t("phone")}</Label>
               <Input
                 id="phone"
                 value={formData.phone}
@@ -214,18 +216,18 @@ export function StuffEditDialog({
 
           {/* Address */}
           <div className="space-y-2">
-            <Label htmlFor="address">Address</Label>
+            <Label htmlFor="address">{t("address")}</Label>
             <Input
               id="address"
               value={formData.address}
               onChange={(e) => handleInputChange("address", e.target.value)}
-              placeholder="123 Main St, City"
+              placeholder={t("addressPlaceholder")}
             />
           </div>
 
           {/* Status */}
           <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
+            <Label htmlFor="status">{t("status")}</Label>
             <Select
               value={formData.isActive ? "Active" : "Inactive"}
               onValueChange={(value) =>
@@ -239,20 +241,20 @@ export function StuffEditDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Active">Active</SelectItem>
-                <SelectItem value="Inactive">Inactive</SelectItem>
+                <SelectItem value="Active">{t("active")}</SelectItem>
+                <SelectItem value="Inactive">{t("inactive")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* Notes */}
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes (Optional)</Label>
+            <Label htmlFor="notes">{t("notes")} ({t("optional")})</Label>
             <Textarea
               id="notes"
               value={formData.notes}
               onChange={(e) => handleInputChange("notes", e.target.value)}
-              placeholder="Additional information..."
+              placeholder={t("notesPlaceholder")}
               className="min-h-[80px]"
             />
           </div>
@@ -264,13 +266,13 @@ export function StuffEditDialog({
             variant="outline"
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             onClick={handleUpdate}
             disabled={!formData.fullname || !formData.email}
           >
-            Update Staff
+            {t("updateStaff")}
           </Button>
         </DialogFooter>
       </DialogContent>

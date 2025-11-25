@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Printer, Download, Package, Building2 } from "lucide-react";
-import { IOrder } from "@/app/dashboard/purchases/page";
+import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
 import {
   Document,
   Page,
@@ -21,6 +21,7 @@ import {
   PDFDownloadLink,
   Font,
 } from "@react-pdf/renderer";
+import { useTranslations } from "next-intl";
 
 // Register a font (optional)
 Font.register({
@@ -242,6 +243,7 @@ export function ReceiptPreviewDialog({
   open,
   onOpenChange,
 }: ReceiptPreviewDialogProps) {
+  const t = useTranslations("purchases");
   if (!order) return null;
 
   const handlePrint = () => {
@@ -253,7 +255,7 @@ export function ReceiptPreviewDialog({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto print:max-w-none print:max-h-none print:m-0 print:p-0">
         <DialogHeader className="print:hidden">
           <DialogTitle className="font-heading text-xl">
-            Purchase Order Receipt
+            {t("purchaseOrders")}
           </DialogTitle>
           <DialogDescription className="sr-only">
             Preview of purchase order receipt for download or printing
@@ -267,10 +269,10 @@ export function ReceiptPreviewDialog({
           {/* Header */}
           <div className="text-center space-y-2 print:space-y-1">
             <h1 className="text-2xl font-bold font-heading print:text-xl">
-              Purchase Order
+              {t("purchaseOrders")}
             </h1>
             <p className="text-muted-foreground print:text-sm">
-              Order #{order?.orderNumber}
+              {t("orderId")} #{order?.orderNumber}
             </p>
           </div>
 
@@ -279,11 +281,11 @@ export function ReceiptPreviewDialog({
             <div className="space-y-2">
               <div className="flex items-center gap-2 font-heading font-semibold print:text-sm">
                 <Package className="h-4 w-4" />
-                <h3>Order Information</h3>
+                <h3>{t("orderSummary")}</h3>
               </div>
               <div className="text-sm space-y-1 print:text-xs">
                 <p className="flex">
-                  <span className="font-medium w-24">Order ID:</span>
+                  <span className="font-medium w-24">{t("orderId")}:</span>
                   <span>{order?.orderNumber}</span>
                 </p>
                 <p className="flex">
@@ -298,7 +300,7 @@ export function ReceiptPreviewDialog({
                     className={`font-semibold ${
                       order.status === "paid"
                         ? "text-green-600"
-                        : order.status === "pending"
+                        : order.status === "assigned"
                         ? "text-yellow-600"
                         : "text-red-600"
                     }`}
@@ -312,7 +314,7 @@ export function ReceiptPreviewDialog({
             <div className="space-y-2">
               <div className="flex items-center gap-2 font-heading font-semibold print:text-sm">
                 <Building2 className="h-4 w-4" />
-                <h3>Supplier Information</h3>
+                <h3>{t("supplierSummary")}</h3>
               </div>
               <div className="text-sm space-y-1 print:text-xs">
                 <p className="flex">
@@ -341,20 +343,20 @@ export function ReceiptPreviewDialog({
           <div className="space-y-4">
             <div className="flex items-center gap-2 font-heading font-semibold print:text-sm">
               <Package className="h-4 w-4" />
-              <h3>Order Items</h3>
+              <h3>{t("itemsHeader")}</h3>
             </div>
             <div className="border rounded-lg overflow-hidden print:border print:rounded-none">
               <table className="w-full print:table-auto">
                 <thead className="bg-muted print:bg-gray-100">
                   <tr>
                     <th className="text-left p-3 font-medium print:text-xs print:p-1">
-                      Item
+                      {t("productName")}
                     </th>
                     <th className="text-right p-3 font-medium print:text-xs print:p-1">
-                      Qty
+                      {t("quantity")}
                     </th>
                     <th className="text-right p-3 font-medium print:text-xs print:p-1">
-                      Unit Price
+                      {t("unitCost")}
                     </th>
                     <th className="text-right p-3 font-medium print:text-xs print:p-1">
                       Total
@@ -379,10 +381,10 @@ export function ReceiptPreviewDialog({
                         {item.quantity}
                       </td>
                       <td className="p-3 text-right print:p-1 print:text-xs">
-                        {item.unitCost.toFixed(2)} DA
+                        {item.unitCost.toFixed(2)} {t("da")}
                       </td>
                       <td className="p-3 text-right font-medium print:p-1 print:text-xs print:font-semibold">
-                        {(item.unitCost * item.quantity).toFixed(2)} DA
+                        {(item.unitCost * item.quantity).toFixed(2)} {t("da")}
                       </td>
                     </tr>
                   ))}
@@ -396,16 +398,16 @@ export function ReceiptPreviewDialog({
           {/* Totals */}
           <div className="space-y-2 print:space-y-1">
             <div className="flex justify-between text-xl font-bold print:text-lg">
-              <span>Total:</span>
+              <span>{t("totalAmount")}:</span>
               <span className="text-primary">
-                {order.totalAmount.toFixed(2)} DA
+                {order.totalAmount.toFixed(2)} {t("da")}
               </span>
             </div>
           </div>
 
           {/* Footer */}
           <div className="text-center text-sm text-muted-foreground pt-4 border-t print:border-t print:border-gray-200 print:pt-2">
-            <p className="print:text-xs">Thank you for your business!</p>
+            <p className="print:text-xs">{t("thankYou")}</p>
             <p className="print:text-xs">
               Generated on {new Date().toLocaleDateString()}
             </p>
@@ -416,7 +418,7 @@ export function ReceiptPreviewDialog({
         <div className="flex gap-2 pt-4 print:hidden">
           <Button onClick={handlePrint} className="flex-1 gap-2">
             <Printer className="h-4 w-4" />
-            Print Receipt
+            {t("printReceipt")}
           </Button>
           <PDFDownloadLink
             document={<ReceiptPDF order={order} />}
@@ -430,7 +432,7 @@ export function ReceiptPreviewDialog({
                 disabled={loading}
               >
                 <Download className="h-4 w-4" />
-                {loading ? "Generating..." : "Download PDF"}
+                {loading ? t("generating") : t("downloadPDF")}
               </Button>
             )}
           </PDFDownloadLink>

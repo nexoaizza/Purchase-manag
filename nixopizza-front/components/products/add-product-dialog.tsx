@@ -3,6 +3,7 @@
 import type React from "react";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,6 +27,7 @@ import {
 import { Plus } from "lucide-react";
 
 export function AddProductDialog() {
+  const t = useTranslations("products");
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -68,36 +70,36 @@ export function AddProductDialog() {
       <DialogTrigger asChild>
         <Button className="gap-2">
           <Plus className="h-4 w-4" />
-          Add Product
+          {t("addProduct")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle className="font-heading">Add New Product</DialogTitle>
+          <DialogTitle className="font-heading">{t("addNewProduct")}</DialogTitle>
           <DialogDescription>
-            Add a new product to your inventory system.
+            {t("addProductDescription")}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Product Name</Label>
+              <Label htmlFor="name">{t("productName")}</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
-                placeholder="Enter product name"
+                placeholder={t("productNamePlaceholder")}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="sku">SKU</Label>
+              <Label htmlFor="sku">{t("sku")}</Label>
               <Input
                 id="sku"
                 value={formData.sku}
                 onChange={(e) => handleInputChange("sku", e.target.value)}
-                placeholder="Enter SKU"
+                placeholder={t("skuPlaceholder")}
                 required
               />
             </div>
@@ -105,13 +107,13 @@ export function AddProductDialog() {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="category">{t("category")}</Label>
               <Select
                 value={formData.category}
                 onValueChange={(value) => handleInputChange("category", value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
+                  <SelectValue placeholder={t("selectCategory")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="electronics">Electronics</SelectItem>
@@ -122,12 +124,12 @@ export function AddProductDialog() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="supplier">Supplier</Label>
+              <Label htmlFor="supplier">{t("supplier")}</Label>
               <Input
                 id="supplier"
                 value={formData.supplier}
                 onChange={(e) => handleInputChange("supplier", e.target.value)}
-                placeholder="Enter supplier name"
+                placeholder={t("supplierPlaceholder")}
                 required
               />
             </div>
@@ -135,7 +137,7 @@ export function AddProductDialog() {
 
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="stock">Initial Stock</Label>
+              <Label htmlFor="stock">{t("initialStock")}</Label>
               <Input
                 id="stock"
                 type="number"
@@ -152,7 +154,7 @@ export function AddProductDialog() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="minStock">Minimum Stock</Label>
+              <Label htmlFor="minStock">{t("minimumStock")}</Label>
               <Input
                 id="minStock"
                 type="number"
@@ -169,7 +171,7 @@ export function AddProductDialog() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="price">Price (DZA)</Label>
+              <Label htmlFor="price">{t("price")}</Label>
               <Input
                 id="price"
                 type="number"
@@ -189,12 +191,12 @@ export function AddProductDialog() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description (Optional)</Label>
+            <Label htmlFor="description">{t("description")}</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => handleInputChange("description", e.target.value)}
-              placeholder="Enter product description"
+              placeholder={t("descriptionPlaceholder")}
               rows={3}
             />
           </div>
@@ -205,9 +207,9 @@ export function AddProductDialog() {
               variant="outline"
               onClick={() => setOpen(false)}
             >
-              Cancel
+              {t("cancel")}
             </Button>
-            <Button type="submit">Add Product</Button>
+            <Button type="submit">{t("addProductButton")}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

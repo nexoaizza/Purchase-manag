@@ -25,6 +25,7 @@ import { Switch } from "../ui/switch";
 import { updateCategory } from "@/lib/apis/categories";
 import toast from "react-hot-toast";
 import { Upload, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface Category {
   id: string;
@@ -57,6 +58,7 @@ export function CategoryEditDialog({
     status: "Active",
     notes: "",
   });
+  const t = useTranslations("categories");
 
   const [isBudgetAllocated, setIsBudgetAllocated] = useState(false);
   const [photo, setPhoto] = useState<File | null>(null);
@@ -96,7 +98,7 @@ export function CategoryEditDialog({
     } = await updateCategory(category._id, formDataToSend);
 
     if (success) {
-      toast.success("Category updated successfully");
+      toast.success(t("updatedSuccessfully"));
       setCategory(updatedCategory);
       onOpenChange(false);
       setPhoto(null);
@@ -137,19 +139,19 @@ export function CategoryEditDialog({
       <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-heading text-2xl">
-            {category ? "Edit Category" : "Add New Category"}
+            {category ? t("editCategory") : t("addNewCategory")}
           </DialogTitle>
           <DialogDescription>
             {category
-              ? "Update category name, description, type, and image."
-              : "Add a new product or expense category."}
+              ? t("updateMessage")
+              : t("addMessage")}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Image Upload Section */}
           <div className="space-y-2">
-            <Label>Category Image</Label>
+            <Label>{t("description")}</Label>
             <div className="flex items-center gap-4">
               {photoPreview || category?.image ? (
                 <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200">
@@ -182,11 +184,11 @@ export function CategoryEditDialog({
                 >
                   <Upload className="h-4 w-4" />
                   {photoPreview || category?.image
-                    ? "Change Image"
-                    : "Upload Image"}
+                    ? t("changeImage")
+                    : t("uploadImage")}
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  PNG, JPG up to 5MB
+                  {t("imageFormat")}
                 </p>
                 <Input
                   id="image-upload"
@@ -200,24 +202,24 @@ export function CategoryEditDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="name">Category Name</Label>
+            <Label htmlFor="name">{t("categoryName")}</Label>
             <Input
               id="name"
               value={formData.name}
               onChange={(e) => handleInputChange("name", e.target.value)}
-              placeholder="Enter category name"
+              placeholder={t("categoryNamePlaceholder")}
               required
               className="py-5"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t("description")}</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => handleInputChange("description", e.target.value)}
-              placeholder="Enter category description"
+              placeholder={t("descriptionPlaceholder")}
               rows={3}
               className="resize-y"
             />
@@ -282,10 +284,10 @@ export function CategoryEditDialog({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button type="submit">
-              {category ? "Update Category" : "Add Category"}
+              {category ? t("update") : t("addNewCategory")}
             </Button>
           </DialogFooter>
         </form>

@@ -3,8 +3,10 @@ import { getOrdersStats } from "@/lib/apis/purchase-list";
 import { ShoppingCart, Clock, CheckCircle, DollarSign } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { useTranslations } from "next-intl";
 
 export function PurchaseStats() {
+  const t = useTranslations("purchases");
   const [stats, setStats] = useState({
     pendingOrders: 0,
     confirmedOrders: 0,
@@ -24,28 +26,28 @@ export function PurchaseStats() {
       if (success) {
         setStats({ pendingOrders, confirmedOrders, paidOrders, totalValue });
       } else {
-        toast.error(message || "Failed to fetch order stats");
+        toast.error(message || t("unexpectedError"));
       }
     };
     fetchStats();
-  }, []);
+  }, [t]);
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
+          <CardTitle className="text-sm font-medium">{t("pendingOrders")}</CardTitle>
           <Clock className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{stats.pendingOrders}</div>
-          <p className="text-xs text-muted-foreground">Awaiting processing</p>
+          <p className="text-xs text-muted-foreground">{t("awaitingProcessing")}</p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
-            Confirmed Orders
+            {t("confirmedOrders")}
           </CardTitle>
           <CheckCircle className="h-4 w-4 text-blue-600" />
         </CardHeader>
@@ -53,33 +55,33 @@ export function PurchaseStats() {
           <div className="text-2xl font-bold text-blue-600">
             {stats.confirmedOrders}
           </div>
-          <p className="text-xs text-muted-foreground">Ready for fulfillment</p>
+          <p className="text-xs text-muted-foreground">{t("readyForFulfillment")}</p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Paid Orders</CardTitle>
+          <CardTitle className="text-sm font-medium">{t("paidOrders")}</CardTitle>
           <p className="text-green-600">DZA</p>
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-green-600">
             {stats.paidOrders}
           </div>
-          <p className="text-xs text-muted-foreground">Payment received</p>
+          <p className="text-xs text-muted-foreground">{t("paymentReceived")}</p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Value</CardTitle>
+          <CardTitle className="text-sm font-medium">{t("totalValue")}</CardTitle>
           <ShoppingCart className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
             {stats.totalValue.toFixed(2)} DA
           </div>
-          <p className="text-xs text-muted-foreground">This month</p>
+          <p className="text-xs text-muted-foreground">{t("thisMonth")}</p>
         </CardContent>
       </Card>
     </div>

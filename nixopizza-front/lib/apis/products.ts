@@ -1,4 +1,4 @@
-import { IProduct } from "@/app/dashboard/products/page.jsx";
+import { IProduct } from "@/app/[locale]/dashboard/products/page.jsx";
 import api from "../axios.ts";
 
 // Login user

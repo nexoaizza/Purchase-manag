@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface PaginationProps {
   currentPage: number;
@@ -30,6 +31,7 @@ export function Pagination({
   onLimitChange,
   className,
 }: PaginationProps) {
+  const t = useTranslations("pagination");
   // Generate page numbers to display
   const getPageNumbers = () => {
     const pages = [];
@@ -104,7 +106,7 @@ export function Pagination({
   return (
     <div className={cn("flex items-center justify-between", className)}>
       <div className="flex items-center space-x-4">
-        <div className="text-sm text-muted-foreground">Items per page:</div>
+        <div className="text-sm text-muted-foreground">{t("itemsPerPage")}</div>
         <Select value={limit.toString()} onValueChange={handleLimitChange}>
           <SelectTrigger className="w-20">
             <SelectValue />
@@ -121,7 +123,7 @@ export function Pagination({
 
       <div className="flex items-center space-x-4">
         <div className="text-sm text-muted-foreground">
-          Page {currentPage} of {totalPages}
+          {t("page")} {currentPage} {t("of")} {totalPages}
         </div>
 
         <div className="flex items-center space-x-1">
@@ -130,7 +132,7 @@ export function Pagination({
             size="sm"
             onClick={handlePrevious}
             disabled={currentPage === 1}
-            aria-label="Previous page"
+            aria-label={t("previousPage")}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -146,7 +148,7 @@ export function Pagination({
                 variant={currentPage === page ? "default" : "outline"}
                 size="sm"
                 onClick={() => goToPage(page)}
-                aria-label={`Go to page ${page}`}
+                aria-label={`${t("goToPage")} ${page}`}
                 className={currentPage === page ? "pointer-events-none" : ""}
               >
                 {page}
@@ -159,7 +161,7 @@ export function Pagination({
             size="sm"
             onClick={handleNext}
             disabled={currentPage === totalPages}
-            aria-label="Next page"
+            aria-label={t("nextPage")}
           >
             <ChevronRight className="h-4 w-4" />
           </Button>

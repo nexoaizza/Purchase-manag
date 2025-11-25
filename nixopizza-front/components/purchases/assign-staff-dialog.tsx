@@ -25,7 +25,8 @@ import {
 } from "@/components/ui/select";
 import { UserPlus, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
-import { IOrder } from "@/app/dashboard/purchases/page";
+import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
+import { useTranslations } from "next-intl";
 
 interface Staff {
   _id: string;
@@ -47,6 +48,7 @@ export function AssignStaffDialog({
   onOpenChange,
   onOrderUpdated,
 }: AssignStaffDialogProps) {
+  const t = useTranslations("purchases");
   const [staffList, setStaffList] = useState<Staff[]>([]);
   const [selectedStaffId, setSelectedStaffId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
@@ -55,25 +57,23 @@ export function AssignStaffDialog({
   // Fetch staff members
   useEffect(() => {
 const fetchStaff = async () => {
-  try {
-    setIsFetchingStaff(true);
-    const params = { page: 1, limit: 1000 } as unknown as { name?: string };
-    const { success, staffs, message } = await getStuff(params);
+      try {
+        setIsFetchingStaff(true);
+        const params = { page: 1, limit: 1000 } as unknown as { name?: string };
+        const { success, staffs, message } = await getStuff(params);
 
-    if (success && staffs) {
-      setStaffList(staffs);
-    } else {
-      toast.error(message || "Failed to load staff members");
-    }
-  } catch (error) {
-    console.error("Failed to fetch staff:", error);
-    toast.error("Failed to load staff members");
-  } finally {
-    setIsFetchingStaff(false);
-  }
-};
-
-
+        if (success && staffs) {
+          setStaffList(staffs);
+        } else {
+          toast.error(message || t("unexpectedError"));
+        }
+      } catch (error) {
+        console.error("Failed to fetch staff:", error);
+        toast.error(t("unexpectedError"));
+      } finally {
+        setIsFetchingStaff(false);
+      }
+    };
 
     if (open) {
       fetchStaff();
@@ -82,7 +82,7 @@ const fetchStaff = async () => {
 
 const handleAssign = async () => {
   if (!selectedStaffId) {
-    toast.error("Please select a staff member");
+    toast.error(t("selectStaffError"));
     return;
   }
 
@@ -96,7 +96,7 @@ const handleAssign = async () => {
     );
 
     if (success && updatedOrder) {
-  toast.success("Order assigned successfully");
+  toast.success(t("orderAssigned"));
   onOrderUpdated(updatedOrder);
   onOpenChange(false);
   setSelectedStaffId("");
@@ -106,12 +106,12 @@ const handleAssign = async () => {
     window.location.reload();
   }, 800);
 } else {
-  toast.error(message || "Failed to assign order");
+  toast.error(message || t("failedAssign"));
 }
 
   } catch (error) {
     console.error("Error assigning order:", error);
-    toast.error("Failed to assign order");
+    toast.error(t("failedAssign"));
   } finally {
     setIsLoading(false);
   }
@@ -126,17 +126,17 @@ const handleAssign = async () => {
         <DialogHeader>
           <DialogTitle className="font-heading flex items-center gap-2">
             <UserPlus className="h-5 w-5" />
-            Assign Order to Staff
+            {t("assignOrderToStaff")}
           </DialogTitle>
           <DialogDescription>
-            Select a staff member to assign order {order.orderNumber}
+            {t("selectStaffAssign")} {order.orderNumber}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="staff" className="text-sm font-medium">
-              Staff Member *
+              {t("staffMember")}
             </Label>
             {isFetchingStaff ? (
               <div className="flex items-center justify-center py-8">
@@ -145,7 +145,7 @@ const handleAssign = async () => {
             ) : (
               <Select value={selectedStaffId} onValueChange={setSelectedStaffId}>
                 <SelectTrigger className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg">
-                  <SelectValue placeholder="Select staff member" />
+                  <SelectValue placeholder={t("selectStaffMember")} />
                 </SelectTrigger>
                 <SelectContent>
                   {staffList.map((staff) => (
@@ -173,17 +173,17 @@ const handleAssign = async () => {
           {/* Order Details */}
           <div className="bg-muted/50 rounded-lg p-4 space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Supplier:</span>
+              <span className="text-muted-foreground">{t("supplierField")}</span>
               <span className="font-medium">{order.supplierId?.name}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Items:</span>
-              <span className="font-medium">{order.items.length} items</span>
+              <span className="text-muted-foreground">{t("itemsCount")}</span>
+              <span className="font-medium">{order.items.length} {t("items")}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Total Amount:</span>
+              <span className="text-muted-foreground">{t("totalAmount")}</span>
               <span className="font-medium">
-                {order.totalAmount.toFixed(2)} DA
+                {order.totalAmount.toFixed(2)} {t("da")}
               </span>
             </div>
           </div>
@@ -197,7 +197,7 @@ const handleAssign = async () => {
             disabled={isLoading}
             className="rounded-full px-6"
           >
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             type="button"
@@ -208,10 +208,10 @@ const handleAssign = async () => {
             {isLoading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Assigning...
+                {t("assigningStaff")}
               </>
             ) : (
-              "Assign Order"
+              t("assignButton")
             )}
           </Button>
         </DialogFooter>

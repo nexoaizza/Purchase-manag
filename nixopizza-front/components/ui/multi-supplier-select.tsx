@@ -6,7 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Search, X } from "lucide-react";
 import { get_all_suppliers } from "@/lib/apis/suppliers";
-import { ISupplier } from "@/app/dashboard/suppliers/page";
+import { ISupplier } from "@/app/[locale]/dashboard/suppliers/page";
 import { Badge } from "@/components/ui/badge";
 
 interface MultiSupplierSelectProps {

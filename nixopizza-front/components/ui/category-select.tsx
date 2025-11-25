@@ -6,7 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Search, X } from "lucide-react";
 import { getCategories } from "@/lib/apis/categories";
-import { ICategory } from "@/app/dashboard/categories/page";
+import { ICategory } from "@/app/[locale]/dashboard/categories/page";
 
 interface CategorySelectProps {
   categories?: ICategory[]; // Optional prop for categories to display

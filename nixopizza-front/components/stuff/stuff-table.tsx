@@ -1,6 +1,7 @@
 // components/stuff/stuff-table.tsx
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,6 +54,7 @@ export function StuffTable({
   limit: number;
   setLimit: any;
 }) {
+  const t = useTranslations("staff");
   const router = useRouter();
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [selectStuff, setSelectStuff] = useState<IUser | null>(null);
@@ -66,13 +68,13 @@ export function StuffTable({
   const getAccountStatus = (isActive: boolean) => {
     if (isActive) {
       return {
-        label: "Active",
+        label: t("active"),
         variant: "default" as const,
         icon: <CheckCircle className="h-4 w-4" />,
       };
     }
     return {
-      label: "Inactive",
+      label: t("inactive"),
       variant: "destructive" as const,
       icon: <XCircle className="h-4 w-4" />,
     };
@@ -86,28 +88,28 @@ export function StuffTable({
   const handleDelete = async (user: IUser) => {
     const data = await deleteStuff(user._id);
     if (data.success) {
-      toast.success("Stuff deleted successfully");
+      toast.success(t("staffDeletedSuccess"));
       setStuffs(stuffs.filter((stuff) => stuff._id !== user._id));
       setOpenEditDialog(false);
     } else {
-      toast.error(data.message || "Failed to delete stuff");
+      toast.error(data.message || t("staffDeleteError"));
     }
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-heading">Stuff Directory</CardTitle>
+        <CardTitle className="font-heading">{t("stuffDirectory")}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Full Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>{t("fullName")}</TableHead>
+                <TableHead>{t("email")}</TableHead>
+                <TableHead>{t("role")}</TableHead>
+                <TableHead>{t("status")}</TableHead>
                 <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -162,11 +164,11 @@ export function StuffTable({
                             onClick={() => handleAssignTask(user)}
                           >
                             <ClipboardList className="h-4 w-4 mr-2" />
-                            Assign Task
+                            {t("assignTask")}
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleEdit(user)}>
                             <Edit className="h-4 w-4 mr-2" />
-                            Edit
+                            {t("edit")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -181,7 +183,7 @@ export function StuffTable({
         {/* Pagination */}
         <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="text-sm text-muted-foreground">
-            Showing {stuffs.length} of {totalPages * limit} staff members
+            {t("showing")} {stuffs.length} {t("of")} {totalPages * limit} {t("staffMembers")}
           </div>
           <Pagination
             currentPage={currentPage}

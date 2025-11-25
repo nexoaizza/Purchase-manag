@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { AlertsHeader } from "@/components/alerts/alerts-header";
 import { LowStockTable } from "@/components/alerts/low-stock-table";
@@ -11,6 +12,7 @@ import toast from "react-hot-toast";
 type StatusFilter = "all" | "critical" | "high" | "medium";
 
 export default function AlertsPage() {
+  const t = useTranslations("alerts");
   const [summary, setSummary] = useState({
     critical: 0,
     high: 0,
