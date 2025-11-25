@@ -30,7 +30,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const token = generateToken(user._id as string, user.role === "admin");
+    const token = generateToken(user._id as any, user.role === "admin");
 
     res.status(200).json({
       message: "Login successful",
@@ -108,7 +108,7 @@ export const refreshTokens = async (
       return;
     }
 
-    const token = generateToken(user._id as string, user.role === "admin");
+    const token = generateToken(user._id as any, user.role === "admin");
 
     res.status(200).json({ message: "Token refreshed", access_token: token });
   } catch (error: any) {

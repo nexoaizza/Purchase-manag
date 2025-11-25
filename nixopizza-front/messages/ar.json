@@ -6,7 +6,7 @@
         "Password": "كلمة المرور",
         "Sign In": "تسجيل الدخول",
         "Forgot your password?": "هل نسيت كلمة المرور؟",
-        "Signing in...": "جاري تسجيل الدخول...",
+        "signingIn": "جاري تسجيل الدخول...",
         "Enter your password": "أدخل كلمة المرور الخاصة بك",
         "Enter your email": "أدخل بريدك الإلكتروني"
     },

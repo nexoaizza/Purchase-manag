@@ -6,7 +6,7 @@
         "Password": "Password",
         "Sign In": "Sign In",
         "Forgot your password?": "Forgot your password?",
-        "Signing in...": "Signing in...",
+        "signingIn": "Signing in...",
         "Enter your password": "Enter your password",
         "Enter your email": "Enter your email"
     },
