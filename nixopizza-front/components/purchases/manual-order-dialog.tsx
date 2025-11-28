@@ -528,3 +528,5 @@ export function ManualOrderDialog({
     </Dialog>
   );
 }
+// Dual export to satisfy any import style
+export default ManualOrderDialog;

@@ -4,36 +4,26 @@ import { upload } from "../middlewares/Multer";
 import {
   createOrder,
   assignOrder,
-  confirmOrder,
+  submitOrderForReview,
+  verifyOrder,
   updateOrder,
   getOrdersByFilter,
   getOrderStats,
   getOrderAnalytics,
+  getOrder,
 } from "../controllers/order.controller";
 
 const orderRouter = Router();
-
 orderRouter.use(authenticate);
 
-// Create order (optional bill image)
 orderRouter.post("/", upload().single("image"), createOrder);
-
-// Assign order
 orderRouter.post("/:orderId/assign", assignOrder);
-
-// Confirm order (preferred explicit endpoint)
-orderRouter.post("/:orderId/confirm", upload().single("image"), confirmOrder);
-
-// Update order (paid/canceled or alternative confirmation flow)
+orderRouter.post("/:orderId/review", upload().single("image"), submitOrderForReview);
+orderRouter.post("/:orderId/verify", verifyOrder);
 orderRouter.put("/:orderId", upload().single("image"), updateOrder);
-
-// Stats (404 fix)
 orderRouter.get("/stats", getOrderStats);
-
-// Analytics (optional)
 orderRouter.get("/analytics", getOrderAnalytics);
-
-// Filtered fetch
+orderRouter.get("/:orderId", getOrder);
 orderRouter.get("/", getOrdersByFilter);
 
 export default orderRouter;
