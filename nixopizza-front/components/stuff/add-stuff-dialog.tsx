@@ -1,5 +1,12 @@
 "use client";
-import { useState } from "react";
+
+import type React from "react";
+import { useState, useRef } from "react";
+import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -8,10 +15,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Plus, Upload } from "lucide-react";
 import toast from "react-hot-toast";
 import { createStuff } from "@/lib/apis/stuff";
@@ -36,6 +39,8 @@ export function AddStuffDialog({ addNewStuff }: AddStuffDialogProps) {
     notes: "",
     avatar: null as File | null,
   });
+    const {t} = useTranslations("stuff");
+
 
   const handleInputChange = (field: string, value: string) =>
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -112,14 +117,16 @@ export function AddStuffDialog({ addNewStuff }: AddStuffDialogProps) {
       <DialogTrigger asChild>
         <Button className="gap-2">
           <Plus className="h-4 w-4" />
-          Add Staff
+          {t("addStaff")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-heading">Add New Staff Member</DialogTitle>
+          <DialogTitle className="font-heading">
+            {t("addStaffTitle")}
+          </DialogTitle>
           <DialogDescription>
-            Fill in the details below to add a new team member.
+            {t("addStaffDescription")}
           </DialogDescription>
         </DialogHeader>
 
@@ -142,7 +149,12 @@ export function AddStuffDialog({ addNewStuff }: AddStuffDialogProps) {
                   <div className="p-3 bg-primary/10 rounded-full">
                     <Upload className="h-6 w-6 text-primary" />
                   </div>
-                  <p className="text-xs text-muted-foreground">Click to upload</p>
+                  <div className="text-center">
+                    <p className="text-sm font-medium">{t("clickToUpload")}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {t("uploadInfo")}
+                    </p>
+                  </div>
                 </>
               )}
             </label>
@@ -155,30 +167,37 @@ export function AddStuffDialog({ addNewStuff }: AddStuffDialogProps) {
             />
           </div>
 
+          {/* Full Name */}
+          <div className="space-y-2">
+            <Label htmlFor="fullname">{t("fullName")} *</Label>
+            <Input
+              id="fullname"
+              value={formData.fullname}
+              onChange={(e) => handleInputChange("fullname", e.target.value)}
+              placeholder={t("fullNamePlaceholder")}
+              required
+            />
+          </div>
+
+          {/* Email & Password */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Full Name *</Label>
-              <Input
-                value={formData.fullname}
-                onChange={(e) => handleInputChange("fullname", e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Email *</Label>
+              <Label htmlFor="email">{t("email")} *</Label>
               <Input
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleInputChange("email", e.target.value)}
+                placeholder={t("emailPlaceholder")}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label>Password *</Label>
+              <Label htmlFor="password">{t("password")} *</Label>
               <Input
                 type="password"
                 value={formData.password}
                 onChange={(e) => handleInputChange("password", e.target.value)}
+                placeholder={t("passwordPlaceholder")}
                 required
               />
             </div>
@@ -208,13 +227,7 @@ export function AddStuffDialog({ addNewStuff }: AddStuffDialogProps) {
               <Input
                 value={formData.address}
                 onChange={(e) => handleInputChange("address", e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Status</Label>
-              <Input
-                value={formData.status}
-                onChange={(e) => handleInputChange("status", e.target.value)}
+                placeholder={t("addressPlaceholder")}
               />
             </div>
           </div>

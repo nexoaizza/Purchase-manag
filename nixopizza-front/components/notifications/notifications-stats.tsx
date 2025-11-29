@@ -2,32 +2,35 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Bell, AlertTriangle, CheckCircle, Clock } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 export function NotificationsStats() {
+  const t = useTranslations("notifications")
+
   const stats = [
     {
-      title: "Total Notifications",
+      title: t("totalNotifications"),
       value: "24",
       icon: Bell,
       color: "text-blue-600",
       bgColor: "bg-blue-100",
     },
     {
-      title: "Unread",
+      title: t("unreadCount"),
       value: "8",
       icon: Clock,
       color: "text-orange-600",
       bgColor: "bg-orange-100",
     },
     {
-      title: "Critical Alerts",
+      title: t("criticalAlerts"),
       value: "3",
       icon: AlertTriangle,
       color: "text-red-600",
       bgColor: "bg-red-100",
     },
     {
-      title: "Resolved",
+      title: t("resolved"),
       value: "16",
       icon: CheckCircle,
       color: "text-green-600",

@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
-import { X, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { resolveImage } from "@/lib/resolveImage";
+import { Search, X } from "lucide-react";
+import { getProducts } from "@/lib/apis/products";
+import { IProduct } from "@/app/[locale]/dashboard/products/page";
 
 interface Product {
   _id: string;

@@ -23,12 +23,13 @@ import {
 import { Upload, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { getCategories } from "@/lib/apis/categories";
-import { ICategory } from "@/app/dashboard/categories/page";
+import { ICategory } from "@/app/[locale]/dashboard/categories/page";
 import { CategorySelect } from "../ui/category-select";
 import { updateSupplier } from "@/lib/apis/suppliers";
 import toast from "react-hot-toast";
-import { ISupplier } from "@/app/dashboard/suppliers/page";
 import { resolveImage } from "@/lib/resolveImage";
+import { ISupplier } from "@/app/[locale]/dashboard/suppliers/page";
+import { useTranslations } from "next-intl";
 
 interface SupplierEditDialogProps {
   supplier: ISupplier | null;
@@ -43,6 +44,7 @@ export function SupplierEditDialog({
   onOpenChange,
   handleUpdateSupplier,
 }: SupplierEditDialogProps) {
+  const t = useTranslations("suppliers")
   const [categories, setCategories] = useState<ICategory[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<ICategory[]>([]);
   const [image, setImage] = useState<File | null>(null);
@@ -153,7 +155,7 @@ export function SupplierEditDialog({
     );
     if (success) {
       handleUpdateSupplier(updatedSupplier);
-      toast.success("Supplier Updated Successfully");
+      toast.success(t("updatedSuccessfully"));
       setImage(null);
       setImagePreview(resolveImage(updatedSupplier.image));
       onOpenChange(false);
@@ -221,32 +223,38 @@ export function SupplierEditDialog({
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-heading text-2xl">
-            {supplier ? "Edit Supplier" : "Add Supplier"}
+            {supplier ? t("editing") : t("addNewSupplier")}
           </DialogTitle>
           <DialogDescription>
             {supplier
-              ? "Update supplier information and contact details."
-              : "Create a new supplier."}
+              ? t("editingDesc")
+              : t("addSupplierDesc")}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label>Company Name *</Label>
+              <Label htmlFor="name" className="text-sm font-medium">
+                {t("companyName")}
+              </Label>
               <Input
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
+                placeholder={t("companyNamePlaceholder")}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label>Contact Person *</Label>
+              <Label htmlFor="contactPerson" className="text-sm font-medium">
+                {t("contactPersonField")}
+              </Label>
               <Input
                 value={formData.contactPerson}
                 onChange={(e) =>
                   handleInputChange("contactPerson", e.target.value)
                 }
+                placeholder={t("contactPersonPlaceholder")}
                 required
               />
             </div>
@@ -254,7 +262,9 @@ export function SupplierEditDialog({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label>Email (Optional)</Label>
+              <Label htmlFor="email" className="text-sm font-medium">
+                {t("emailField")}
+              </Label>
               <Input
                 type="email"
                 value={formData.email}
@@ -337,7 +347,7 @@ export function SupplierEditDialog({
                   className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md cursor-pointer hover:opacity-90"
                 >
                   <Upload className="h-4 w-4" />
-                  {imagePreview ? "Change Image" : "Upload Image"}
+                  {imagePreview ? t("changeImage") : t("uploadImage")}
                 </Label>
                 <p className="text-xs text-muted-foreground">
                   PNG, JPG up to 5MB
@@ -408,8 +418,8 @@ export function SupplierEditDialog({
             <Textarea
               value={formData.notes}
               onChange={(e) => handleInputChange("notes", e.target.value)}
+              placeholder={t("notesPlaceholder")}
               rows={3}
-              placeholder="Additional notes..."
             />
           </div>
 
@@ -419,10 +429,10 @@ export function SupplierEditDialog({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t("cancel")}
             </Button>
-            <Button type="submit">
-              {supplier ? "Update Supplier" : "Add Supplier"}
+            <Button type="submit" className="rounded-full px-6">
+              {supplier ? t("updateSupplier") : t("addSupplierButton")}
             </Button>
           </DialogFooter>
         </form>

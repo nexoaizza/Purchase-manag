@@ -29,7 +29,8 @@
     "multer": "^2.0.1",
     "node-cron": "^3.0.3",
     "nodemailer": "^7.0.4",
-    "server": "file:"
+    "server": "file:",
+    "swagger-ui-express": "^4.6.3"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -47,6 +48,7 @@
     "nodemon": "^3.0.3",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "@types/swagger-ui-express": "^4.1.3"
   }
 }

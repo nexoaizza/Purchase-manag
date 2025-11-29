@@ -28,13 +28,15 @@ import { getCategories } from "@/lib/apis/categories";
 import { create_supplier } from "@/lib/apis/suppliers";
 import toast from "react-hot-toast";
 import { CategorySelect } from "../ui/category-select";
-import { ICategory } from "@/app/dashboard/categories/page";
+import { ICategory } from "@/app/[locale]/dashboard/categories/page";
+import { useTranslations } from "next-intl";
 
 export function AddSupplierDialog({
   onAdding,
 }: {
   onAdding: (supplier: any) => void;
 }) {
+  const t = useTranslations("suppliers")
   const [categories, setCategories] = useState<ICategory[]>([]);
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -168,16 +170,17 @@ export function AddSupplierDialog({
     <Dialog open={open} onOpenChange={handleDialogChange}>
       <DialogTrigger asChild>
         <Button className="gap-2">
-          <Plus className="h-4 w-4" /> Add Supplier
+          <Plus className="h-4 w-4" />
+          {t("addSupplier")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-heading text-2xl">
-            Add New Supplier
+            {t("addNewSupplier")}
           </DialogTitle>
           <DialogDescription>
-            Add a new supplier. Email and image are optional.
+            {t("addSupplierDesc")}
           </DialogDescription>
         </DialogHeader>
 
@@ -190,20 +193,26 @@ export function AddSupplierDialog({
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label>Company Name *</Label>
+              <Label htmlFor="name" className="text-sm font-medium">
+                {t("companyName")}
+              </Label>
               <Input
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
+                placeholder={t("companyNamePlaceholder")}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label>Contact Person *</Label>
+              <Label htmlFor="contactPerson" className="text-sm font-medium">
+                {t("contactPersonField")}
+              </Label>
               <Input
                 value={formData.contactPerson}
                 onChange={(e) =>
                   handleInputChange("contactPerson", e.target.value)
                 }
+                placeholder={t("contactPersonPlaceholder")}
                 required
               />
             </div>
@@ -211,7 +220,9 @@ export function AddSupplierDialog({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label>Email (Optional)</Label>
+              <Label htmlFor="email" className="text-sm font-medium">
+                {t("emailField")}
+              </Label>
               <Input
                 type="email"
                 value={formData.email}
@@ -294,7 +305,7 @@ export function AddSupplierDialog({
                   className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md cursor-pointer hover:opacity-90"
                 >
                   <Upload className="h-4 w-4" />
-                  {imagePreview ? "Change Image" : "Upload Image"}
+                  {imagePreview ? t("changeImage") : t("uploadImage")}
                 </Label>
                 <p className="text-xs text-muted-foreground">
                   PNG, JPG up to 5MB
@@ -348,29 +359,34 @@ export function AddSupplierDialog({
 
           {/* Status */}
           <div className="space-y-2">
-            <Label>Status</Label>
+            <Label htmlFor="status" className="text-sm font-medium">
+              {t("status")}
+            </Label>
             <Select
               value={formData.isActive ? "Active" : "Inactive"}
               onValueChange={(v) =>
                 handleInputChange("isActive", v === "Active")
               }
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Select status" />
+              <SelectTrigger className="py-5 border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg">
+                <SelectValue placeholder={t("status")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Active">Active</SelectItem>
-                <SelectItem value="Inactive">Inactive</SelectItem>
+                <SelectItem value="Active">{t("activeStatus")}</SelectItem>
+                <SelectItem value="Inactive">{t("inactiveStatus")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* Notes */}
           <div className="space-y-2">
-            <Label>Notes (Optional)</Label>
+            <Label htmlFor="notes" className="text-sm font-medium">
+              {t("notes")}
+            </Label>
             <Textarea
               value={formData.notes}
               onChange={(e) => handleInputChange("notes", e.target.value)}
+              placeholder={t("notesPlaceholder")}
               rows={3}
               placeholder="Additional notes..."
             />
@@ -383,10 +399,14 @@ export function AddSupplierDialog({
               onClick={() => setOpen(false)}
               disabled={isSubmitting}
             >
-              Cancel
+              {t("cancel")}
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Adding..." : "Add Supplier"}
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="rounded-full px-6"
+            >
+              {isSubmitting ? t("updatingStatus") : t("addSupplierButton")}
             </Button>
           </DialogFooter>
         </form>

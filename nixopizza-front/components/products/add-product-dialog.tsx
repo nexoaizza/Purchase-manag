@@ -1,6 +1,10 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import type React from "react";
+
+import { useState, useRef } from "react";
+
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,7 +29,8 @@ import { Plus, Upload, X } from "lucide-react";
 import { createProduct } from "@/lib/apis/products";
 import toast from "react-hot-toast";
 
-export function AddProductDialog({ onAdded }: { onAdded?: (p: any) => void }) {
+export function AddProductDialog() {
+  const t = useTranslations("products");
   const [open, setOpen] = useState(false);
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -95,7 +100,7 @@ export function AddProductDialog({ onAdded }: { onAdded?: (p: any) => void }) {
     const { success, product, message } = await createProduct(fd);
     if (success) {
       toast.success("Product created");
-      onAdded?.(product);
+      // onAdded?.(product);
       setOpen(false);
       resetForm();
     } else {
@@ -114,14 +119,14 @@ export function AddProductDialog({ onAdded }: { onAdded?: (p: any) => void }) {
       <DialogTrigger asChild>
         <Button className="gap-2">
           <Plus className="h-4 w-4" />
-          Add Product
+          {t("addProduct")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-heading">Add New Product</DialogTitle>
+          <DialogTitle className="font-heading">{t("addNewProduct")}</DialogTitle>
           <DialogDescription>
-            Enter product details. Image is optional.
+            {t("addProductDescription")}
           </DialogDescription>
         </DialogHeader>
 
@@ -176,10 +181,11 @@ export function AddProductDialog({ onAdded }: { onAdded?: (p: any) => void }) {
           {/* Basic info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Name *</Label>
+              <Label htmlFor="name">{t("productName")}</Label>
               <Input
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
+                placeholder={t("productNamePlaceholder")}
                 required
               />
             </div>
@@ -273,14 +279,12 @@ export function AddProductDialog({ onAdded }: { onAdded?: (p: any) => void }) {
 
           {/* Description */}
           <div className="space-y-2">
-            <Label>Description (Optional)</Label>
+            <Label htmlFor="description">{t("description")}</Label>
             <Textarea
               value={formData.description}
-              onChange={(e) =>
-                handleInputChange("description", e.target.value)
-              }
+              onChange={(e) => handleInputChange("description", e.target.value)}
+              placeholder={t("descriptionPlaceholder")}
               rows={3}
-              placeholder="Describe the product"
             />
           </div>
 
@@ -290,9 +294,9 @@ export function AddProductDialog({ onAdded }: { onAdded?: (p: any) => void }) {
               variant="outline"
               onClick={() => setOpen(false)}
             >
-              Cancel
+              {t("cancel")}
             </Button>
-            <Button type="submit">Add Product</Button>
+            <Button type="submit">{t("addProductButton")}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

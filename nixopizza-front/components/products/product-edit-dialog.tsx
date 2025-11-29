@@ -1,10 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import type React from "react"
+
+import { useState, useEffect, useRef } from "react"
+import { useTranslations } from "next-intl"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Dialog,
   DialogContent,
@@ -65,6 +68,8 @@ export function ProductEditDialog({
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const t = useTranslations("products");
+
 
   useEffect(() => {
     if (product) {
@@ -166,13 +171,9 @@ export function ProductEditDialog({
     >
       <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-heading">
-            {product ? "Edit Product" : "Add Product"}
-          </DialogTitle>
+          <DialogTitle className="font-heading">{product ? t("editProduct") : t("addNewProduct")}</DialogTitle>
           <DialogDescription>
-            {product
-              ? "Update product attributes. Image optional."
-              : "Provide product details."}
+            {product ? t("editProductDescription") : t("addProductDescription")}
           </DialogDescription>
         </DialogHeader>
 
@@ -227,10 +228,11 @@ export function ProductEditDialog({
           {/* Basic fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Name *</Label>
+              <Label htmlFor="name">{t("productName")}</Label>
               <Input
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
+                placeholder={t("productNamePlaceholder")}
                 required
               />
             </div>
@@ -323,8 +325,12 @@ export function ProductEditDialog({
 
           {/* Description */}
           <div className="space-y-2">
-            <Label>Description (Optional)</Label>
+            <Label htmlFor="description">{t("description")}</Label>
             <Textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => handleInputChange("description", e.target.value)}
+              placeholder={t("descriptionPlaceholder")}
               rows={3}
               value={formData.description}
               onChange={(e) =>
@@ -335,17 +341,10 @@ export function ProductEditDialog({
           </div>
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={isSubmitting}
-            >
-              Cancel
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              {t("cancel")}
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : "Save"}
-            </Button>
+            <Button type="submit">{product ? t("update") : t("addProductButton")}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

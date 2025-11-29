@@ -24,12 +24,15 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useState } from "react";
-import { IOrder } from "@/app/dashboard/purchases/page";
 import { verifyOrder, markOrderPaid, updateOrder } from "@/lib/apis/purchase-list";
-import toast from "react-hot-toast";
-import { useAuth } from "@/hooks/useAuth";
 import { resolveImage } from "@/lib/resolveImage";
 import { SubmitReviewDialog } from "./submit-review-dialog";
+import { Label } from "@radix-ui/react-label";
+import { Input } from "../ui/input";
+import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
+import toast from "react-hot-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { useTranslations } from "next-intl";
 
 interface PurchaseOrderDialogProps {
   order: IOrder | null;
@@ -44,6 +47,8 @@ export function PurchaseOrderDialog({
   onOpenChange,
   setPurchaseOrders,
 }: PurchaseOrderDialogProps) {
+  if (!order) return null;
+  const t = useTranslations("purchases");
   const { user } = useAuth();
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [paidLoading, setPaidLoading] = useState(false);
@@ -153,13 +158,15 @@ export function PurchaseOrderDialog({
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Card>
                 <CardContent className="p-4">
-                  <div className="text-sm text-muted-foreground">Order ID</div>
-                  <div className="font-mono font-medium">{order.orderNumber}</div>
+                  <div className="text-sm text-muted-foreground">{t("orderId")}</div>
+                  <div className="font-mono font-medium">
+                    {order.orderNumber}
+                  </div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4">
-                  <div className="text-sm text-muted-foreground">Status</div>
+                  <div className="text-sm text-muted-foreground">{t("statusHeader")}</div>
                   <Badge variant={getStatusColor(order.status) as any}>
                     {order.status}
                   </Badge>
@@ -167,16 +174,17 @@ export function PurchaseOrderDialog({
               </Card>
               <Card>
                 <CardContent className="p-4">
-                  <div className="text-sm text-muted-foreground">Total Value</div>
+                  <div className="text-sm text-muted-foreground">
+                    {t("totalValueHeader")}
+                  </div>
                   <div className="font-medium flex items-center gap-1">
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    {order.totalAmount.toFixed(2)} DA
+                    {order.totalAmount.toFixed(2)} {t("da")}
                   </div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4">
-                  <div className="text-sm text-muted-foreground">Paid Date</div>
+                  <div className="text-sm text-muted-foreground">{t("paidDate")}</div>
                   <div className="font-medium flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
                     {order.paidDate
@@ -192,7 +200,7 @@ export function PurchaseOrderDialog({
               <CardHeader>
                 <CardTitle className="font-heading flex items-center gap-2">
                   <Building2 className="h-5 w-5" />
-                  Supplier Information
+                  {t("supplierSummary")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -234,7 +242,7 @@ export function PurchaseOrderDialog({
             {/* Items */}
             <Card>
               <CardHeader>
-                <CardTitle className="font-heading">Order Items</CardTitle>
+                <CardTitle className="font-heading">{t("itemsHeader")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -258,16 +266,22 @@ export function PurchaseOrderDialog({
                           )}
                         </div>
                       </div>
-                      <div className="text-right font-medium">
-                        {item.quantity} × {item.unitCost} DA ={" "}
-                        {(item.quantity * item.unitCost).toFixed(2)} DA
+                      <div className="text-right">
+                        <div className="font-medium">
+                          {item.quantity} × {item.unitCost} {t("da")} =
+                          {(item.quantity * item.unitCost).toFixed(2)} {t("da")}
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
-                <div className="mt-4 pt-4 border-t flex justify-between font-medium">
-                  <span>Total Order Value:</span>
-                  <span className="text-lg">{order.totalAmount.toFixed(2)} DA</span>
+                <div className="mt-4 pt-4 border-t">
+                  <div className="flex justify-between items-center font-medium">
+                    <span>{t("totalAmount")}:</span>
+                    <span className="text-lg">
+                      {order.totalAmount.toFixed(2)} {t("da")}
+                    </span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -433,7 +447,7 @@ export function PurchaseOrderDialog({
               {order.status === "paid" && (
                 <Button variant="outline" disabled className="gap-2">
                   <CheckCircle className="h-4 w-4" />
-                  Order Paid
+                  {t("paidStatus")}
                 </Button>
               )}
 

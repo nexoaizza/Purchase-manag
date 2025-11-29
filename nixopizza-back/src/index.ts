@@ -14,9 +14,13 @@ import adminRouter from "./routes/admin.router";
 import taskRouter from "./routes/task.router";
 import supplierRouter from "./routes/supplier.router";
 import notificationRouter from "./routes/notification.router";
+<<<<<<< HEAD
 import blobUploadRouter from "./routes/blobUpload.router";
 import User from "./models/user.model";
 import { initializeExpirationMonitoring } from "./controllers/expirationMonitoring.controller";
+=======
+import setupSwagger from "./config/swaggerSetup";
+>>>>>>> dev
 
 if (process.env.NODE_ENV !== "production") {
   dotenv.config();
@@ -37,6 +41,7 @@ app.use("/uploads", express.static(UPLOADS_DIR));
  * Allow explicit origins from environment variables; allow requests without origin (e.g., curl).
  */
 const allowedOrigins = [
+<<<<<<< HEAD
   process.env.CLIENT_ORIGIN,
   process.env.ADMIN_ORIGIN,
   process.env.PROD_CLIENT_ORIGIN,
@@ -48,6 +53,14 @@ const allowedOrigins = [
 ]
   .filter(Boolean)
   .map((o) => o!.replace(/\/+$/, "")); // normalize
+=======
+  process.env.CLIENT_ORIGIN ?? "",
+  process.env.ADMIN_ORIGIN ?? "",
+  process.env.PROD_CLIENT_ORIGIN ?? "https://<your-client>.vercel.app",
+  process.env.PROD_ADMIN_ORIGIN ?? "https://<your-admin>.vercel.app",
+  
+];
+>>>>>>> dev
 
 app.use(
   cors({
@@ -68,9 +81,14 @@ app.get("/api/health", (_req: Request, res: Response) => {
   res.json({ ok: true });
 });
 
+<<<<<<< HEAD
 // Removed: /api/debug-cors and /api/debug-db endpoints & detailed console diagnostics
 
 app.use("/api/uploads", blobUploadRouter);
+=======
+  // Swagger UI
+  setupSwagger(app);
+>>>>>>> dev
 
 app.use("/api/auth", authRouter);
 app.use("/api/admin", adminRouter);

@@ -1,6 +1,7 @@
 // components/tasks/tasks-header.tsx
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -25,6 +26,7 @@ export function TasksHeader({
   onStatusChange,
   onSortChange,
 }: TasksHeaderProps) {
+  const t = useTranslations("tasks");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("createdAt");
@@ -56,10 +58,10 @@ export function TasksHeader({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-heading font-bold text-foreground">
-            Task Management
+            {t("title")}
           </h1>
           <p className="text-muted-foreground">
-            Manage and assign tasks to your team
+            {t("subtitle")}
           </p>
         </div>
       </div>
@@ -69,7 +71,7 @@ export function TasksHeader({
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search tasks..."
+            placeholder={t("searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-10 border-2 border-input focus-visible:ring-2 focus-visible:ring-primary/30 rounded-lg"
@@ -78,24 +80,24 @@ export function TasksHeader({
         <div className="flex gap-2">
           <Select value={statusFilter} onValueChange={handleStatusChange}>
             <SelectTrigger className="w-[180px] border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg">
-              <SelectValue placeholder="Status" />
+              <SelectValue placeholder={t("statusLabel")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Tasks</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="canceled">Canceled</SelectItem>
+              <SelectItem value="all">{t("allTasks")}</SelectItem>
+              <SelectItem value="pending">{t("pending")}</SelectItem>
+              <SelectItem value="completed">{t("completed")}</SelectItem>
+              <SelectItem value="canceled">{t("canceled")}</SelectItem>
             </SelectContent>
           </Select>
           <Select value={sortBy} onValueChange={handleSortChange}>
             <SelectTrigger className="w-[180px] border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg">
-              <SelectValue placeholder="Sort by" />
+              <SelectValue placeholder={t("sortBy")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="createdAt">Date Created</SelectItem>
-              <SelectItem value="deadline">Deadline</SelectItem>
-              <SelectItem value="taskNumber">Task Number</SelectItem>
-              <SelectItem value="staffId.fullname">Assigned To</SelectItem>
+              <SelectItem value="createdAt">{t("dateCreated")}</SelectItem>
+              <SelectItem value="deadline">{t("deadline")}</SelectItem>
+              <SelectItem value="taskNumber">{t("taskNumber")}</SelectItem>
+              <SelectItem value="staffId.fullname">{t("assignedTo")}</SelectItem>
             </SelectContent>
           </Select>
           <Button

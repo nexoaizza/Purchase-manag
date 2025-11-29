@@ -1,9 +1,9 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+
+// components/stuff/stuff-table.tsx
+"use client";
+
+import { useTranslations } from "next-intl";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -34,6 +34,7 @@ import { IUser } from "@/store/user.store";
 import { useState } from "react";
 import { resolveImage } from "@/lib/resolveImage";
 import { StuffEditDialog } from "./stuff-edit-dialog";
+import { useRouter } from "next/router";
 
 interface StuffTableProps {
   stuffs: IUser[];
@@ -56,7 +57,8 @@ export function StuffTable({
 }: StuffTableProps) {
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [selectedStuff, setSelectedStuff] = useState<IUser | null>(null);
-
+  const t = useTranslations("staff");
+  const router = useRouter();
   const getAccountStatus = (isActive: boolean) =>
     isActive
       ? {

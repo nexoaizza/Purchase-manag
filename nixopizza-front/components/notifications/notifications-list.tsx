@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { AlertTriangle, Package, ShoppingCart, Users, Clock, CheckCircle, X } from "lucide-react"
 import { useEffect, useState } from "react"
 import { get_all_notifications } from "@/lib/apis/notifications"
+import { useTranslations } from "next-intl"
 
 interface Notification {
   id: string
@@ -75,6 +76,7 @@ const mockNotifications: Notification[] = [
 ]
 
 export function NotificationsList() {
+  const t = useTranslations("notifications")
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications)
   const [filter, setFilter] = useState<"all" | "unread" | "critical">("all")
 
@@ -131,20 +133,20 @@ export function NotificationsList() {
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Recent Notifications</CardTitle>
+          <CardTitle>{t("recentNotifications")}</CardTitle>
           <div className="flex gap-2">
             <Button variant={filter === "all" ? "default" : "outline"} size="sm" onClick={() => setFilter("all")}>
-              All
+              {t("all")}
             </Button>
             <Button variant={filter === "unread" ? "default" : "outline"} size="sm" onClick={() => setFilter("unread")}>
-              Unread
+              {t("unread")}
             </Button>
             <Button
               variant={filter === "critical" ? "default" : "outline"}
               size="sm"
               onClick={() => setFilter("critical")}
             >
-              Critical
+              {t("critical")}
             </Button>
           </div>
         </div>
@@ -173,7 +175,7 @@ export function NotificationsList() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant="outline" className={getTypeColor(notification.type)}>
-                        {notification.type}
+                        {t(`type${notification.type.charAt(0).toUpperCase()}${notification.type.slice(1)}`)}
                       </Badge>
                       {!notification.isRead && (
                         <Button variant="ghost" size="sm" onClick={() => markAsRead(notification.id)}>

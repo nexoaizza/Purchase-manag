@@ -29,9 +29,9 @@ import { createOrder } from "@/lib/apis/purchase-list";
 import { ProductSelect } from "@/components/ui/product-select";
 import { SupplierSelect } from "@/components/ui/supplier-select";
 import { getProducts } from "@/lib/apis/products";
-import { IProduct } from "@/app/dashboard/products/page";
-import { ISupplier } from "@/app/dashboard/suppliers/page";
-import { IOrder } from "@/app/dashboard/purchases/page";
+import { IProduct } from "@/app/[locale]/dashboard/products/page";
+import { ISupplier } from "@/app/[locale]/dashboard/suppliers/page";
+import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
 import toast from "react-hot-toast";
 import { resolveImage } from "@/lib/resolveImage";
 
