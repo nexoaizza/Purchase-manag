@@ -88,6 +88,11 @@ export default function ProductsPage() {
           products={products}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          totalPages={totalPages}
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
+          limit={limit}
+          setLimit={setLimit}
         />
       </div>
     </DashboardLayout>

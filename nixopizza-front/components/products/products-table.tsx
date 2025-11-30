@@ -1,5 +1,5 @@
-// components/ui/products-table.tsx
 "use client";
+
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,50 +27,32 @@ import {
 } from "lucide-react";
 import { resolveImage } from "@/lib/resolveImage";
 import toast from "react-hot-toast";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { IProduct } from "@/app/[locale]/dashboard/products/page";
-import { deleteProduct } from "@/lib/apis/products";
 import { Pagination } from "../ui/pagination";
 
-export interface Product {
-  _id: string;
-  name: string;
-  barcode?: string;
-  unit: string;
-  imageUrl?: string;
-  currentStock: number;
-  minQty: number;
-  recommendedQty: number;
-  categoryId?: { _id: string; name: string; image?: string };
-}
-
-type BadgeVariant = "default" | "destructive" | "outline" | "secondary";
-
 interface ProductsTableProps {
-  products: Product[];
-  onEdit: (p: Product) => void;
+  products: IProduct[];
+  onEdit: (p: IProduct) => void;
   onDelete: (id: string) => Promise<void>;
+  totalPages: number;
+  currentPage: number;
+  setCurrentPage: (page: number) => void;
+  limit: number;
+  setLimit: (l: number) => void;
 }
 
 export function ProductsTable({
   products,
-  setProducts,
+  onEdit,
+  onDelete,
   totalPages,
   currentPage,
   setCurrentPage,
   limit,
   setLimit,
-}: {
-  products: IProduct[];
-  setProducts: any;
-  totalPages: number;
-  currentPage: number;
-  setCurrentPage: any;
-  limit: number;
-  setLimit: any;
-}) {
+}: ProductsTableProps) {
   const t = useTranslations("products");
-  const router = useRouter();
 
   const getStockStatus = (stock: number, minStock: number) => {
     if (stock === 0)
@@ -90,21 +72,6 @@ export function ProductsTable({
       variant: "outline" as const,
       color: "text-green-600 border-green-600",
     };
-  };
-
-  const handleEdit = (product: (typeof products)[0]) => {
-    router.push(`/dashboard/products/edit/${product._id}`);
-  };
-  
-
-  const handleDelete = async (productId: string) => {
-    const { success, message } = await deleteProduct(productId);
-    if (success) {
-      toast.success(t("productDeletedSuccess"));
-      setProducts(products.filter((pro) => pro._id !== productId));
-    } else {
-      toast.error(message);
-    }
   };
 
   if (products.length === 0) {
@@ -130,22 +97,21 @@ export function ProductsTable({
           <Table>
             <TableHeader className="bg-muted/50">
               <TableRow>
-                <TableHead className="rounded-tl-lg">{t("product")}</TableHead>
+                <TableHead>{t("product")}</TableHead>
                 <TableHead>{t("categoryHeader")}</TableHead>
                 <TableHead>{t("stockHeader")}</TableHead>
-                <TableHead>{t("priceHeader")}</TableHead>
                 <TableHead>{t("statusHeader")}</TableHead>
-                <TableHead className="rounded-tr-lg text-right">
-                  {t("actions")}
-                </TableHead>
+                <TableHead className="text-right">{t("actions")}</TableHead>
               </TableRow>
             </TableHeader>
+
             <TableBody>
               {products.map((product) => {
                 const stockStatus = getStockStatus(
                   product.currentStock,
                   product.minQty
                 );
+
                 return (
                   <TableRow key={product._id}>
                     <TableCell className="font-medium">
@@ -162,6 +128,7 @@ export function ProductsTable({
                             </div>
                           )}
                         </div>
+
                         <div>
                           <div className="font-medium">{product.name}</div>
                           <div className="text-sm text-muted-foreground">
@@ -170,6 +137,7 @@ export function ProductsTable({
                         </div>
                       </div>
                     </TableCell>
+
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <img
@@ -180,17 +148,9 @@ export function ProductsTable({
                         <span>{product.categoryId?.name}</span>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">
-                          {product.currentStock}
-                        </span>
-                        {product.currentStock <= product.minQty &&
-                          product.currentStock > 0 && (
-                            <AlertTriangle className="h-4 w-4 text-amber-600" />
-                          )}
-                      </div>
-                    </TableCell>
+
+                    <TableCell>{product.currentStock}</TableCell>
+
                     <TableCell>
                       <Badge
                         variant={stockStatus.variant}
@@ -199,29 +159,28 @@ export function ProductsTable({
                         {stockStatus.label}
                       </Badge>
                     </TableCell>
+
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <button
-                            type="button"
                             className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-muted"
+                            type="button"
                           >
                             <MoreHorizontal className="h-4 w-4" />
                           </button>
                         </DropdownMenuTrigger>
+
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => handleEdit(product)}
-                          >
-                            <Edit className="h-4 w-4 mr-2" />
-                            {t("edit")}
+                          <DropdownMenuItem onClick={() => onEdit(product)}>
+                            <Edit className="h-4 w-4 mr-2" /> {t("edit")}
                           </DropdownMenuItem>
+
                           <DropdownMenuItem
-                            onClick={() => handleDelete(product._id)}
-                            className="text-destructive focus:text-destructive"
+                            onClick={() => onDelete(product._id)}
+                            className="text-destructive"
                           >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            {t("delete")}
+                            <Trash2 className="h-4 w-4 mr-2" /> {t("delete")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -233,11 +192,13 @@ export function ProductsTable({
           </Table>
         </div>
 
-        {/* Add Pagination component here */}
+        {/* PAGINATION */}
         <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="text-sm text-muted-foreground">
-            {t("showingProducts")} {products.length} {t("of")} {totalPages * limit} {t("products")}
+            {t("showingProducts")} {products.length} {t("of")}{" "}
+            {totalPages * limit} {t("products")}
           </div>
+
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
