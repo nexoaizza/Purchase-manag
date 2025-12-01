@@ -111,8 +111,8 @@ export function SubmitReviewDialog({
       return;
     }
     // Basic validation
-    if (items.some((i) => i.quantity <= 0 || i.unitCost < 0)) {
-      toast.error("Invalid item values (quantity >0, unitCost >=0)");
+    if (items.some((i) => i.quantity < 0 || i.unitCost < 0)) {
+      toast.error("Invalid item values (quantity >=0, unitCost >=0)");
       return;
     }
 
