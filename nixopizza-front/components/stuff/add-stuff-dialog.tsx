@@ -39,7 +39,8 @@ export function AddStuffDialog({ addNewStuff }: AddStuffDialogProps) {
     notes: "",
     avatar: null as File | null,
   });
-    const {t} = useTranslations("stuff");
+  
+const t = useTranslations("stuff");
 
 
   const handleInputChange = (field: string, value: string) =>
