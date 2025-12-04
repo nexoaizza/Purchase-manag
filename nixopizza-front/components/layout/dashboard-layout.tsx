@@ -46,7 +46,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
 
   const navigation =
-    user?. role === "admin"
+    user?.role === "admin"
       ? [
           { name: t("dashboard"), href: "/dashboard", icon: BarChart3 },
           { name: t("categories"), href: "/dashboard/categories", icon: Shapes },
@@ -74,10 +74,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const handleLogout = async () => {
     await logoutUser();
-    const preferredLocale = typeof window !== 'undefined'
-      ? localStorage.getItem('preferred_locale') || 'en'
-      : 'en';
-    window.location.href = `/${preferredLocale}/auth`;
+    window.location.href = "/";
   };
 
   return (
@@ -115,7 +112,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <div
         className={cn(
           "md:w-[calc(100%-16rem)]",
-          isRTL ?  "md:mr-64" : "md:ml-64"
+          isRTL ? "md:mr-64" : "md:ml-64"
         )}
       >
         <main className="py-6">
@@ -172,7 +169,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
             {/* ⭐ USER MENU (new section) */}
             <li className="mt-auto">
-              <UserMenu handleLogout={handleLogout} />
+              <UserMenu />
             </li>
           </ul>
         </nav>
@@ -184,7 +181,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 /************************************
  *      USER MENU COMPONENT
  ************************************/
-function UserMenu({ handleLogout }: { handleLogout: () => Promise<void> }) {
+function UserMenu() {
   const [langIndex, setLangIndex] = useState(0);
   const languages = [
     { code: "fr", label: "FR", flag: "🇫🇷" },
@@ -233,7 +230,7 @@ function UserMenu({ handleLogout }: { handleLogout: () => Promise<void> }) {
 
       <DropdownMenuContent align="end" className="w-44">
         <DropdownMenuItem
-          onClick={handleLogout}
+          onClick={() => (window.location.href = "/logout")}
           className="flex items-center gap-2"
         >
           <LogOut className="h-4 w-4" />
