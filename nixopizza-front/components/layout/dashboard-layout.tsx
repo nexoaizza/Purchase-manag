@@ -72,10 +72,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           { name: t("orders"), href: "/dashboardstaff/orders", icon: Users },
         ];
 
-  const handleLogout = async () => {
-    await logoutUser();
-    window.location.href = "/";
-  };
+const handleLogout = async () => {
+  await logoutUser();
+  const locale = typeof window !== 'undefined'
+    ? localStorage.getItem('preferred_locale') || 'en'
+    : 'en';
+  window.location.href = `/${locale}/auth`;
+};
 
   return (
     <div className="min-h-screen bg-background">
