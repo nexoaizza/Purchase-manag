@@ -34,7 +34,7 @@ import { IUser } from "@/store/user.store";
 import { useState } from "react";
 import { resolveImage } from "@/lib/resolveImage";
 import { StuffEditDialog } from "./stuff-edit-dialog";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 interface StuffTableProps {
   stuffs: IUser[];
