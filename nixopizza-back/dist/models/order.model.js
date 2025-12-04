@@ -35,15 +35,15 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 // models/order.model.ts
 const mongoose_1 = __importStar(require("mongoose"));
+const statusHistorySchema = new mongoose_1.Schema({
+    from: { type: String, default: null },
+    to: { type: String, required: true },
+    at: { type: Date, required: true },
+    by: { type: mongoose_1.Schema.Types.ObjectId, ref: "User", default: null },
+}, { _id: false });
 const orderSchema = new mongoose_1.Schema({
-    bon: {
-        type: String,
-    },
-    orderNumber: {
-        type: String,
-        required: true,
-        unique: true,
-    },
+    bon: { type: String },
+    orderNumber: { type: String, required: true, unique: true },
     supplierId: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: "Supplier",
@@ -55,7 +55,7 @@ const orderSchema = new mongoose_1.Schema({
     },
     status: {
         type: String,
-        enum: ["not assigned", "assigned", "confirmed", "paid", "canceled"],
+        enum: ["not assigned", "assigned", "pending_review", "verified", "paid", "canceled"],
         default: "not assigned",
     },
     totalAmount: {
@@ -68,27 +68,15 @@ const orderSchema = new mongoose_1.Schema({
         ref: "ProductOrder",
         minlength: 1,
     },
-    notes: {
-        type: String,
-    },
-    assignedDate: {
-        type: Date,
-    },
-    confirmedDate: {
-        type: Date,
-    },
-    paidDate: {
-        type: Date,
-    },
-    expectedDate: {
-        type: Date,
-    },
-    canceledDate: {
-        type: Date,
-    },
-}, {
-    timestamps: true,
-});
+    notes: { type: String },
+    assignedDate: { type: Date },
+    pendingReviewDate: { type: Date },
+    verifiedDate: { type: Date },
+    paidDate: { type: Date },
+    expectedDate: { type: Date },
+    canceledDate: { type: Date },
+    statusHistory: { type: [statusHistorySchema], default: [] },
+}, { timestamps: true });
 const Order = mongoose_1.default.model("Order", orderSchema);
 exports.default = Order;
 //# sourceMappingURL=order.model.js.map

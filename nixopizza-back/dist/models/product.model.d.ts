@@ -1,10 +1,10 @@
 import { Schema, Document } from "mongoose";
 export interface IProduct extends Document {
     name: string;
-    barcode: string;
+    barcode?: string;
     unit: "liter" | "kilogram" | "box" | "piece" | "meter" | "pack" | "bottle";
     categoryId: Schema.Types.ObjectId;
-    imageUrl: string;
+    imageUrl?: string;
     description?: string;
     currentStock: number;
     minQty: number;
@@ -12,8 +12,8 @@ export interface IProduct extends Document {
     createdAt?: Date;
     updatedAt?: Date;
 }
-declare const Product: import("mongoose").Model<IProduct, {}, {}, {}, Document<unknown, {}, IProduct, {}> & IProduct & Required<{
-    _id: unknown;
+declare const Product: import("mongoose").Model<IProduct, {}, {}, {}, Document<unknown, {}, IProduct, {}, {}> & IProduct & Required<{
+    _id: import("mongoose").Types.ObjectId;
 }> & {
     __v: number;
 }, any>;

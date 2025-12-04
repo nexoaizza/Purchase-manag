@@ -3,18 +3,142 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.ensureDbInUri = ensureDbInUri;
 exports.default = connectDB;
 const mongoose_1 = __importDefault(require("mongoose"));
-async function connectDB() {
-    if (global.__mongooseConn)
-        return global.__mongooseConn;
-    const uri = (process.env.MONGO_URI || "").trim();
-    if (!uri) {
-        throw new Error("MONGODB_URI (or MONGO_URI) is missing");
-    }
-    global.__mongooseConn = mongoose_1.default.connect(uri, {
-        serverSelectionTimeoutMS: 8000,
+/**
+ * Append dbName to an Atlas SRV URI if it has no path already.
+ */
+function ensureDbInUri(uri, dbName) {
+    if (!uri)
+        return uri;
+    if (!dbName)
+        return uri;
+    const [base, qs] = uri.split("?");
+    const marker = ".mongodb.net/";
+    const idx = base.indexOf(marker);
+    if (idx === -1)
+        return uri; // Unexpected format.
+    const after = base.substring(idx + marker.length);
+    const hasPath = after.length > 0;
+    if (hasPath)
+        return uri; // Path already present.
+    const newBase = base.endsWith("/") ? `${base}${dbName}` : `${base}/${dbName}`;
+    return qs ? `${newBase}?${qs}` : newBase;
+}
+function redact(u) {
+    return u.replace(/\/\/.*?:.*?@/, "//***:***@");
+}
+// --- Event listeners (attach once) ---
+let listenersAttached = false;
+function attachMongooseEventListeners() {
+    if (listenersAttached)
+        return;
+    const conn = mongoose_1.default.connection;
+    conn.on("connected", () => {
+        console.log("🟢 [mongo] connected. readyState:", conn.readyState);
+        try {
+            const client = conn.getClient();
+            // `options` can include maxPoolSize (Node driver)
+            // Optional diagnostic only
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const maxPoolSize = (client && client.options?.maxPoolSize) || "unknown";
+            console.log("🧪 [mongo] driver maxPoolSize:", maxPoolSize);
+        }
+        catch {
+            /* ignore */
+        }
     });
-    return global.__mongooseConn;
+    conn.on("error", (err) => {
+        console.error("🔴 [mongo] error:", err.name, err.message);
+    });
+    conn.on("disconnected", () => {
+        console.warn("🟠 [mongo] disconnected. readyState:", conn.readyState);
+    });
+    conn.on("reconnected", () => {
+        console.log("🟢 [mongo] reconnected. readyState:", conn.readyState);
+    });
+    listenersAttached = true;
+}
+// ---- Single attempt connect ----
+async function connectOnce(finalUri, maxPoolSize, minPoolSize) {
+    const serverSelectionTimeoutMS = Number(process.env.MONGODB_SERVER_SELECTION_TIMEOUT_MS) || 60000;
+    const connectTimeoutMS = Number(process.env.MONGODB_CONNECT_TIMEOUT_MS) || 60000;
+    const socketTimeoutMS = Number(process.env.MONGODB_SOCKET_TIMEOUT_MS) || 60000;
+    return mongoose_1.default.connect(finalUri, {
+        serverSelectionTimeoutMS,
+        connectTimeoutMS,
+        socketTimeoutMS,
+        family: 4,
+        maxPoolSize,
+        minPoolSize,
+        appName: "purchase-manag",
+    });
+}
+/**
+ * Retry wrapper with exponential backoff.
+ */
+async function connectWithRetry(finalUri, maxPoolSize, minPoolSize) {
+    const attempts = Number(process.env.MONGODB_CONNECT_ATTEMPTS) || 5;
+    const baseDelayMs = Number(process.env.MONGODB_CONNECT_BASE_DELAY_MS) || 500;
+    let lastErr;
+    for (let i = 1; i <= attempts; i++) {
+        try {
+            console.log(`🔌 [mongo] attempt ${i}/${attempts} uri=${redact(finalUri)} configuredMaxPoolSize=${maxPoolSize}`);
+            const conn = await connectOnce(finalUri, maxPoolSize, minPoolSize);
+            console.log("✅ [mongo] connected; readyState:", mongoose_1.default.connection.readyState);
+            return conn;
+        }
+        catch (err) {
+            lastErr = err;
+            console.error(`❌ [mongo] attempt ${i} failed: ${err.name} - ${err.message}`);
+            if (i < attempts) {
+                const delay = baseDelayMs * Math.pow(2, i - 1);
+                console.log(`⏳ [mongo] backoff ${delay}ms before retry`);
+                await new Promise((r) => setTimeout(r, delay));
+            }
+        }
+    }
+    console.error("🛑 [mongo] all attempts failed.");
+    throw lastErr;
+}
+async function connectDB() {
+    attachMongooseEventListeners();
+    // If already connected or connecting, reuse.
+    if (mongoose_1.default.connection.readyState === 1) {
+        return mongoose_1.default.connection;
+    }
+    else if (mongoose_1.default.connection.readyState === 2) {
+        console.log("🔄 [mongo] already connecting; reusing existing state");
+        return mongoose_1.default.connection;
+    }
+    if (global.__mongooseConn) {
+        console.log("🔁 [mongo] using cached promise");
+        return global.__mongooseConn;
+    }
+    const rawUri = (process.env.MONGODB_URI || process.env.MONGO_URI || "").trim();
+    const dbName = (process.env.MONGODB_DB || "NEXO").trim();
+    const maxPoolSize = Number(process.env.MONGODB_MAX_POOL_SIZE) || 5;
+    const minPoolSize = Number(process.env.MONGODB_MIN_POOL_SIZE) || 0;
+    console.log("🔍 [mongo] MONGODB_URI present:", !!rawUri);
+    console.log("🔍 [mongo] DB name selected:", dbName);
+    console.log("🔍 [mongo] pool config:", { maxPoolSize, minPoolSize });
+    if (!rawUri) {
+        throw new Error("MONGODB_URI (or MONGO_URI) missing");
+    }
+    const finalUri = ensureDbInUri(rawUri, dbName);
+    console.log("🔐 [mongo] final URI:", redact(finalUri));
+    const promise = connectWithRetry(finalUri, maxPoolSize, minPoolSize)
+        .then((conn) => {
+        console.log("🗄️ [mongo] using DB:", dbName);
+        return conn;
+    })
+        .catch((err) => {
+        console.error("❌ [mongo] final failure:", err.name, err.message);
+        global.__mongooseConn = undefined;
+        throw err;
+    });
+    global.__mongooseConn = promise;
+    return promise;
 }
 //# sourceMappingURL=database.js.map

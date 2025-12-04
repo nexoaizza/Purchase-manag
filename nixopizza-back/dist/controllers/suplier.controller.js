@@ -3,150 +3,149 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateSupplier = exports.getSupplierById = exports.getSuppliers = exports.createSupplier = void 0;
+exports.updateSupplier = exports.createSupplier = exports.getSupplierById = exports.getSuppliers = void 0;
 const supplier_model_1 = __importDefault(require("../models/supplier.model"));
+const crypto_1 = __importDefault(require("crypto"));
+const blob_1 = require("../utils/blob");
 const Delete_1 = require("../utils/Delete");
-const mongoose_1 = __importDefault(require("mongoose"));
-const createSupplier = async (req, res) => {
-    try {
-        const { name, contactPerson, email, phone1, phone2, phone3, address, city, categoryIds, notes } = req.body;
-        const existingSupplier = await supplier_model_1.default.findOne({ email });
-        if (existingSupplier) {
-            res
-                .status(400)
-                .json({ message: "Supplier with this name already exists" });
-            return;
-        }
-        const filename = req.file ? req.file.filename : undefined;
-        const supplier = new supplier_model_1.default({
-            name,
-            contactPerson,
-            email,
-            phone1,
-            phone2,
-            phone3,
-            address,
-            city,
-            notes,
-            categoryIds,
-            image: `/uploads/suppliers/${filename}`,
-        });
-        await supplier.save();
-        res.status(201).json({ supplier });
-    }
-    catch (error) {
-        res.status(500).json({ message: "Server Error", error });
-    }
+/**
+ * Normalize email: empty -> undefined
+ */
+const normalizeEmail = (value) => {
+    if (!value)
+        return undefined;
+    const t = String(value).trim();
+    return t === "" ? undefined : t.toLowerCase();
 };
-exports.createSupplier = createSupplier;
-const getSuppliers = async (req, res) => {
+/**
+ * GET /api/suppliers
+ */
+const getSuppliers = async (_req, res) => {
     try {
-        const { name, page = 1, limit = 10, sortBy, order, status, categoryIds, } = req.query;
-        const query = {};
-        if (name) {
-            query.name = { $regex: name.toString(), $options: "i" };
-        }
-        if (status === "active")
-            query.isActive = true;
-        if (status === "inactive")
-            query.isActive = false;
-        if (categoryIds) {
-            let ids = [];
-            if (Array.isArray(categoryIds)) {
-                // If categoryIds is already an array
-                ids = categoryIds.map((id) => id.toString());
-            }
-            else if (typeof categoryIds === "string") {
-                // If categoryIds is a comma-separated string
-                ids = categoryIds.split(",");
-            }
-            query.categoryIds = {
-                $in: ids.map((id) => new mongoose_1.default.Types.ObjectId(id.trim())),
-            };
-        }
-        const skip = (Number(page) - 1) * Number(limit);
-        const sortField = sortBy?.toString() || "createdAt";
-        const sortOrder = order === "asc" ? 1 : -1;
-        const suppliers = await supplier_model_1.default.find(query)
-            .sort({ [sortField]: sortOrder })
-            .skip(skip)
-            .limit(Number(limit));
-        const total = await supplier_model_1.default.countDocuments(query);
-        res
-            .status(200)
-            .json({ suppliers, total, pages: Math.ceil(total / Number(limit)) });
+        const suppliers = await supplier_model_1.default.find().sort({ createdAt: -1 });
+        res.status(200).json({ suppliers });
     }
-    catch (error) {
-        console.error("Error in getSuppliers:", error);
-        res.status(500).json({ message: "Server Error", error: error.message });
+    catch (e) {
+        res.status(500).json({ message: "Internal server error", error: e.message });
     }
 };
 exports.getSuppliers = getSuppliers;
+/**
+ * GET /api/suppliers/:supplierId
+ */
 const getSupplierById = async (req, res) => {
     try {
-        const { supplierId } = req.params;
-        const supplier = await supplier_model_1.default.findById(supplierId);
+        const supplier = await supplier_model_1.default.findById(req.params.supplierId);
         if (!supplier) {
             res.status(404).json({ message: "Supplier not found" });
             return;
         }
         res.status(200).json({ supplier });
     }
-    catch (error) {
-        res.status(500).json({
-            message: "Internal Server Error",
-            error: error.message,
-        });
+    catch (e) {
+        res.status(500).json({ message: "Internal server error", error: e.message });
     }
 };
 exports.getSupplierById = getSupplierById;
+/**
+ * POST /api/suppliers
+ * Email optional, duplicates allowed.
+ */
+const createSupplier = async (req, res) => {
+    try {
+        const { name, contactPerson, email, phone1, phone2, phone3, address, city, notes, isActive, categoryIds, } = req.body;
+        if (!name || !contactPerson || !phone1 || !address) {
+            res.status(400).json({ message: "Missing required fields: name, contactPerson, phone1, address" });
+            return;
+        }
+        const normalizedEmail = normalizeEmail(email);
+        let imageUrl;
+        if (req.file) {
+            const ext = (req.file.originalname.match(/\.[^/.]+$/) || [".bin"])[0];
+            const key = `${Date.now()}-${crypto_1.default.randomBytes(6).toString("hex")}${ext}`;
+            const uploaded = await (0, blob_1.uploadBufferToBlob)(key, req.file.buffer, req.file.mimetype);
+            imageUrl = uploaded.url;
+        }
+        const supplier = await supplier_model_1.default.create({
+            name,
+            contactPerson,
+            email: normalizedEmail,
+            phone1,
+            phone2: phone2 || undefined,
+            phone3: phone3 || undefined,
+            address,
+            city: city || undefined,
+            notes: notes || undefined,
+            isActive: isActive !== undefined ? isActive : true,
+            categoryIds: Array.isArray(categoryIds) ? categoryIds : [],
+            image: imageUrl,
+        });
+        res.status(201).json({ message: "Supplier created successfully", supplier });
+    }
+    catch (e) {
+        // No uniqueness conflict expected now
+        res.status(500).json({ message: "Internal server error", error: e.message });
+    }
+};
+exports.createSupplier = createSupplier;
+/**
+ * PUT /api/suppliers/:supplierId
+ * Removing email (blank) sets it to undefined.
+ */
 const updateSupplier = async (req, res) => {
     try {
         const { supplierId } = req.params;
-        const { name, address, city, contactPerson, email, phone1, phone2, phone3, categoryIds, notes, isActive, } = req.body;
+        const { name, contactPerson, email, phone1, phone2, phone3, address, city, notes, isActive, categoryIds, removeEmail, } = req.body;
         const supplier = await supplier_model_1.default.findById(supplierId);
         if (!supplier) {
             res.status(404).json({ message: "Supplier not found" });
             return;
         }
-        // Update supplier fields if provided in the request
+        const normalizedEmail = normalizeEmail(email);
+        if (removeEmail === "true" || (!normalizedEmail && supplier.email)) {
+            supplier.email = undefined;
+        }
+        else if (normalizedEmail) {
+            supplier.email = normalizedEmail;
+        }
         if (name)
             supplier.name = name;
-        if (address)
-            supplier.address = address;
-        if (city !== undefined)
-            supplier.city = city;
         if (contactPerson)
             supplier.contactPerson = contactPerson;
-        if (email)
-            supplier.email = email;
-        if (phone1 !== undefined)
+        if (phone1)
             supplier.phone1 = phone1;
-        if (phone2 !== undefined)
-            supplier.phone2 = phone2;
-        if (phone3 !== undefined)
-            supplier.phone3 = phone3;
-        if (categoryIds)
-            supplier.categoryIds = categoryIds;
-        if (notes)
-            supplier.notes = notes;
-        if (typeof isActive !== "undefined")
-            supplier.isActive = isActive;
-        // Handle image upload if present
+        supplier.phone2 = phone2 ? phone2 : undefined;
+        supplier.phone3 = phone3 ? phone3 : undefined;
+        if (address)
+            supplier.address = address;
+        supplier.city = city ? city : undefined;
+        supplier.notes = notes ? notes : undefined;
+        if (isActive !== undefined)
+            supplier.isActive = isActive === "true" || isActive === true;
+        if (categoryIds !== undefined) {
+            supplier.categoryIds = Array.isArray(categoryIds)
+                ? categoryIds
+                : [categoryIds].filter(Boolean);
+        }
         if (req.file) {
-            (0, Delete_1.deleteImage)(supplier.image);
-            supplier.image = `/uploads/suppliers/${req.file.filename}`;
+            if (supplier.image && supplier.image.startsWith("/uploads/")) {
+                try {
+                    (0, Delete_1.deleteImage)(supplier.image);
+                }
+                catch (err) {
+                    console.warn("Failed to delete legacy image:", err);
+                }
+            }
+            const ext = (req.file.originalname.match(/\.[^/.]+$/) || [".bin"])[0];
+            const key = `${Date.now()}-${crypto_1.default.randomBytes(6).toString("hex")}${ext}`;
+            const uploaded = await (0, blob_1.uploadBufferToBlob)(key, req.file.buffer, req.file.mimetype);
+            supplier.image = uploaded.url;
         }
         await supplier.save();
-        res.status(200).json({
-            message: `Supplier ${supplier.name} updated successfully`,
-            supplier,
-        });
+        res.status(200).json({ message: "Supplier updated successfully", supplier });
     }
-    catch (error) {
-        res
-            .status(500)
-            .json({ message: "Internal server error", error: error.message });
+    catch (e) {
+        res.status(500).json({ message: "Internal server error", error: e.message });
     }
 };
 exports.updateSupplier = updateSupplier;

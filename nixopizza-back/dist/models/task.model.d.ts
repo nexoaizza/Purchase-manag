@@ -11,8 +11,8 @@ export interface ITask extends Document {
     createdAt: Date;
     updatedAt: Date;
 }
-declare const Task: import("mongoose").Model<ITask, {}, {}, {}, Document<unknown, {}, ITask, {}> & ITask & Required<{
-    _id: unknown;
+declare const Task: import("mongoose").Model<ITask, {}, {}, {}, Document<unknown, {}, ITask, {}, {}> & ITask & Required<{
+    _id: import("mongoose").Types.ObjectId;
 }> & {
     __v: number;
 }, any>;
