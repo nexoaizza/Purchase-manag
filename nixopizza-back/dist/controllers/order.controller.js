@@ -149,14 +149,20 @@ const assignOrder = async (req, res) => {
         pushStatusHistory(order, prevStatus, "assigned", req.user?.userId);
         await order.save();
         const populated = await populateOrder(order);
-        // Send push notification to staff member
-        const staff = await user_model_1.default.findById(staffId);
-        if (staff?.fcmToken) {
-            await (0, firebase_service_1.sendPushNotification)(staff.fcmToken, "New Order Assigned", `Order #${order.orderNumber} has been assigned to you`, {
-                orderId: order._id.toString(),
-                orderNumber: order.orderNumber,
-                type: "order_assignment"
-            });
+        // Send push notification to staff member (fire-and-forget, don't block assignment)
+        try {
+            const staff = await user_model_1.default.findById(staffId);
+            if (staff?.fcmToken) {
+                await (0, firebase_service_1.sendPushNotification)(staff.fcmToken, "New Order Assigned", `Order #${order.orderNumber} has been assigned to you`, {
+                    orderId: order._id.toString(),
+                    orderNumber: order.orderNumber,
+                    type: "order_assignment"
+                });
+            }
+        }
+        catch (notificationError) {
+            // Log but don't fail the assignment if notification fails
+            console.error('Failed to send push notification:', notificationError);
         }
         res
             .status(200)

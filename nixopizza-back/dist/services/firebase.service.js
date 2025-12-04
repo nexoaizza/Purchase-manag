@@ -55,9 +55,10 @@ const sendPushNotification = async (fcmToken, title, body, data) => {
         return true;
     }
     catch (error) {
-        console.error('Error sending push notification:', error.message);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('Error sending push notification:', errorMessage);
         // If token is invalid, we could remove it from the user
-        if (error.code === 'messaging/registration-token-not-registered') {
+        if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'messaging/registration-token-not-registered') {
             console.log('FCM token is invalid or expired');
         }
         return false;

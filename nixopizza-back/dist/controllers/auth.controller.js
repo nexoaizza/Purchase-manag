@@ -154,15 +154,16 @@ const updateFcmToken = async (req, res) => {
             res.status(401).json({ message: "Unauthorized" });
             return;
         }
-        if (!fcmToken) {
-            res.status(400).json({ message: "FCM token is required" });
+        if (!fcmToken || typeof fcmToken !== 'string' || fcmToken.trim().length === 0) {
+            res.status(400).json({ message: "Valid FCM token is required" });
             return;
         }
-        await user_model_1.default.findByIdAndUpdate(userId, { fcmToken });
+        await user_model_1.default.findByIdAndUpdate(userId, { fcmToken: fcmToken.trim() });
         res.status(200).json({ message: "FCM token updated successfully" });
     }
     catch (error) {
-        res.status(500).json({ message: "Internal server error", error: error.message });
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        res.status(500).json({ message: "Internal server error", error: errorMessage });
     }
 };
 exports.updateFcmToken = updateFcmToken;
