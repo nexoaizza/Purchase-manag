@@ -111,8 +111,8 @@ export function SubmitReviewDialog({
       return;
     }
     // Basic validation
-    if (items.some((i) => i.quantity <= 0 || i.unitCost < 0)) {
-      toast.error("Invalid item values (quantity >0, unitCost >=0)");
+    if (items.some((i) => i.quantity < 0 || i.unitCost < 0)) {
+      toast.error("Invalid item values (quantity >=0, unitCost >=0)");
       return;
     }
 
@@ -207,13 +207,13 @@ export function SubmitReviewDialog({
                     <Label className="text-xs">Quantity</Label>
                     <Input
                       type="number"
-                      min={1}
+                      min={0}
                       value={it.quantity}
                       onChange={(e) =>
                         updateItemField(
                           it.itemId,
                           "quantity",
-                          Number(e.target.value) || 1
+                          Number(e.target.value) || 0
                         )
                       }
                     />
@@ -370,7 +370,7 @@ export function SubmitReviewDialog({
               saving ||
               !billFile ||
               items.length === 0 ||
-              items.some((i) => i.quantity <= 0 || i.unitCost < 0)
+              items.some((i) => i.quantity < 0 || i.unitCost < 0)
             }
             className="bg-orange-600 hover:bg-orange-700 text-white"
           >

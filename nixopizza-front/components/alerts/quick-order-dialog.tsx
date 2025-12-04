@@ -165,7 +165,7 @@ export function QuickOrderDialog({
                   setOrderQuantity(qty);
                   setEstimatedPrice(qty * 15.99);
                 }}
-                min="1"
+                min="0"
                 required
               />
             </div>

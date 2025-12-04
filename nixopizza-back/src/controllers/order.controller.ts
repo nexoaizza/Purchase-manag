@@ -244,10 +244,8 @@ export const submitOrderForReview = async (
             .json({ message: `Invalid productOrder itemId: ${upd.itemId}` });
           return;
         }
-        if (upd.quantity <= 0 || upd.unitCost < 0) {
-          res
-            .status(400)
-            .json({ message: "Quantity must be > 0 and unitCost >= 0" });
+         if (upd.quantity < 0 || upd.unitCost < 0) {
+          res.status(400).json({ message: "Quantity must be >= 0 and unitCost >= 0" });
           return;
         }
       }
