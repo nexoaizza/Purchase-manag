@@ -7,10 +7,11 @@ import { PurchaseStats } from "@/components/purchases/purchase-stats";
 import { getOrders } from "@/lib/apis/purchase-list";
 import toast from "react-hot-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
 
 export default function StaffOrdersPage() {
   const { user } = useAuth();
-  const [allOrders, setAllOrders] = useState([]);
+const [allOrders, setAllOrders] = useState<IOrder[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [limit, setLimit] = useState(10);
