@@ -156,3 +156,30 @@ export const updateUser = async (
       .json({ message: "Internal server error", error: error.message });
   }
 };
+
+/**
+ * Update FCM token for push notifications
+ * PUT /api/auth/fcm-token
+ */
+export const updateFcmToken = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { fcmToken } = req.body;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    if (!fcmToken) {
+      res.status(400).json({ message: "FCM token is required" });
+      return;
+    }
+
+    await User.findByIdAndUpdate(userId, { fcmToken });
+
+    res.status(200).json({ message: "FCM token updated successfully" });
+  } catch (error: any) {
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};

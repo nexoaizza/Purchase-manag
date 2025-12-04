@@ -10,6 +10,7 @@ export interface IUser extends Document {
     phone2?: string;
     phone3?: string;
     address: string;
+    fcmToken?: string;
     createdAt: Date;
     updatedAt: Date;
     comparePassword(candidatePassword: string): Promise<boolean>;

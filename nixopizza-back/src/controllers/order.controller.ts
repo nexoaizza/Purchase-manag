@@ -8,9 +8,11 @@ import { Request, Response } from "express";
 import Product from "../models/product.model";
 import Order from "../models/order.model";
 import ProductOrder from "../models/productOrder.model";
+import User from "../models/user.model";
 import { deleteImage } from "../utils/Delete";
 import crypto from "crypto";
 import { uploadBufferToBlob } from "../utils/blob";
+import { sendPushNotification } from "../services/firebase.service";
 
 /**
  * Helper: generate order number like ORD-YYYYMMDD-RAND
@@ -181,6 +183,22 @@ export const assignOrder = async (req: Request, res: Response): Promise<void> =>
 
     await order.save();
     const populated = await populateOrder(order);
+
+    // Send push notification to staff member
+    const staff = await User.findById(staffId);
+    if (staff?.fcmToken) {
+      await sendPushNotification(
+        staff.fcmToken,
+        "New Order Assigned",
+        `Order #${order.orderNumber} has been assigned to you`,
+        { 
+          orderId: order._id.toString(),
+          orderNumber: order.orderNumber,
+          type: "order_assignment"
+        }
+      );
+    }
+
     res
       .status(200)
       .json({ message: "Order assigned successfully", order: populated });

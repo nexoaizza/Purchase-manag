@@ -12,9 +12,11 @@ exports.getOrderAnalytics = exports.getOrder = exports.getOrderStats = exports.g
 const product_model_1 = __importDefault(require("../models/product.model"));
 const order_model_1 = __importDefault(require("../models/order.model"));
 const productOrder_model_1 = __importDefault(require("../models/productOrder.model"));
+const user_model_1 = __importDefault(require("../models/user.model"));
 const Delete_1 = require("../utils/Delete");
 const crypto_1 = __importDefault(require("crypto"));
 const blob_1 = require("../utils/blob");
+const firebase_service_1 = require("../services/firebase.service");
 /**
  * Helper: generate order number like ORD-YYYYMMDD-RAND
  */
@@ -147,6 +149,15 @@ const assignOrder = async (req, res) => {
         pushStatusHistory(order, prevStatus, "assigned", req.user?.userId);
         await order.save();
         const populated = await populateOrder(order);
+        // Send push notification to staff member
+        const staff = await user_model_1.default.findById(staffId);
+        if (staff?.fcmToken) {
+            await (0, firebase_service_1.sendPushNotification)(staff.fcmToken, "New Order Assigned", `Order #${order.orderNumber} has been assigned to you`, {
+                orderId: order._id.toString(),
+                orderNumber: order.orderNumber,
+                type: "order_assignment"
+            });
+        }
         res
             .status(200)
             .json({ message: "Order assigned successfully", order: populated });

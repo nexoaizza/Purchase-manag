@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateUser = exports.refreshTokens = exports.logout = exports.login = void 0;
+exports.updateFcmToken = exports.updateUser = exports.refreshTokens = exports.logout = exports.login = void 0;
 const user_model_1 = __importDefault(require("../models/user.model"));
 const Token_1 = require("../utils/Token");
 const login = async (req, res) => {
@@ -142,4 +142,28 @@ const updateUser = async (req, res) => {
     }
 };
 exports.updateUser = updateUser;
+/**
+ * Update FCM token for push notifications
+ * PUT /api/auth/fcm-token
+ */
+const updateFcmToken = async (req, res) => {
+    try {
+        const { fcmToken } = req.body;
+        const userId = req.user?.userId;
+        if (!userId) {
+            res.status(401).json({ message: "Unauthorized" });
+            return;
+        }
+        if (!fcmToken) {
+            res.status(400).json({ message: "FCM token is required" });
+            return;
+        }
+        await user_model_1.default.findByIdAndUpdate(userId, { fcmToken });
+        res.status(200).json({ message: "FCM token updated successfully" });
+    }
+    catch (error) {
+        res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+};
+exports.updateFcmToken = updateFcmToken;
 //# sourceMappingURL=auth.controller.js.map
