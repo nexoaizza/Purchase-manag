@@ -9,7 +9,7 @@ export interface INotification {
     createdAt: Date;
     updatedAt: Date;
 }
-declare const Notification: import("mongoose").Model<INotification, {}, {}, {}, import("mongoose").Document<unknown, {}, INotification, {}> & INotification & Required<{
+declare const Notification: import("mongoose").Model<INotification, {}, {}, {}, import("mongoose").Document<unknown, {}, INotification, {}, {}> & INotification & Required<{
     _id: string;
 }> & {
     __v: number;

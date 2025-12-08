@@ -156,3 +156,36 @@ export const updateUser = async (
       .json({ message: "Internal server error", error: error.message });
   }
 };
+
+export const updateFcmToken = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { fcmToken } = req.body;
+
+    if (!fcmToken || typeof fcmToken !== "string" || fcmToken.trim().length === 0) {
+      res.status(400).json({ message: "Valid fcmToken is required" });
+      return;
+    }
+
+    const userId = req.user?.userId;
+    const user = await User.findById(userId);
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    user.fcmToken = fcmToken;
+    await user.save();
+
+    res.status(200).json({
+      message: "FCM token updated successfully",
+    });
+  } catch (error: any) {
+    console.error("Update FCM token error:", error);
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
+  }
+};

@@ -4,6 +4,7 @@ import {
   logout,
   refreshTokens,
   updateUser,
+  updateFcmToken,
 } from "../controllers/auth.controller";
 import { upload } from "../middlewares/Multer";
 import { authenticate } from "../middlewares/Auth";
@@ -13,4 +14,5 @@ authRouter.post("/login", login);
 authRouter.post("/logout", logout);
 authRouter.post("/refresh", refreshTokens);
 authRouter.put("/profile", authenticate, updateUser);
+authRouter.put("/fcm-token", authenticate, updateFcmToken);
 export default authRouter;

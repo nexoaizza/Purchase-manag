@@ -8,5 +8,6 @@ authRouter.post("/login", auth_controller_1.login);
 authRouter.post("/logout", auth_controller_1.logout);
 authRouter.post("/refresh", auth_controller_1.refreshTokens);
 authRouter.put("/profile", Auth_1.authenticate, auth_controller_1.updateUser);
+authRouter.put("/fcm-token", Auth_1.authenticate, auth_controller_1.updateFcmToken);
 exports.default = authRouter;
 //# sourceMappingURL=auth.router.js.map

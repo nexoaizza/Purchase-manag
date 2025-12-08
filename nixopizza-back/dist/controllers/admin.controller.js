@@ -3,27 +3,35 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMonthlySpendingAnalytics = exports.getCategoryAnalytics = exports.updateStaff = exports.newStaffMember = exports.getAllStaff = void 0;
+exports.getMonthlySpendingAnalytics = exports.getCategoryAnalytics = exports.deleteStaff = exports.updateStaff = exports.newStaffMember = exports.getAllStaff = void 0;
 const order_model_1 = __importDefault(require("../models/order.model"));
 const user_model_1 = __importDefault(require("../models/user.model"));
+const Delete_1 = require("../utils/Delete");
+const crypto_1 = __importDefault(require("crypto"));
+const blob_1 = require("../utils/blob");
+function buildBlobKey(originalName) {
+    const ext = (originalName.match(/\.[^/.]+$/) || [".bin"])[0];
+    const unique = crypto_1.default.randomBytes(8).toString("hex");
+    return `${Date.now()}-${unique}${ext}`;
+}
+/** GET /api/admin/staffs */
 const getAllStaff = async (req, res) => {
     try {
-        const { page = 1, limit = 10, name } = req.query;
-        // Build query filter
-        const query = { role: "staff" };
-        // Add name filter if provided
-        if (name) {
-            query.fullname = { $regex: name, $options: "i" };
+        const { name, page = 1, limit = 10 } = req.query;
+        if (Number(page) < 1 || Number(limit) < 1) {
+            res.status(400).json({ message: "Page and limit must be greater than 0" });
+            return;
         }
-        // Calculate pagination
+        const query = {};
+        if (name) {
+            query.fullname = { $regex: name.toString(), $options: "i" };
+        }
         const skip = (Number(page) - 1) * Number(limit);
         const limitNum = Number(limit);
-        // Fetch staff with filters and pagination
         const staffs = await user_model_1.default.find(query)
             .skip(skip)
             .limit(limitNum)
-            .sort({ createdAt: -1 }); // Sort by newest first
-        // Get total count for pagination
+            .sort({ createdAt: -1 });
         const total = await user_model_1.default.countDocuments(query);
         const pages = Math.ceil(total / limitNum);
         res.status(200).json({
@@ -35,20 +43,24 @@ const getAllStaff = async (req, res) => {
         });
     }
     catch (error) {
-        res
-            .status(500)
-            .json({ message: "Internal server error", error: error.message });
+        console.error("getAllStaff error:", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
     }
 };
 exports.getAllStaff = getAllStaff;
+/** POST /api/admin/staffs */
 const newStaffMember = async (req, res) => {
     try {
         const { fullname, email, password, phone1, phone2, phone3, address } = req.body;
         if (!fullname || !email || !password) {
-            res.status(400).json({ message: "All Fileds must be fill" });
+            res.status(400).json({ message: "fullname, email and password are required" });
             return;
         }
-        const filename = req.file?.filename;
+        const existing = await user_model_1.default.findOne({ email });
+        if (existing) {
+            res.status(409).json({ message: "Email already in use" });
+            return;
+        }
         const staff = new user_model_1.default({
             fullname,
             email,
@@ -58,62 +70,68 @@ const newStaffMember = async (req, res) => {
             phone3,
             address,
         });
-        if (filename) {
-            const avatar = `/uploads/staffs/${filename}`;
-            staff.avatar = avatar;
+        if (req.file) {
+            const key = buildBlobKey(req.file.originalname);
+            const uploaded = await (0, blob_1.uploadBufferToBlob)(key, req.file.buffer, req.file.mimetype);
+            staff.avatar = uploaded.url;
         }
         await staff.save();
-        res.status(200).json({
-            message: `Staff Created Successfully`,
-            staff,
-        });
+        res.status(201).json({ message: "Staff created successfully", staff });
     }
     catch (error) {
-        res
-            .status(500)
-            .json({ message: "Internal server error", error: error.message });
+        console.error("newStaffMember error:", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
     }
 };
 exports.newStaffMember = newStaffMember;
+/** PUT /api/admin/staffs/:staffId */
 const updateStaff = async (req, res) => {
     try {
         const { staffId } = req.params;
-        const { fullname, email, phone1, phone2, phone3, address, status, notes } = req.body;
-        // Validate required fields
-        if (!fullname || !email) {
-            res.status(400).json({
-                message: "Full name and email are required",
-            });
-            return;
-        }
-        // Find staff member
-        const staff = await user_model_1.default.findById(staffId);
+        const { fullname, email, phone1, phone2, phone3, address, status, notes, // optional; not stored unless you added field
+        password, // optional new password
+         } = req.body;
+        const staff = await user_model_1.default.findById(staffId).select("+password");
         if (!staff) {
             res.status(404).json({ message: "Staff not found" });
             return;
         }
-        // Check for email uniqueness (excluding current staff)
-        const existingEmail = await user_model_1.default.findOne({
-            email,
-            _id: { $ne: staffId },
-        });
-        if (existingEmail) {
-            res.status(409).json({
-                message: "Email already in use by another staff member",
-            });
-            return;
+        // If email changes, enforce uniqueness
+        if (email && email !== staff.email) {
+            const existingEmail = await user_model_1.default.findOne({ email, _id: { $ne: staffId } });
+            if (existingEmail) {
+                res.status(409).json({ message: "Email already in use" });
+                return;
+            }
         }
-        // Update fields
-        staff.fullname = fullname;
-        staff.email = email;
-        staff.phone1 = phone1;
-        staff.phone2 = phone2;
-        staff.phone3 = phone3;
-        staff.address = address || "";
-        staff.isActive = status === "Active"; // Convert string to boolean
-        // Handle avatar update
+        // Update only provided fields (keep old values otherwise)
+        if (fullname)
+            staff.fullname = fullname;
+        if (email)
+            staff.email = email;
+        staff.phone1 = phone1 ?? staff.phone1;
+        staff.phone2 = phone2 ?? staff.phone2;
+        staff.phone3 = phone3 ?? staff.phone3;
+        staff.address = address ?? staff.address;
+        if (typeof status !== "undefined") {
+            staff.isActive = status === "Active";
+        }
+        // Optional password update
+        if (password && password.trim().length > 0) {
+            staff.password = password.trim(); // will be hashed by pre-save
+        }
         if (req.file) {
-            staff.avatar = `/uploads/staffs/${req.file.filename}`;
+            if (staff.avatar && staff.avatar.startsWith("/uploads/")) {
+                try {
+                    (0, Delete_1.deleteImage)(staff.avatar);
+                }
+                catch (e) {
+                    console.warn("Failed to delete legacy avatar:", e);
+                }
+            }
+            const key = buildBlobKey(req.file.originalname);
+            const uploaded = await (0, blob_1.uploadBufferToBlob)(key, req.file.buffer, req.file.mimetype);
+            staff.avatar = uploaded.url;
         }
         await staff.save();
         res.status(200).json({
@@ -132,14 +150,36 @@ const updateStaff = async (req, res) => {
         });
     }
     catch (error) {
-        console.error("Update staff error:", error);
-        res.status(500).json({
-            message: "Internal server error",
-            error: error.message,
-        });
+        console.error("updateStaff error:", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
     }
 };
 exports.updateStaff = updateStaff;
+/** DELETE /api/admin/staffs/:staffId */
+const deleteStaff = async (req, res) => {
+    try {
+        const { staffId } = req.params;
+        const staff = await user_model_1.default.findByIdAndDelete(staffId);
+        if (!staff) {
+            res.status(404).json({ message: "Staff not found" });
+            return;
+        }
+        if (staff.avatar && staff.avatar.startsWith("/uploads/")) {
+            try {
+                (0, Delete_1.deleteImage)(staff.avatar);
+            }
+            catch (e) {
+                console.warn("Failed to delete legacy avatar:", e);
+            }
+        }
+        res.status(200).json({ message: "Staff deleted successfully" });
+    }
+    catch (error) {
+        console.error("deleteStaff error:", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+};
+exports.deleteStaff = deleteStaff;
 const getCategoryAnalytics = async (req, res) => {
     try {
         const { period = "week" } = req.query;
