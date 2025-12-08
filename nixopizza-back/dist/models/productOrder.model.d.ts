@@ -1,6 +1,7 @@
-import { Document, Schema } from "mongoose";
-export interface IProductOrder extends Document {
-    productId: Schema.Types.ObjectId;
+import { Types, HydratedDocument } from "mongoose";
+export interface IProductOrder {
+    _id: Types.ObjectId;
+    productId: Types.ObjectId;
     quantity: number;
     expirationDate: Date;
     unitCost: number;
@@ -10,8 +11,9 @@ export interface IProductOrder extends Document {
     createdAt: Date;
     updatedAt: Date;
 }
-declare const ProductOrder: import("mongoose").Model<IProductOrder, {}, {}, {}, Document<unknown, {}, IProductOrder, {}> & IProductOrder & Required<{
-    _id: unknown;
+export type ProductOrderDocument = HydratedDocument<IProductOrder>;
+declare const ProductOrder: import("mongoose").Model<IProductOrder, {}, {}, {}, import("mongoose").Document<unknown, {}, IProductOrder, {}, {}> & IProductOrder & Required<{
+    _id: Types.ObjectId;
 }> & {
     __v: number;
 }, any>;

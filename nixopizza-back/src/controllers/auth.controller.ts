@@ -164,7 +164,7 @@ export const updateFcmToken = async (
   try {
     const { fcmToken } = req.body;
 
-    if (!fcmToken || typeof fcmToken !== "string") {
+    if (!fcmToken || typeof fcmToken !== "string" || fcmToken.trim().length === 0) {
       res.status(400).json({ message: "Valid fcmToken is required" });
       return;
     }

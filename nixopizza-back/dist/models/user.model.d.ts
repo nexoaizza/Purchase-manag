@@ -10,12 +10,13 @@ export interface IUser extends Document {
     phone2?: string;
     phone3?: string;
     address: string;
+    fcmToken?: string;
     createdAt: Date;
     updatedAt: Date;
     comparePassword(candidatePassword: string): Promise<boolean>;
 }
-declare const User: import("mongoose").Model<IUser, {}, {}, {}, Document<unknown, {}, IUser, {}> & IUser & Required<{
-    _id: unknown;
+declare const User: import("mongoose").Model<IUser, {}, {}, {}, Document<unknown, {}, IUser, {}, {}> & IUser & Required<{
+    _id: import("mongoose").Types.ObjectId;
 }> & {
     __v: number;
 }, any>;
