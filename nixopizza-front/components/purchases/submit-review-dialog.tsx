@@ -111,8 +111,8 @@ export function SubmitReviewDialog({
       return;
     }
     // Basic validation
-    if (items.some((i) => i.quantity < 0 || i.unitCost < 0)) {
-      toast.error("Invalid item values (quantity >=0, unitCost >=0)");
+    if (items.some((i) => Number.isNaN(i.quantity) || Number.isNaN(i.unitCost) || i.quantity < 0 || i.unitCost < 0)) {
+      toast.error("Invalid item values (numbers >= 0)");
       return;
     }
 
@@ -209,13 +209,11 @@ export function SubmitReviewDialog({
                       type="number"
                       min={0}
                       value={it.quantity}
-                      onChange={(e) =>
-                        updateItemField(
-                          it.itemId,
-                          "quantity",
-                          Number(e.target.value) || 0
-                        )
-                      }
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        const num = v === "" ? NaN : parseInt(v);
+                        updateItemField(it.itemId, "quantity", Number.isNaN(num) ? 0 : num);
+                      }}
                     />
                   </div>
                   <div className="space-y-1">
@@ -225,13 +223,11 @@ export function SubmitReviewDialog({
                       min={0}
                       step="0.01"
                       value={it.unitCost}
-                      onChange={(e) =>
-                        updateItemField(
-                          it.itemId,
-                          "unitCost",
-                          parseFloat(e.target.value) || 0
-                        )
-                      }
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        const num = v === "" ? NaN : parseFloat(v);
+                        updateItemField(it.itemId, "unitCost", Number.isNaN(num) ? 0 : num);
+                      }}
                     />
                   </div>
                   <div className="space-y-1">

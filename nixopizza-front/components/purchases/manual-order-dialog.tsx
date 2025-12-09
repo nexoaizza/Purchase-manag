@@ -196,6 +196,21 @@ export function ManualOrderDialog({
       setError("Please add at least one order item");
       return;
     }
+    // Validate quantities and product selections before submit
+    if (
+      orderItems.some(
+        (it) =>
+          !it.productId ||
+          it.productId.trim() === "" ||
+          Number.isNaN(it.quantity) ||
+          it.quantity <= 0
+      )
+    ) {
+      setError(
+        "Please enter valid quantities (> 0) and select products for all items"
+      );
+      return;
+    }
     if (orderItems.some((item) => !item.productId)) {
       setError("Please select products for all order items");
       return;
@@ -387,15 +402,13 @@ export function ManualOrderDialog({
                         </Label>
                         <Input
                           type="number"
-                          min="1"
+                          min="0"
                           value={item.quantity}
-                          onChange={(e) =>
-                            updateOrderItem(
-                              index,
-                              "quantity",
-                              parseInt(e.target.value) || 1
-                            )
-                          }
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            const num = v === "" ? NaN : parseInt(v);
+                            updateOrderItem(index, "quantity", Number.isNaN(num) ? 0 : num);
+                          }}
                           className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg py-5"
                         />
                       </div>

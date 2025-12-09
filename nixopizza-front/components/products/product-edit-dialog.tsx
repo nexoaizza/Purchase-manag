@@ -286,12 +286,11 @@ export function ProductEditDialog({
                 type="number"
                 min={0}
                 value={formData.currentStock}
-                onChange={(e) =>
-                  handleInputChange(
-                    "currentStock",
-                    parseInt(e.target.value) || 0
-                  )
-                }
+                onChange={(e) => {
+                  const v = e.target.value;
+                  const num = v === "" ? NaN : parseInt(v);
+                  handleInputChange("currentStock", Number.isNaN(num) ? 0 : num);
+                }}
                 required
               />
             </div>
@@ -301,9 +300,11 @@ export function ProductEditDialog({
                 type="number"
                 min={0}
                 value={formData.minQty}
-                onChange={(e) =>
-                  handleInputChange("minQty", parseInt(e.target.value) || 0)
-                }
+                onChange={(e) => {
+                  const v = e.target.value;
+                  const num = v === "" ? NaN : parseInt(v);
+                  handleInputChange("minQty", Number.isNaN(num) ? 0 : num);
+                }}
                 required
               />
             </div>
@@ -313,12 +314,11 @@ export function ProductEditDialog({
                 type="number"
                 min={0}
                 value={formData.recommendedQty}
-                onChange={(e) =>
-                  handleInputChange(
-                    "recommendedQty",
-                    parseInt(e.target.value) || 0
-                  )
-                }
+                onChange={(e) => {
+                  const v = e.target.value;
+                  const num = v === "" ? NaN : parseInt(v);
+                  handleInputChange("recommendedQty", Number.isNaN(num) ? 0 : num);
+                }}
               />
             </div>
           </div>
