@@ -17,6 +17,7 @@ import {
   Zap,
   MoreVertical,
   Cog,
+  FileText,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -57,6 +58,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             href: "/dashboard/purchases",
             icon: ShoppingCart,
           },
+          { name: t("templates"), href: "/dashboard/purchases/templates", icon: FileText },
           { name: t("shortcuts"), href: "/dashboard/shortcuts", icon: Zap },
           { name: t("lowStock"), href: "/dashboard/alerts", icon: AlertTriangle },
           { name: t("staff"), href: "/dashboard/stuff", icon: Users },
