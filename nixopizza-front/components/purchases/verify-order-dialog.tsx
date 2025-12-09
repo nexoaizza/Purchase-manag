@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { IOrder } from "@/app/dashboard/purchases/page";
+import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
 import { verifyOrder } from "@/lib/apis/purchase-list";
 import { useAuth } from "@/hooks/useAuth";
 import { resolveImage } from "@/lib/resolveImage";

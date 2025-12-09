@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { IOrder } from "@/app/dashboard/purchases/page";
+import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
 import { markOrderPaid } from "@/lib/apis/purchase-list";
 import { resolveImage } from "@/lib/resolveImage";
 import { DollarSign, Package, Receipt, Building2, User } from "lucide-react";

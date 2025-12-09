@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload, X, Package, Receipt, DollarSign, Download } from "lucide-react";
 import toast from "react-hot-toast";
-import { IOrder } from "@/app/dashboard/purchases/page";
+import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
 import { submitForReview } from "@/lib/apis/purchase-list";
 import { resolveImage } from "@/lib/resolveImage";
 
