@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { isAuthenticated } from "../middlewares/Auth";
+import { authenticate, requireAdmin } from "../middlewares/Auth";
 import {
   listTemplates,
   getTemplate,
@@ -10,7 +10,8 @@ import {
 
 const router = Router();
 
-router.use(isAuthenticated);
+router.use(authenticate);
+router.use(requireAdmin);
 
 router.get("/", listTemplates);
 router.get("/:id", getTemplate);
