@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import PurchaseTemplate from "../models/template.model";
+import Supplier from "../models/supplier.model";
+import Product from "../models/product.model";
 
 export const listTemplates = async (req: Request, res: Response) => {
   try {
@@ -41,18 +43,27 @@ export const getTemplate = async (req: Request, res: Response) => {
 
 export const createTemplate = async (req: Request, res: Response) => {
   try {
-    const { name, description, items } = req.body as {
+    const { name, description, items, supplierId } = req.body as {
       name: string;
       description?: string;
       items: { productId: string; quantity: number }[];
+      supplierId: string;
     };
 
-    if (!name || !Array.isArray(items)) {
-      return res.status(400).json({ message: "Name and items are required" });
+    if (!name || !Array.isArray(items) || !supplierId) {
+      return res.status(400).json({ message: "Name, supplierId and items are required" });
     }
+    const supplier = await Supplier.findById(supplierId);
+    if (!supplier) return res.status(404).json({ message: "Supplier not found" });
     for (const it of items) {
       if (!it.productId || it.quantity == null || it.quantity < 0) {
         return res.status(400).json({ message: "Invalid item values" });
+      }
+      const product = await Product.findById(it.productId).select("categoryId");
+      if (!product) return res.status(404).json({ message: `Product not found: ${it.productId}` });
+      const allowed = supplier.categoryIds.map(String);
+      if (!allowed.includes(String(product.categoryId))) {
+        return res.status(400).json({ message: "Product does not belong to supplier categories" });
       }
     }
 
@@ -60,6 +71,7 @@ export const createTemplate = async (req: Request, res: Response) => {
       name,
       description,
       items,
+      supplierId,
       ownerId: req.user?.userId,
     });
     res.status(201).json({ message: "Template created", template: tpl });
@@ -70,10 +82,11 @@ export const createTemplate = async (req: Request, res: Response) => {
 
 export const updateTemplate = async (req: Request, res: Response) => {
   try {
-    const { name, description, items } = req.body as {
+    const { name, description, items, supplierId } = req.body as {
       name?: string;
       description?: string;
       items?: { productId: string; quantity: number }[];
+      supplierId?: string;
     };
 
     const tpl = await PurchaseTemplate.findOne({ _id: req.params.id, ownerId: req.user?.userId });
@@ -81,10 +94,34 @@ export const updateTemplate = async (req: Request, res: Response) => {
 
     if (name !== undefined) tpl.name = name;
     if (description !== undefined) tpl.description = description;
+    if (supplierId !== undefined) {
+      const supplier = await Supplier.findById(supplierId);
+      if (!supplier) return res.status(404).json({ message: "Supplier not found" });
+      (tpl as any).supplierId = supplier._id;
+      if (items === undefined) {
+        // still validate existing items against new supplier
+        for (const it of tpl.items) {
+          const product = await Product.findById((it as any).productId).select("categoryId");
+          if (!product) return res.status(404).json({ message: "Product not found in existing items" });
+          const allowed = supplier.categoryIds.map(String);
+          if (!allowed.includes(String(product.categoryId))) {
+            return res.status(400).json({ message: "Existing item not allowed for new supplier" });
+          }
+        }
+      }
+    }
     if (items !== undefined) {
       for (const it of items) {
         if (!it.productId || it.quantity == null || it.quantity < 0) {
           return res.status(400).json({ message: "Invalid item values" });
+        }
+        const supplier = await Supplier.findById(supplierId ?? (tpl as any).supplierId);
+        if (!supplier) return res.status(404).json({ message: "Supplier not found" });
+        const product = await Product.findById(it.productId).select("categoryId");
+        if (!product) return res.status(404).json({ message: `Product not found: ${it.productId}` });
+        const allowed = supplier.categoryIds.map(String);
+        if (!allowed.includes(String(product.categoryId))) {
+          return res.status(400).json({ message: "Product does not belong to supplier categories" });
         }
       }
       (tpl as any).items = items;

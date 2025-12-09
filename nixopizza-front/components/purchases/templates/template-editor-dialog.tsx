@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ProductSelect } from "@/components/ui/product-select";
+import { SupplierSelect } from "@/components/ui/supplier-select";
+import { ISupplier } from "@/app/[locale]/dashboard/suppliers/page";
 import { getProducts } from "@/lib/apis/products";
 import toast from "react-hot-toast";
 import { createTemplate, updateTemplate, PurchaseTemplateDTO } from "@/lib/apis/purchase-templates";
@@ -35,6 +37,7 @@ export default function TemplateEditorDialog({
   const [description, setDescription] = useState("");
   const [items, setItems] = useState<Item[]>([{ productId: "", quantity: 1, product: null }]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [supplier, setSupplier] = useState<ISupplier | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -51,6 +54,7 @@ export default function TemplateEditorDialog({
       if (initial) {
         setName(initial.name);
         setDescription(initial.description || "");
+        // supplier cannot be fully populated here unless initial has it populated; keep null and rely on filtering below
         setItems(
           initial.items.map((it: any) => ({
             productId: typeof it.productId === "string" ? it.productId : it.productId?._id,
@@ -75,12 +79,13 @@ export default function TemplateEditorDialog({
 
   const onSubmit = async () => {
     if (!name.trim()) return toast.error("Template name is required");
+    if (!supplier) return toast.error("Please select a supplier");
     if (!items.length || items.some((i) => !i.productId || i.quantity <= 0)) {
       return toast.error("Please add items with quantity > 0");
     }
     setLoading(true);
     try {
-      const payload = { name: name.trim(), description: description.trim(), items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })) };
+      const payload = { name: name.trim(), description: description.trim(), supplierId: supplier._id, items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })) };
       const res = initial?._id ? await updateTemplate(initial._id, payload) : await createTemplate(payload);
       if (res.success && res.template) {
         toast.success(initial?._id ? "Template updated" : "Template created");
@@ -113,13 +118,17 @@ export default function TemplateEditorDialog({
             </div>
           </div>
           <div className="space-y-2">
+            <Label>Supplier</Label>
+            <SupplierSelect selectedSupplier={supplier} onSupplierChange={setSupplier} placeholder="Select a supplier" />
+          </div>
+          <div className="space-y-2">
             <Label>Items</Label>
             <div className="space-y-3">
               {items.map((it, idx) => (
                 <div key={idx} className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
                   <div className="md:col-span-4">
                     <ProductSelect
-                      products={products}
+                      products={supplier ? products.filter((p) => supplier.categoryIds.map(String).includes(String((p as any).categoryId))) : products}
                       selectedProduct={it.product || products.find((p) => p._id === it.productId) || null}
                       onSelect={(p) => updateItem(idx, { productId: p?._id || "", product: (p as any) || null })}
                       placeholder="Select product"
