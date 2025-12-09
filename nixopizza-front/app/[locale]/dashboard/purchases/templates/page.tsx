@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import TemplateEditorDialog from "@/components/purchases/templates/template-editor-dialog";
 import toast from "react-hot-toast";
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
 
 export default function TemplatesPage() {
   const [templates, setTemplates] = useState<PurchaseTemplateDTO[]>([]);
@@ -15,7 +16,7 @@ export default function TemplatesPage() {
   const fetchData = async () => {
     setLoading(true);
     const res = await listTemplates({ limit: 100 });
-    if (res.success) setTemplates(res.templates);
+    if (res.success) setTemplates(res.templates || []);
     else toast.error(res.message || "Failed to load templates");
     setLoading(false);
   };
@@ -34,6 +35,7 @@ export default function TemplatesPage() {
   };
 
   return (
+    <DashboardLayout>
     <div className="space-y-4 p-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-heading">Purchase Templates</h1>
@@ -74,5 +76,6 @@ export default function TemplatesPage() {
 
       <TemplateEditorDialog open={openEditor} onOpenChange={setOpenEditor} onSaved={onSaved} initial={editing} />
     </div>
+    </DashboardLayout>
   );
 }

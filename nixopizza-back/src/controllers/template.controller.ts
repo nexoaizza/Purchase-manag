@@ -17,7 +17,8 @@ export const listTemplates = async (req: Request, res: Response) => {
 
     const [items, total] = await Promise.all([
       PurchaseTemplate.find(query)
-        .populate({ path: "items.productId", select: "name imageUrl barcode" })
+        .populate({ path: "items.productId", select: "name imageUrl barcode categoryId" })
+        .populate({ path: "supplierId", select: "name image" })
         .sort({ updatedAt: -1 })
         .skip(skip)
         .limit(limit),
@@ -33,7 +34,8 @@ export const listTemplates = async (req: Request, res: Response) => {
 export const getTemplate = async (req: Request, res: Response) => {
   try {
     const tpl = await PurchaseTemplate.findOne({ _id: req.params.id, ownerId: req.user?.userId })
-      .populate({ path: "items.productId", select: "name imageUrl barcode" });
+      .populate({ path: "items.productId", select: "name imageUrl barcode categoryId" })
+      .populate({ path: "supplierId", select: "name image" });
     if (!tpl) return res.status(404).json({ message: "Template not found" });
     res.json({ template: tpl });
   } catch (err: any) {

@@ -80,8 +80,8 @@ export default function TemplateEditorDialog({
   const onSubmit = async () => {
     if (!name.trim()) return toast.error("Template name is required");
     if (!supplier) return toast.error("Please select a supplier");
-    if (!items.length || items.some((i) => !i.productId || i.quantity <= 0)) {
-      return toast.error("Please add items with quantity > 0");
+    if (!items.length || items.some((i) => !i.productId || i.quantity < 0)) {
+      return toast.error("Please add items (quantity can be 0, not negative)");
     }
     setLoading(true);
     try {
@@ -128,7 +128,8 @@ export default function TemplateEditorDialog({
                 <div key={idx} className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
                   <div className="md:col-span-4">
                     <ProductSelect
-                      products={supplier ? products.filter((p) => supplier.categoryIds.map(String).includes(String((p as any).categoryId))) : products}
+                      products={supplier ? products.filter((p) => supplier.categoryIds.map(String).includes(String((p as any).categoryId))) : []}
+                      disabled={!supplier}
                       selectedProduct={it.product || products.find((p) => p._id === it.productId) || null}
                       onSelect={(p) => updateItem(idx, { productId: p?._id || "", product: (p as any) || null })}
                       placeholder="Select product"
