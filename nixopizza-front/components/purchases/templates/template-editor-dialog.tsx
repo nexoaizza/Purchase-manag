@@ -139,7 +139,7 @@ export default function TemplateEditorDialog({
                 <div key={idx} className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
                   <div className="md:col-span-4">
                     <ProductSelect
-                      products={supplier ? products.filter((p) => {
+                      products={supplier && supplier.categoryIds ? products.filter((p) => {
                         const catId = (p as any).categoryId;
                         const actualCatId = typeof catId === "object" ? catId?._id : catId;
                         return supplier.categoryIds.map(String).includes(String(actualCatId));
