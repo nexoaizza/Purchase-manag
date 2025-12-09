@@ -554,6 +554,7 @@ export function ManualOrderDialog({
         <LoadTemplateDialog
           open={openLoadTpl}
           onOpenChange={setOpenLoadTpl}
+          supplierId={selectedSupplier?._id}
           onPick={(tpl) => {
             if (!selectedSupplier) return;
             const allowedIds = new Set(filteredProducts.map((p) => p._id));

@@ -77,6 +77,15 @@ export default function TemplateEditorDialog({
   const addRow = () => setItems((prev) => [...prev, { productId: "", quantity: 1, product: null }]);
   const removeRow = (idx: number) => setItems((prev) => prev.filter((_, i) => i !== idx));
 
+  const handleSupplierChange = (newSupplier: ISupplier | null) => {
+    const hasProducts = items.some((it) => it.productId && it.productId.trim() !== "");
+    if (hasProducts && supplier && newSupplier?._id !== supplier._id) {
+      toast.error("Please remove all selected products before changing the supplier");
+      return;
+    }
+    setSupplier(newSupplier);
+  };
+
   const onSubmit = async () => {
     if (!name.trim()) return toast.error("Template name is required");
     if (!supplier) return toast.error("Please select a supplier");
@@ -119,7 +128,7 @@ export default function TemplateEditorDialog({
           </div>
           <div className="space-y-2">
             <Label>Supplier</Label>
-            <SupplierSelect selectedSupplier={supplier} onSupplierChange={setSupplier} placeholder="Select a supplier" />
+            <SupplierSelect selectedSupplier={supplier} onSupplierChange={handleSupplierChange} placeholder="Select a supplier" />
           </div>
           <div className="space-y-2">
             <Label>Items</Label>

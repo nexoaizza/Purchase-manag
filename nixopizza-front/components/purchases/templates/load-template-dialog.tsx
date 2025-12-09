@@ -11,10 +11,12 @@ export default function LoadTemplateDialog({
   open,
   onOpenChange,
   onPick,
+  supplierId,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   onPick: (tpl: PurchaseTemplateDTO) => void;
+  supplierId?: string;
 }) {
   const [templates, setTemplates] = useState<PurchaseTemplateDTO[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
@@ -25,11 +27,21 @@ export default function LoadTemplateDialog({
     (async () => {
       setLoading(true);
       const res = await listTemplates({ limit: 200 });
-      if (res.success) setTemplates(res.templates || []);
-      else toast.error(res.message || "Failed to load templates");
+      if (res.success) {
+        let tpls = res.templates || [];
+        if (supplierId) {
+          tpls = tpls.filter((t) => {
+            const tplSupplierId = typeof t.supplierId === "string" ? t.supplierId : (t.supplierId as any)?._id;
+            return tplSupplierId === supplierId;
+          });
+        }
+        setTemplates(tpls);
+      } else {
+        toast.error(res.message || "Failed to load templates");
+      }
       setLoading(false);
     })();
-  }, [open]);
+  }, [open, supplierId]);
 
   const handleApply = () => {
     const tpl = templates.find((t) => t._id === selectedId);
