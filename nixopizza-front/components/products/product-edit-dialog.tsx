@@ -332,11 +332,6 @@ export function ProductEditDialog({
               onChange={(e) => handleInputChange("description", e.target.value)}
               placeholder={t("descriptionPlaceholder")}
               rows={3}
-              value={formData.description}
-              onChange={(e) =>
-                handleInputChange("description", e.target.value)
-              }
-              placeholder="Describe the product"
             />
           </div>
 

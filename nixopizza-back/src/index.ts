@@ -14,6 +14,7 @@ import adminRouter from "./routes/admin.router";
 import taskRouter from "./routes/task.router";
 import supplierRouter from "./routes/supplier.router";
 import notificationRouter from "./routes/notification.router";
+import templateRouter from "./routes/template.router";
 
 import blobUploadRouter from "./routes/blobUpload.router";
 import User from "./models/user.model";
@@ -86,6 +87,7 @@ app.use("/api/categories", categoryRouter);
 app.use("/api/tasks", taskRouter);
 app.use("/api/suppliers", supplierRouter);
 app.use("/api/notifications", notificationRouter);
+app.use("/api/templates", templateRouter);
 
 const PORT = process.env.PORT || 5000;
 
