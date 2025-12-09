@@ -54,7 +54,8 @@ export default function TemplateEditorDialog({
       if (initial) {
         setName(initial.name);
         setDescription(initial.description || "");
-        // supplier cannot be fully populated here unless initial has it populated; keep null and rely on filtering below
+        const initSupplier = typeof initial.supplierId === "object" ? initial.supplierId : null;
+        setSupplier(initSupplier as ISupplier | null);
         setItems(
           initial.items.map((it: any) => ({
             productId: typeof it.productId === "string" ? it.productId : it.productId?._id,
@@ -65,6 +66,7 @@ export default function TemplateEditorDialog({
       } else {
         setName("");
         setDescription("");
+        setSupplier(null);
         setItems([{ productId: "", quantity: 1, product: null }]);
       }
     }

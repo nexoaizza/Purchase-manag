@@ -9,6 +9,7 @@ export interface PurchaseTemplateDTO {
   _id: string;
   name: string;
   description?: string;
+  supplierId?: string | any;
   items: Array<{ productId: any; quantity: number }>;
   createdAt: string;
   updatedAt: string;
