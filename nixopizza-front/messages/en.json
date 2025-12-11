@@ -24,6 +24,7 @@
         "tasks": "Tasks",
         "notifications": "Notifications",
         "orders": "Orders",
+        "templates": "Templates",
         "signOut": "Sign Out",
         "parameters": "Parameters"
     },

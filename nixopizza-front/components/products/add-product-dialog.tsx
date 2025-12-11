@@ -43,6 +43,8 @@ export function AddProductDialog() {
     categoryId: "",
     minQty: 0,
     description: "",
+    recommendedQty: 0,
+    currentStock: 0,
   });
 
   const handleInputChange = (field: string, value: string | number) =>
@@ -74,6 +76,8 @@ export function AddProductDialog() {
       categoryId: "",
       minQty: 0,
       description: "",
+      recommendedQty: 0,
+      currentStock: 0,
     });
     setImage(null);
     setImagePreview(null);
@@ -227,17 +231,46 @@ export function AddProductDialog() {
             </div>
 
           {/* Stock */}
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>Initial Stock *</Label>
+              <Input
+                type="number"
+                value={formData.currentStock}
+                min={0}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  const num = v === "" ? NaN : parseInt(v);
+                  handleInputChange("currentStock", Number.isNaN(num) ? 0 : num);
+                }}
+                required
+              />
+            </div>
             <div className="space-y-2">
               <Label>Minimum Qty *</Label>
               <Input
                 type="number"
                 value={formData.minQty}
                 min={0}
-                onChange={(e) =>
-                  handleInputChange("minQty", parseInt(e.target.value) || 0)
-                }
+                onChange={(e) => {
+                  const v = e.target.value;
+                  const num = v === "" ? NaN : parseInt(v);
+                  handleInputChange("minQty", Number.isNaN(num) ? 0 : num);
+                }}
                 required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Recommended Qty (Optional)</Label>
+              <Input
+                type="number"
+                value={formData.recommendedQty}
+                min={0}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  const num = v === "" ? NaN : parseInt(v);
+                  handleInputChange("recommendedQty", Number.isNaN(num) ? 0 : num);
+                }}
               />
             </div>
           </div>

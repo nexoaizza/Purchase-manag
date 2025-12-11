@@ -43,7 +43,8 @@ export function PurchaseStats({ filteredOrders, filtersActive }: PurchaseStatsPr
           totalValue: response.totalValue || 0,
         });
       } else {
-        toast.error(message || t("unexpectedError"));
+        //TODO: dir message in error case
+        //toast.error(message || t("unexpectedError"));
       }
     };
     fetchStats();

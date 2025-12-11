@@ -319,13 +319,13 @@ export function AssignTaskDialog({
                           </Label>
                           <Input
                             type="number"
-                            min="1"
+                            min="0"
                             value={item.quantity}
                             onChange={(e) =>
                               updateTaskItem(
                                 index,
                                 "quantity",
-                                parseInt(e.target.value) || 1
+                                parseInt(e.target.value) || 0
                               )
                             }
                             className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg py-5"

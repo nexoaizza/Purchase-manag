@@ -91,5 +91,4 @@ const initializeExpirationMonitoring = (timezone = "UTC") => {
     });
 };
 exports.initializeExpirationMonitoring = initializeExpirationMonitoring;
-(0, exports.initializeExpirationMonitoring)();
 //# sourceMappingURL=expirationMonitoring.controller.js.map

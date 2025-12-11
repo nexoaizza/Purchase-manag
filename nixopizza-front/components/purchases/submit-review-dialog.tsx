@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload, X, Package, Receipt, DollarSign, Download } from "lucide-react";
 import toast from "react-hot-toast";
-import { IOrder } from "@/app/dashboard/purchases/page";
+import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
 import { submitForReview } from "@/lib/apis/purchase-list";
 import { resolveImage } from "@/lib/resolveImage";
 
@@ -111,8 +111,8 @@ export function SubmitReviewDialog({
       return;
     }
     // Basic validation
-    if (items.some((i) => i.quantity <= 0 || i.unitCost < 0)) {
-      toast.error("Invalid item values (quantity >0, unitCost >=0)");
+    if (items.some((i) => Number.isNaN(i.quantity) || Number.isNaN(i.unitCost) || i.quantity < 0 || i.unitCost < 0)) {
+      toast.error("Invalid item values (numbers >= 0)");
       return;
     }
 
@@ -207,15 +207,13 @@ export function SubmitReviewDialog({
                     <Label className="text-xs">Quantity</Label>
                     <Input
                       type="number"
-                      min={1}
+                      min={0}
                       value={it.quantity}
-                      onChange={(e) =>
-                        updateItemField(
-                          it.itemId,
-                          "quantity",
-                          Number(e.target.value) || 1
-                        )
-                      }
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        const num = v === "" ? NaN : parseInt(v);
+                        updateItemField(it.itemId, "quantity", Number.isNaN(num) ? 0 : num);
+                      }}
                     />
                   </div>
                   <div className="space-y-1">
@@ -225,13 +223,11 @@ export function SubmitReviewDialog({
                       min={0}
                       step="0.01"
                       value={it.unitCost}
-                      onChange={(e) =>
-                        updateItemField(
-                          it.itemId,
-                          "unitCost",
-                          parseFloat(e.target.value) || 0
-                        )
-                      }
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        const num = v === "" ? NaN : parseFloat(v);
+                        updateItemField(it.itemId, "unitCost", Number.isNaN(num) ? 0 : num);
+                      }}
                     />
                   </div>
                   <div className="space-y-1">
@@ -370,7 +366,7 @@ export function SubmitReviewDialog({
               saving ||
               !billFile ||
               items.length === 0 ||
-              items.some((i) => i.quantity <= 0 || i.unitCost < 0)
+              items.some((i) => i.quantity < 0 || i.unitCost < 0)
             }
             className="bg-orange-600 hover:bg-orange-700 text-white"
           >

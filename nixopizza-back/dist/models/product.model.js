@@ -6,6 +6,7 @@ const productSchema = new mongoose_1.Schema({
         type: String,
         required: [true, "Product Name Is Required"],
         trim: true,
+        unique: true,
     },
     barcode: {
         type: String,
@@ -14,6 +15,7 @@ const productSchema = new mongoose_1.Schema({
     unit: {
         type: String,
         enum: ["liter", "kilogram", "box", "piece", "meter", "pack", "bottle"],
+        required: [true, "Product Unit Is Required"],
     },
     categoryId: {
         type: mongoose_1.Schema.Types.ObjectId,
@@ -22,7 +24,7 @@ const productSchema = new mongoose_1.Schema({
     },
     imageUrl: {
         type: String,
-        required: [true, "Product Image Is Required"],
+        required: false, // was required true; now optional since we can allow creation first then image later
     },
     description: {
         type: String,

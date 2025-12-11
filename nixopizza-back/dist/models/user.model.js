@@ -50,6 +50,10 @@ const userSchema = new mongoose_1.Schema({
     address: {
         type: String,
     },
+    fcmToken: {
+        type: String,
+        default: null,
+    },
 }, {
     timestamps: true,
 });

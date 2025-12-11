@@ -3,53 +3,70 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteProduct = exports.getOverStockProducts = exports.getLowStockProducts = exports.getProduct = exports.getAllProducts = exports.updateProduct = exports.createProduct = void 0;
+exports.getOverStockProducts = exports.getLowStockProducts = exports.deleteProduct = exports.getProduct = exports.getAllProducts = exports.updateProduct = exports.createProduct = void 0;
 const product_model_1 = __importDefault(require("../models/product.model"));
 const Delete_1 = require("../utils/Delete");
+const crypto_1 = __importDefault(require("crypto"));
+const blob_1 = require("../utils/blob");
+// CREATE
 const createProduct = async (req, res) => {
     try {
-        const { name, barcode, unit, categoryId, description, currentStock, minQty, recommendedQty } = req.body;
-        if (!name || !unit || !categoryId || !currentStock || !minQty) {
-            res.status(400).json({ message: "All fields must fill" });
+        const { name, barcode, unit, categoryId, description, currentStock, minQty, recommendedQty, } = req.body;
+        if (!name || !unit || !categoryId || currentStock === undefined || minQty === undefined) {
+            res.status(400).json({ message: "Missing required fields" });
             return;
         }
-        const filename = req.file?.filename;
-        if (!filename) {
-            res.status(400).json({ message: "Product Must Have an Image" });
+        if (req.fileValidationError) {
+            res.status(400).json({ message: req.fileValidationError });
             return;
         }
-        const newProduct = await product_model_1.default.create({
-            name,
-            barcode,
-            unit,
-            categoryId,
-            description,
-            currentStock,
-            minQty,
-            recommendedQty,
-            imageUrl: `/uploads/products/${filename}`,
-        });
-        res
-            .status(200)
-            .json({ message: "Product created Successfully", product: newProduct });
+        let imageUrl;
+        if (req.file) {
+            const ext = (req.file.originalname.match(/\.[^/.]+$/) || [".bin"])[0];
+            const unique = crypto_1.default.randomBytes(8).toString("hex");
+            const key = `${Date.now()}-${unique}${ext}`;
+            const uploaded = await (0, blob_1.uploadBufferToBlob)(key, req.file.buffer, req.file.mimetype);
+            imageUrl = uploaded.url;
+        }
+        try {
+            const newProduct = await product_model_1.default.create({
+                name,
+                barcode,
+                unit,
+                categoryId,
+                description,
+                currentStock: Number(currentStock),
+                minQty: Number(minQty),
+                recommendedQty: recommendedQty !== undefined ? Number(recommendedQty) : 0,
+                imageUrl,
+            });
+            res.status(201).json({ message: "Product created successfully", product: newProduct });
+        }
+        catch (err) {
+            if (err.code === 11000 && err.keyPattern?.name) {
+                res.status(409).json({ message: "Product name must be unique" });
+                return;
+            }
+            throw err;
+        }
     }
     catch (error) {
-        console.error("Error : ", error);
-        res
-            .status(500)
-            .json({ message: "Internal server error", err: error.message });
+        console.error("Product create error:", error);
+        res.status(500).json({ message: "Internal server error", err: error.message });
     }
 };
 exports.createProduct = createProduct;
+// UPDATE
 const updateProduct = async (req, res) => {
     try {
-        console.log("Product Body : ", req.body);
-        const { name, barcode, unit, categoryId, description, currentStock, minQty, recommendedQty } = req.body;
-        console.log(name, barcode, unit, categoryId, description, currentStock, minQty, recommendedQty);
-        console.log("Updated Product");
+        const { name, barcode, unit, categoryId, description, currentStock, minQty, recommendedQty, } = req.body;
         const product = await product_model_1.default.findById(req.params.productId);
         if (!product) {
-            res.status(404).json({ message: "Porduct not found" });
+            res.status(404).json({ message: "Product not found" });
+            return;
+        }
+        if (req.fileValidationError) {
+            res.status(400).json({ message: req.fileValidationError });
             return;
         }
         if (name)
@@ -62,38 +79,51 @@ const updateProduct = async (req, res) => {
             product.categoryId = categoryId;
         if (description !== undefined)
             product.description = description;
-        //TODO: should be handeled in the front and send it as a number not string
-        if (currentStock) {
+        if (currentStock !== undefined)
             product.currentStock = Number(currentStock);
+        if (minQty !== undefined)
+            product.minQty = Number(minQty);
+        if (recommendedQty !== undefined)
+            product.recommendedQty = Number(recommendedQty);
+        if (req.file) {
+            if (product.imageUrl && product.imageUrl.startsWith("/uploads/")) {
+                try {
+                    (0, Delete_1.deleteImage)(product.imageUrl);
+                }
+                catch (e) {
+                    console.warn("Failed to delete legacy product image:", e);
+                }
+            }
+            const ext = (req.file.originalname.match(/\.[^/.]+$/) || [".bin"])[0];
+            const unique = crypto_1.default.randomBytes(8).toString("hex");
+            const key = `${Date.now()}-${unique}${ext}`;
+            const uploaded = await (0, blob_1.uploadBufferToBlob)(key, req.file.buffer, req.file.mimetype);
+            product.imageUrl = uploaded.url;
         }
-        //TODO: same here but 
-        if (minQty)
-            product.minQty = minQty;
-        if (recommendedQty)
-            product.recommendedQty = recommendedQty;
-        const filename = req.file?.filename;
-        if (filename) {
-            (0, Delete_1.deleteImage)(product.imageUrl);
-            product.imageUrl = `/uploads/products/${filename}`;
+        try {
+            await product.save();
         }
-        await product.save();
-        res.status(200).json({ message: "Product Updated Successfully", product });
+        catch (err) {
+            if (err.code === 11000 && err.keyPattern?.name) {
+                res.status(409).json({ message: "Product name must be unique" });
+                return;
+            }
+            throw err;
+        }
+        res.status(200).json({ message: "Product updated successfully", product });
     }
     catch (error) {
-        console.error("Error : ", error);
-        res
-            .status(500)
-            .json({ message: "Internal server error", err: error.message });
+        console.error("Product update error:", error);
+        res.status(500).json({ message: "Internal server error", err: error.message });
     }
 };
 exports.updateProduct = updateProduct;
+// GET ALL
 const getAllProducts = async (req, res) => {
     try {
         const { name, categoryId, sortBy, order, page = 1, limit = 10 } = req.query;
         if (Number(page) < 1 || Number(limit) < 1) {
-            res
-                .status(400)
-                .json({ message: "Page and limit must be greater than 0" });
+            res.status(400).json({ message: "Page and limit must be greater than 0" });
             return;
         }
         const query = {};
@@ -101,6 +131,7 @@ const getAllProducts = async (req, res) => {
             query.$or = [
                 { name: { $regex: name, $options: "i" } },
                 { description: { $regex: name, $options: "i" } },
+                { barcode: { $regex: name, $options: "i" } },
             ];
         }
         if (categoryId)
@@ -121,12 +152,12 @@ const getAllProducts = async (req, res) => {
         });
     }
     catch (error) {
-        res
-            .status(500)
-            .json({ message: "Internal server error", err: error.message });
+        console.error("Get products error:", error);
+        res.status(500).json({ message: "Internal server error", err: error.message });
     }
 };
 exports.getAllProducts = getAllProducts;
+// GET SINGLE
 const getProduct = async (req, res) => {
     try {
         const product = await product_model_1.default.findById(req.params.productId).populate("categoryId");
@@ -137,123 +168,71 @@ const getProduct = async (req, res) => {
         res.status(200).json({ product });
     }
     catch (error) {
-        res
-            .status(500)
-            .json({ message: "Internal server error", err: error.message });
+        console.error("Get product error:", error);
+        res.status(500).json({ message: "Internal server error", err: error.message });
     }
 };
 exports.getProduct = getProduct;
-const getLowStockProducts = async (req, res) => {
-    try {
-        const { name, status } = req.query;
-        // Base query
-        const baseQuery = {};
-        if (name) {
-            baseQuery.name = { $regex: name, $options: "i" };
-        }
-        // Fetch ALL relevant products (below minQty or out of stock)
-        const allProducts = await product_model_1.default.find({
-            ...baseQuery,
-            $or: [
-                { currentStock: 0 },
-                {
-                    currentStock: { $gt: 0 },
-                    $expr: { $lt: ["$currentStock", "$minQty"] },
-                },
-            ],
-        }).populate("categoryId", "name");
-        // Categorize
-        const critical = [];
-        const high = [];
-        const medium = [];
-        allProducts.forEach((p) => {
-            if (p.currentStock === 0) {
-                critical.push(p);
-            }
-            else if (p.currentStock < p.minQty / 2) {
-                high.push(p);
-            }
-            else {
-                medium.push(p);
-            }
-        });
-        // Apply status filter AFTER categorization
-        let finalCritical = critical;
-        let finalHigh = high;
-        let finalMedium = medium;
-        if (status === "critical") {
-            finalHigh = [];
-            finalMedium = [];
-        }
-        else if (status === "high") {
-            finalCritical = [];
-            finalMedium = [];
-        }
-        else if (status === "medium") {
-            finalCritical = [];
-            finalHigh = [];
-        }
-        // else: return all
-        const summary = {
-            critical: critical.length,
-            high: high.length,
-            medium: medium.length,
-            total: critical.length + high.length + medium.length,
-        };
-        res.status(200).json({
-            success: true,
-            summary,
-            critical: finalCritical,
-            high: finalHigh,
-            medium: finalMedium,
-        });
-    }
-    catch (error) {
-        console.error("Low stock error:", error);
-        res.status(500).json({
-            success: false,
-            message: "Error fetching stock data",
-            error: error.message,
-        });
-    }
-};
-exports.getLowStockProducts = getLowStockProducts;
-const getOverStockProducts = async (req, res) => {
-    try {
-        const overStock = await product_model_1.default.find({
-            $expr: { $gte: ["$currentStock", "$recommendedQty"] },
-        }).populate("categoryId", "name");
-        res.status(200).json({
-            success: true,
-            count: overStock.length,
-            products: overStock,
-        });
-    }
-    catch (error) {
-        res.status(500).json({
-            success: false,
-            message: "Error fetching overstock products",
-            error,
-        });
-    }
-};
-exports.getOverStockProducts = getOverStockProducts;
+// DELETE
 const deleteProduct = async (req, res) => {
     try {
         const product = await product_model_1.default.findByIdAndDelete(req.params.productId);
         if (!product) {
-            res.status(404).json({ message: "Porduct not found" });
+            res.status(404).json({ message: "Product not found" });
             return;
         }
-        (0, Delete_1.deleteImage)(product.imageUrl);
-        res.status(200).json({ message: "Product Deleted Successfully" });
+        if (product.imageUrl && product.imageUrl.startsWith("/uploads/")) {
+            try {
+                (0, Delete_1.deleteImage)(product.imageUrl);
+            }
+            catch (e) {
+                console.warn("Failed to delete legacy product image:", e);
+            }
+        }
+        res.status(200).json({ message: "Product deleted successfully" });
     }
     catch (error) {
-        console.error("Error : ", error);
-        res
-            .status(500)
-            .json({ message: "Internal server error", err: error.message });
+        console.error("Delete product error:", error);
+        res.status(500).json({ message: "Internal server error", err: error.message });
     }
 };
 exports.deleteProduct = deleteProduct;
+// LOW STOCK
+const getLowStockProducts = async (req, res) => {
+    try {
+        const products = await product_model_1.default.find({});
+        const critical = products.filter(p => p.currentStock <= 0);
+        const high = products.filter(p => p.currentStock > 0 && p.currentStock < p.minQty / 2);
+        const medium = products.filter(p => p.currentStock >= p.minQty / 2 && p.currentStock < p.minQty);
+        res.status(200).json({
+            summary: {
+                critical: critical.length,
+                high: high.length,
+                medium: medium.length,
+                total: critical.length + high.length + medium.length,
+            },
+            critical,
+            high,
+            medium,
+        });
+    }
+    catch (error) {
+        console.error("Low stock error:", error);
+        res.status(500).json({ message: "Internal server error", err: error.message });
+    }
+};
+exports.getLowStockProducts = getLowStockProducts;
+// OVER STOCK
+const getOverStockProducts = async (req, res) => {
+    try {
+        const products = await product_model_1.default.find({});
+        const over = products.filter(p => p.recommendedQty > 0 && p.currentStock > p.recommendedQty);
+        res.status(200).json({ count: over.length, products: over });
+    }
+    catch (error) {
+        console.error("Over stock error:", error);
+        res.status(500).json({ message: "Internal server error", err: error.message });
+    }
+};
+exports.getOverStockProducts = getOverStockProducts;
 //# sourceMappingURL=product.controller.js.map

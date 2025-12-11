@@ -8,9 +8,11 @@ import { Request, Response } from "express";
 import Product from "../models/product.model";
 import Order from "../models/order.model";
 import ProductOrder from "../models/productOrder.model";
+import User from "../models/user.model";
 import { deleteImage } from "../utils/Delete";
 import crypto from "crypto";
 import { uploadBufferToBlob } from "../utils/blob";
+import { sendPushNotification } from "../services/firebase.service";
 
 /**
  * Helper: generate order number like ORD-YYYYMMDD-RAND
@@ -181,6 +183,26 @@ export const assignOrder = async (req: Request, res: Response): Promise<void> =>
 
     await order.save();
     const populated = await populateOrder(order);
+
+    // Send push notification to assigned staff
+    try {
+      const staff = await User.findById(staffId);
+      if (staff && staff.fcmToken) {
+        await sendPushNotification(
+          staff.fcmToken,
+          "New Order Assigned",
+          `Order #${order.orderNumber} has been assigned to you`,
+          {
+            orderId: order._id.toString(),
+            orderNumber: String(order.orderNumber),
+          }
+        );
+      }
+    } catch (notificationError) {
+      console.error("Failed to send push notification:", notificationError);
+      // Don't fail the request if notification fails
+    }
+
     res
       .status(200)
       .json({ message: "Order assigned successfully", order: populated });
@@ -244,10 +266,8 @@ export const submitOrderForReview = async (
             .json({ message: `Invalid productOrder itemId: ${upd.itemId}` });
           return;
         }
-        if (upd.quantity <= 0 || upd.unitCost < 0) {
-          res
-            .status(400)
-            .json({ message: "Quantity must be > 0 and unitCost >= 0" });
+         if (upd.quantity < 0 || upd.unitCost < 0) {
+          res.status(400).json({ message: "Quantity must be >= 0 and unitCost >= 0" });
           return;
         }
       }

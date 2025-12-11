@@ -161,11 +161,13 @@ export function QuickOrderDialog({
                 type="number"
                 value={orderQuantity}
                 onChange={(e) => {
-                  const qty = Number.parseInt(e.target.value) || 0;
-                  setOrderQuantity(qty);
-                  setEstimatedPrice(qty * 15.99);
+                  const v = e.target.value;
+                  const qty = v === "" ? NaN : Number.parseInt(v);
+                  const safeQty = Number.isNaN(qty) ? 0 : qty;
+                  setOrderQuantity(safeQty);
+                  setEstimatedPrice(safeQty * 15.99);
                 }}
-                min="1"
+                min="0"
                 required
               />
             </div>

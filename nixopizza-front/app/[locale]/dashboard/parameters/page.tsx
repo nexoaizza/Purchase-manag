@@ -34,7 +34,7 @@ export default function ParametersPage() {
   const [profileData, setProfileData] = useState({
     fullname: user?.fullname || "",
     email: user?.email || "",
-    phone: user?.phone || "",
+    phone: user?.phone1 || "",
   });
 
   useEffect(() => {

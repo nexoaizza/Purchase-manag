@@ -276,9 +276,11 @@ export function ProductEditDialog({
                 type="number"
                 min={0}
                 value={formData.minQty}
-                onChange={(e) =>
-                  handleInputChange("minQty", parseInt(e.target.value) || 0)
-                }
+                onChange={(e) => {
+                  const v = e.target.value;
+                  const num = v === "" ? NaN : parseInt(v);
+                  handleInputChange("minQty", Number.isNaN(num) ? 0 : num);
+                }}
                 required
               />
             </div>
@@ -293,11 +295,6 @@ export function ProductEditDialog({
               onChange={(e) => handleInputChange("description", e.target.value)}
               placeholder={t("descriptionPlaceholder")}
               rows={3}
-              value={formData.description}
-              onChange={(e) =>
-                handleInputChange("description", e.target.value)
-              }
-              placeholder="Describe the product"
             />
           </div>
 
