@@ -14,6 +14,8 @@ import adminRouter from "./routes/admin.router";
 import taskRouter from "./routes/task.router";
 import supplierRouter from "./routes/supplier.router";
 import notificationRouter from "./routes/notification.router";
+import stockRouter from "./routes/stock.router";
+import stockItemRouter from "./routes/stock-item.router";
 
 import blobUploadRouter from "./routes/blobUpload.router";
 import User from "./models/user.model";
@@ -49,6 +51,8 @@ const allowedOrigins = [
   process.env.STAG_ADMIN_ORIGIN,
   process.env.DEV_CLIENT_ORIGIN,
   process.env.DEV_ADMIN_ORIGIN,
+  "http://localhost:3000",
+  "http://localhost:3001"
 ]
   .filter(Boolean)
   .map((o) => o!.replace(/\/+$/, "")); // normalize
@@ -86,6 +90,8 @@ app.use("/api/categories", categoryRouter);
 app.use("/api/tasks", taskRouter);
 app.use("/api/suppliers", supplierRouter);
 app.use("/api/notifications", notificationRouter);
+app.use("/api/stocks", stockRouter);
+app.use("/api/stock-items", stockItemRouter);
 
 const PORT = process.env.PORT || 5000;
 

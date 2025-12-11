@@ -41,9 +41,7 @@ export function AddProductDialog() {
     barcode: "",
     unit: "",
     categoryId: "",
-    currentStock: 0,
     minQty: 0,
-    recommendedQty: 0,
     description: "",
   });
 
@@ -74,9 +72,7 @@ export function AddProductDialog() {
       barcode: "",
       unit: "",
       categoryId: "",
-      currentStock: 0,
       minQty: 0,
-      recommendedQty: 0,
       description: "",
     });
     setImage(null);
@@ -90,9 +86,7 @@ export function AddProductDialog() {
     fd.append("name", formData.name);
     fd.append("unit", formData.unit);
     fd.append("categoryId", formData.categoryId);
-    fd.append("currentStock", formData.currentStock.toString());
     fd.append("minQty", formData.minQty.toString());
-    fd.append("recommendedQty", formData.recommendedQty.toString());
     if (formData.barcode) fd.append("barcode", formData.barcode);
     if (formData.description) fd.append("description", formData.description);
     if (image) fd.append("image", image);
@@ -233,22 +227,7 @@ export function AddProductDialog() {
             </div>
 
           {/* Stock */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label>Initial Stock *</Label>
-              <Input
-                type="number"
-                value={formData.currentStock}
-                min={0}
-                onChange={(e) =>
-                  handleInputChange(
-                    "currentStock",
-                    parseInt(e.target.value) || 0
-                  )
-                }
-                required
-              />
-            </div>
+          <div className="grid grid-cols-1 gap-4">
             <div className="space-y-2">
               <Label>Minimum Qty *</Label>
               <Input
@@ -259,20 +238,6 @@ export function AddProductDialog() {
                   handleInputChange("minQty", parseInt(e.target.value) || 0)
                 }
                 required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Recommended Qty (Optional)</Label>
-              <Input
-                type="number"
-                value={formData.recommendedQty}
-                min={0}
-                onChange={(e) =>
-                  handleInputChange(
-                    "recommendedQty",
-                    parseInt(e.target.value) || 0
-                  )
-                }
               />
             </div>
           </div>

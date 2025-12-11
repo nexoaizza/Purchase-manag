@@ -17,6 +17,8 @@ import {
   Zap,
   MoreVertical,
   Cog,
+  Warehouse,
+  Box,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -51,6 +53,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           { name: t("dashboard"), href: "/dashboard", icon: BarChart3 },
           { name: t("categories"), href: "/dashboard/categories", icon: Shapes },
           { name: t("products"), href: "/dashboard/products", icon: Package },
+          { name: t("stocks"), href: "/dashboard/stocks", icon: Warehouse },
+          { name: t("stockItems"), href: "/dashboard/stock-items", icon: Box },
           { name: t("suppliers"), href: "/dashboard/suppliers", icon: Users },
           {
             name: t("purchaseLists"),
@@ -71,11 +75,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           { name: t("dashboard"), href: "/dashboardstaff", icon: BarChart3 },
           { name: t("orders"), href: "/dashboardstaff/orders", icon: Users },
         ];
-
-  const handleLogout = async () => {
-    await logoutUser();
-    window.location.href = "/";
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -192,6 +191,12 @@ function UserMenu() {
   const locale = useLocale();
   const t = useTranslations("navigation");
   const user = getProfile();
+  
+  const handleLogout = async () => {
+    await logoutUser();
+    window.location.href = "/";
+  };
+  
   console.log("user", user);
   return (
     <DropdownMenu>
@@ -230,7 +235,7 @@ function UserMenu() {
 
       <DropdownMenuContent align="end" className="w-44">
         <DropdownMenuItem
-          onClick={() => (window.location.href = "/logout")}
+          onClick={handleLogout}
           className="flex items-center gap-2"
         >
           <LogOut className="h-4 w-4" />

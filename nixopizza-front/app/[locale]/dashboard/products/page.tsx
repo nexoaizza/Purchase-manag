@@ -19,9 +19,7 @@ export interface IProduct {
   };
   imageUrl: string;
   description?: string;
-  currentStock: number;
   minQty: number;
-  recommendedQty: number;
   createdAt?: Date;
   updatedAt?: Date;
 }

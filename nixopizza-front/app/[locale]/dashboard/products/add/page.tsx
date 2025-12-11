@@ -21,7 +21,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ArrowLeft, Save, X, Upload, Package } from "lucide-react";
+import { ArrowLeft, Save, X, Upload, Package , PlusCircle} from "lucide-react";
 import toast from "react-hot-toast";
 import { createProduct } from "@/lib/apis/products";
 import { CategorySelect } from "@/components/ui/category-select";
@@ -51,6 +51,7 @@ export default function AddProductPage() {
     currentStock: 0,
     minQty: 0,
     recommendedQty: 0,
+    expectedLifeTime: 0,
     description: "",
   });
 
@@ -91,6 +92,7 @@ export default function AddProductPage() {
     data.append("currentStock", String(formData.currentStock));
     data.append("minQty", String(formData.minQty));
     data.append("recommendedQty", String(formData.recommendedQty));
+    if (formData.expectedLifeTime) data.append("expectedLifeTime", String(formData.expectedLifeTime));
     if (formData.description) data.append("description", formData.description);
     data.append("categoryId", selectedCategory._id);
     // Image OPTIONAL
@@ -135,28 +137,66 @@ export default function AddProductPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <Button
-          variant="outline"
-          className="gap-2"
-          onClick={() => router.push("/dashboard/products")}
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Button>
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.back()}
+              className="gap-2 rounded-full"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              {t("back")}
+            </Button>
+            <div>
+              <h1 className="text-3xl font-heading font-bold text-gray-900">
+                Add Product
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Create a new product. Image is optional.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={() => router.push("/dashboard/products")}
+              className="gap-2 rounded-full px-4"
+            >
+              <X className="h-4 w-4" />
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              onClick={handleSubmit}
+              className="gap-2 rounded-full px-6 bg-primary hover:bg-primary/90"
+            >
+              <PlusCircle className="h-4 w-4" />
+              Create Product
+            </Button>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-heading flex items-center gap-2">
-              <Package className="h-5 w-5" />
-              Add Product
-            </CardTitle>
-            <CardDescription>
-              Create a new product. Image is optional.
-            </CardDescription>
+        <form onSubmit={handleSubmit} className="space-y-8">
+        <Card className="border-0 shadow-lg rounded-xl">
+          <CardHeader className="pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Package className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="font-heading text-xl">
+                  Basic Information
+                </CardTitle>
+                <CardDescription>
+                  Essential product details and identification
+                </CardDescription>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+          <CardContent className="space-y-6 pt-2">
               {/* Image (optional) */}
               <div className="space-y-2">
                 <Label>Product Image (Optional)</Label>
@@ -263,21 +303,6 @@ export default function AddProductPage() {
               {/* Stock */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label>Initial Stock *</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={formData.currentStock}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "currentStock",
-                        parseInt(e.target.value) || 0
-                      )
-                    }
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
                   <Label>Minimum Qty *</Label>
                   <Input
                     type="number"
@@ -303,6 +328,20 @@ export default function AddProductPage() {
                     }
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label>Expected Life Time (Days)</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={formData.expectedLifeTime}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "expectedLifeTime",
+                        parseInt(e.target.value) || 0
+                      )
+                    }
+                  />
+                </div>
               </div>
 
               {/* Description */}
@@ -318,22 +357,9 @@ export default function AddProductPage() {
                 />
               </div>
 
-              <div className="flex justify-end gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.push("/dashboard/products")}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" className="gap-2">
-                  <Save className="h-4 w-4" />
-                  Save Product
-                </Button>
-              </div>
-            </form>
           </CardContent>
         </Card>
+        </form>
       </div>
     </DashboardLayout>
   );

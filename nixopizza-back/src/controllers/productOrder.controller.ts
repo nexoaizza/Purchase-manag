@@ -23,31 +23,6 @@ export const handleExpiredProduct = async (
       `${process.env.CLIENT_ORIGIN}/api/products/${product.productId}`
     );
 
-    const updatedProduct = await Product.findByIdAndUpdate(
-      product._id,
-      { $inc: { currentStock: -expiredQuantity } },
-      { new: true }
-    );
-    if (!updatedProduct) {
-      throw new Error(`Product with ID ${product._id} not found`);
-    }
-
-    await pushNotification(
-      `Product Expired: ${updatedProduct.name}`,
-      `Product ${updatedProduct.name} has expired. Expired quantity: ${expiredQuantity}`,
-      "expiry_warning",
-      `${process.env.CLIENT_ORIGIN}/api/products/${product.productId}`
-    );
-
-    if (updatedProduct?.currentStock < updatedProduct?.minQty) {
-      await pushNotification(
-        `${updatedProduct.name} Stock Alert`,
-        `Product ${updatedProduct.name} is below minimum stock level! Current stock: ${updatedProduct.currentStock}`,
-        "low_stock",
-        `${process.env.CLIENT_ORIGIN}/api/products/${updatedProduct._id}`
-      );
-    }
-
     console.log(
       `Product ${product.productId} expired - Removed ${expiredQuantity} units`
     );

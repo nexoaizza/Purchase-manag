@@ -63,7 +63,7 @@ async function populateOrder(orderDoc: any) {
       path: "items",
       populate: {
         path: "productId",
-        select: "name currentStock imageUrl barcode",
+        select: "name imageUrl barcode",
       },
     },
   ]);
@@ -309,6 +309,7 @@ export const submitOrderForReview = async (
       order: populated,
     });
   } catch (error: any) {
+    console.log(error)
     res
       .status(500)
       .json({ message: "Internal Server Error", error: error.message });
@@ -337,18 +338,6 @@ export const verifyOrder = async (req: Request, res: Response): Promise<void> =>
     if (!order.bon) {
       res.status(400).json({ message: "Bill missing" });
       return;
-    }
-
-    // Inventory update
-    for (const item of order.items) {
-      const po: any = await ProductOrder.findById((item as any)._id);
-      if (po) {
-        const product = await Product.findById(po.productId);
-        if (product) {
-          product.currentStock += po.quantity;
-          await product.save();
-        }
-      }
     }
 
     const prevStatus = order.status;
@@ -537,7 +526,7 @@ export const getOrdersByFilter = async (
           path: "items",
           populate: {
             path: "productId",
-            select: "name currentStock imageUrl barcode",
+            select: "name imageUrl barcode",
           },
         },
       ])
