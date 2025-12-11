@@ -186,7 +186,7 @@ export const assignOrder = async (req: Request, res: Response): Promise<void> =>
 
     // Send push notification to assigned staff
     try {
-      const staff = await User.findById(staffId);
+      const staff : any = await User.findById(staffId);
       if (staff && staff.fcmToken) {
         await sendPushNotification(
           staff.fcmToken,
