@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import { X, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Search, X } from "lucide-react";
+import { getCategories } from "@/lib/apis/categories";
+import { ICategory } from "@/app/[locale]/dashboard/categories/page";
 
 interface Category {
   _id: string;

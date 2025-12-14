@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,7 +31,7 @@ import {
   Plus,
 } from "lucide-react";
 import { Pagination } from "@/components/ui/pagination";
-import { ITask } from "@/app/dashboard/tasks/page";
+import { ITask } from "@/app/[locale]/dashboard/tasks/page";
 
 interface TasksTableProps {
   tasks: ITask[];
@@ -53,6 +54,7 @@ export function TasksTable({
   setLimit,
   onUpdateTask,
 }: TasksTableProps) {
+  const t = useTranslations("tasks");
   const [selectedTask, setSelectedTask] = useState<ITask | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
@@ -66,6 +68,19 @@ export function TasksTable({
         return "destructive";
       default:
         return "secondary";
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "pending":
+        return t("pending");
+      case "completed":
+        return t("completed");
+      case "canceled":
+        return t("canceled");
+      default:
+        return status;
     }
   };
 
@@ -88,19 +103,19 @@ export function TasksTable({
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="font-heading">Tasks</CardTitle>
+          <CardTitle className="font-heading">{t("taskDirectory")}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center py-12 text-center">
           <div className="mb-4 p-3 bg-muted rounded-full">
             <Calendar className="h-10 w-10 text-muted-foreground" />
           </div>
-          <h3 className="text-xl font-semibold mb-1">No tasks found</h3>
+          <h3 className="text-xl font-semibold mb-1">{t("noTasksFound")}</h3>
           <p className="text-muted-foreground mb-4">
-            You don't have any tasks yet. Start by assigning a task.
+            {t("noTasksYet")}
           </p>
           <Button>
             <Plus className="h-4 w-4 mr-2" />
-            Assign Task
+            {t("assignTask")}
           </Button>
         </CardContent>
       </Card>
@@ -111,18 +126,18 @@ export function TasksTable({
     <>
       <Card>
         <CardHeader>
-          <CardTitle className="font-heading">Task Directory</CardTitle>
+          <CardTitle className="font-heading">{t("taskDirectory")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Task ID</TableHead>
-                  <TableHead>Assigned To</TableHead>
-                  <TableHead>Items</TableHead>
-                  <TableHead>Deadline</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>{t("taskId")}</TableHead>
+                  <TableHead>{t("assignedToHeader")}</TableHead>
+                  <TableHead>{t("items")}</TableHead>
+                  <TableHead>{t("deadlineHeader")}</TableHead>
+                  <TableHead>{t("statusHeader")}</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -158,7 +173,7 @@ export function TasksTable({
                       <div className="flex items-center gap-1">
                         <span className="font-medium">{task.items.length}</span>
                         <span className="text-muted-foreground text-sm ml-1">
-                          items
+                          {t("items")}
                         </span>
                       </div>
                     </TableCell>
@@ -172,8 +187,7 @@ export function TasksTable({
                     </TableCell>
                     <TableCell>
                       <Badge variant={getStatusColor(task.status) as any}>
-                        {task.status.charAt(0).toUpperCase() +
-                          task.status.slice(1)}
+                        {getStatusLabel(task.status)}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -188,7 +202,7 @@ export function TasksTable({
                             onClick={() => handleViewTask(task)}
                           >
                             <Eye className="h-4 w-4 mr-2" />
-                            View Details
+                            {t("viewDetails")}
                           </DropdownMenuItem>
                           {task.status === "pending" && (
                             <>
@@ -196,14 +210,14 @@ export function TasksTable({
                                 onClick={() => handleMarkAsCompleted(task._id)}
                               >
                                 <CheckCircle className="h-4 w-4 mr-2" />
-                                Mark as Completed
+                                {t("markAsCompleted")}
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => handleCancelTask(task._id)}
                                 className="text-destructive"
                               >
                                 <XCircle className="h-4 w-4 mr-2" />
-                                Cancel Task
+                                {t("cancelTask")}
                               </DropdownMenuItem>
                             </>
                           )}
@@ -219,7 +233,7 @@ export function TasksTable({
           {/* Pagination */}
           <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-sm text-muted-foreground">
-              Showing {tasks.length} of {totalPages * limit} tasks
+              {t("showing")} {tasks.length} {t("of")} {totalPages * limit} {t("tasks")}
             </div>
             <Pagination
               currentPage={currentPage}

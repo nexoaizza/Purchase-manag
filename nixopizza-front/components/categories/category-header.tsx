@@ -12,6 +12,7 @@ import {
 import { Search, Filter } from "lucide-react";
 import { useState } from "react";
 import { AddCategoryDialog } from "./add-category-dialog";
+import { useTranslations } from "next-intl";
 
 export function CategoryHeader({
   setCategories,
@@ -23,15 +24,16 @@ export function CategoryHeader({
   setCategories: any;
 }) {
   const [statusFilter, setStatusFilter] = useState("all");
+  const t = useTranslations("categories");
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-heading font-bold text-foreground">
-            Categories
+            {t("title")}
           </h1>
-          <p className="text-muted-foreground">Manage your categories</p>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <AddCategoryDialog setCategories={setCategories} />
       </div>
@@ -41,7 +43,7 @@ export function CategoryHeader({
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search categories..."
+            placeholder={t("search")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"

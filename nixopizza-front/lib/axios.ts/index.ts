@@ -1,37 +1,14 @@
-// import axios from "axios";
-// import handleRetryLogic from "./retry";
-
-// const baseURL = process.env.NEXT_PUBLIC_BASE_URL; // This's in the dev;
-
-// // Handle the retrying logic
-// const axiosAPI = handleRetryLogic(
-//   axios.create({
-//     // base URL
-//     baseURL: baseURL,
-//     // timeout
-//     timeout: 5000,
-//     // timeout error
-//     timeoutErrorMessage: "ERR_TIMEOUT",
-//     // credentials
-//     withCredentials: true,
-//   })
-// );
-
-// // verify the user before the req
-// axiosAPI.interceptors.request.use((config) => {
-//   return config;
-// });
-
-// export default axiosAPI;
-
-//api.ts - Combined version for React + Vite
 import axios from "axios";
 import { getAccessToken, setAccessToken, logout } from "@/hooks/useAuth";
 import handleRetryLogic from "./retry";
 
 // Create axios instance
+const base = process.env.NEXT_PUBLIC_BASE_URL
+  ? `${process.env.NEXT_PUBLIC_BASE_URL.replace(/\/+$/, "")}/api`
+  : "";
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_BASE_URL + "/api" || "",
+  baseURL: base,
   timeout: 5000,
   timeoutErrorMessage: "ERR_TIMEOUT",
   withCredentials: true,
@@ -99,7 +76,8 @@ api.interceptors.response.use(
       try {
         const res = await api.post("/auth/refresh", {}, { shouldRetry: false });
 
-        const access_token = res.data.accessToken;
+        // Support both snake_case and camelCase returned token names
+        const access_token = res?.data?.access_token || res?.data?.accessToken || null;
         setAccessToken(access_token);
         processQueue(null, access_token);
 

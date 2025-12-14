@@ -1,5 +1,8 @@
 "use client";
-import { useState, useEffect } from "react";
+
+import type React from "react";
+import { useState, useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,6 +41,7 @@ export function StuffEditDialog({
   onOpenChange,
   onUpdated,
 }: StuffEditDialogProps) {
+  const t = useTranslations("staff");
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     fullname: "",
@@ -129,9 +133,9 @@ export function StuffEditDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-heading">Edit Staff Member</DialogTitle>
+          <DialogTitle className="font-heading">{t("editStaffTitle")}</DialogTitle>
           <DialogDescription>
-            Update staff information and profile picture
+            {t("editStaffDescription")}
           </DialogDescription>
         </DialogHeader>
 
@@ -154,7 +158,12 @@ export function StuffEditDialog({
                   <div className="p-3 bg-primary/10 rounded-full">
                     <User className="h-6 w-6 text-primary" />
                   </div>
-                  <p className="text-xs text-muted-foreground">Click to upload</p>
+                  <div className="text-center">
+                    <p className="text-sm font-medium">{t("clickToUpload")}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {t("uploadInfo")}
+                    </p>
+                  </div>
                 </>
               )}
             </label>
@@ -169,10 +178,11 @@ export function StuffEditDialog({
 
           {/* Full Name */}
           <div className="space-y-2">
-            <Label>Full Name *</Label>
+            <Label htmlFor="fullname">{t("fullName")} *</Label>
             <Input
               value={formData.fullname}
               onChange={(e) => handleInputChange("fullname", e.target.value)}
+              placeholder={t("fullNamePlaceholder")}
               required
             />
           </div>
@@ -224,7 +234,7 @@ export function StuffEditDialog({
 
           {/* Status */}
           <div className="space-y-2">
-            <Label>Status</Label>
+            <Label htmlFor="status">{t("status")}</Label>
             <Select
               value={formData.isActive ? "Active" : "Inactive"}
               onValueChange={(value) =>
@@ -238,8 +248,8 @@ export function StuffEditDialog({
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Active">Active</SelectItem>
-                <SelectItem value="Inactive">Inactive</SelectItem>
+                <SelectItem value="Active">{t("active")}</SelectItem>
+                <SelectItem value="Inactive">{t("inactive")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -257,25 +267,29 @@ export function StuffEditDialog({
 
           {/* Notes */}
           <div className="space-y-2">
-            <Label>Notes (Optional)</Label>
+            <Label htmlFor="notes">{t("notes")} ({t("optional")})</Label>
             <Textarea
               value={formData.notes}
               onChange={(e) => handleInputChange("notes", e.target.value)}
-              placeholder="Additional information..."
+              placeholder={t("notesPlaceholder")}
               className="min-h-[80px]"
             />
           </div>
         </div>
 
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+          >
+            {t("cancel")}
           </Button>
           <Button
             onClick={handleUpdate}
             disabled={!formData.fullname || !formData.email}
           >
-            Update Staff
+            {t("updateStaff")}
           </Button>
         </DialogFooter>
       </DialogContent>

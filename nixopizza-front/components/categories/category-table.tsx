@@ -38,6 +38,7 @@ const resolveCategoryImage = (image?: string) => {
   if (!image) return "";
   return image.startsWith("http") ? image : process.env.NEXT_PUBLIC_BASE_URL + image;
 };
+import { useTranslations } from "next-intl";
 
 export default function CategoriesTable({
   categories,
@@ -51,7 +52,7 @@ export default function CategoriesTable({
   const [openCategoryEdit, setOpenCategoryEdit] = React.useState(false);
   const [selectedCategory, setSelectedCategory] =
     React.useState<ICategory | null>(null);
-
+  const t = useTranslations("categories");
   const handleEdit = (category: ICategory) => {
     setOpenCategoryEdit(true);
     setSelectedCategory(category);
@@ -60,7 +61,7 @@ export default function CategoriesTable({
   const handleDelete = async (categoryId: string) => {
     const { success, message } = await deleteCategory(categoryId);
     if (success) {
-      toast.success("Category Deleted Successfully");
+      toast.success(t("deleteSuccessfully"));
       setCategories(categories.filter((cat) => cat._id !== categoryId));
     } else {
       toast.error(message);
@@ -83,7 +84,7 @@ export default function CategoriesTable({
     <div className="container mx-auto">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Categories</CardTitle>
+          <CardTitle>{t("title")}</CardTitle>
         </CardHeader>
         <CardContent>
           {filtered.length > 0 ? (
@@ -91,9 +92,9 @@ export default function CategoriesTable({
               <Table>
                 <TableHeader>
                   <TableRow className="border-b">
-                    <TableHead>Category</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t("title")} </TableHead>
+                    <TableHead>{t("description")}</TableHead>
+                    <TableHead className="text-right">{t("actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -123,14 +124,14 @@ export default function CategoriesTable({
                               onClick={() => handleEdit(category)}
                             >
                               <Edit className="h-4 w-4 mr-2" />
-                              Edit
+                              {t("edit")}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleDelete(category._id)}
                               className="text-destructive"
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
+                              {t("delete")}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>

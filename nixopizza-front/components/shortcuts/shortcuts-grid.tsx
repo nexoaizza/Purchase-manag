@@ -4,9 +4,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Clock, TrendingUp, AlertCircle, CheckCircle, DollarSign, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 export function ShortcutsGrid() {
   const router = useRouter();
+  const t = useTranslations("shortcuts");
 
   const getLastThursday = () => {
     const today = new Date();
@@ -104,39 +106,39 @@ export function ShortcutsGrid() {
 
   const shortcuts = [
     {
-      title: "Last Week's Orders",
-      description: "From last Thursday to today (excluding paid)",
+      title: t("lastWeekOrders"),
+      description: t("lastWeekOrdersDesc"),
       icon: Calendar,
       iconColor: "text-blue-600",
       bgColor: "bg-blue-50",
-      count: "Active",
+      count: t("active"),
       onClick: handleLastWeekFilter,
     },
     {
-      title: "Last Week Paid",
-      description: "Paid orders from last Thursday to today",
+      title: t("lastWeekPaid"),
+      description: t("lastWeekPaidDesc"),
       icon: DollarSign,
       iconColor: "text-green-600",
       bgColor: "bg-green-50",
-      count: "Paid",
+      count: t("paid"),
       onClick: handleLastWeekPaidFilter,
     },
     {
-      title: "Today's Orders",
-      description: "All purchase orders created today",
+      title: t("todayOrders"),
+      description: t("todayOrdersDesc"),
       icon: Clock,
       iconColor: "text-purple-600",
       bgColor: "bg-purple-50",
-      count: "Today",
+      count: t("today"),
       onClick: handleTodayFilter,
     },
     {
-      title: "Today's Paid Orders",
-      description: "Orders marked as paid today",
+      title: t("todayPaidOrders"),
+      description: t("todayPaidOrdersDesc"),
       icon: CheckCircle,
       iconColor: "text-emerald-600",
       bgColor: "bg-emerald-50",
-      count: "Completed",
+      count: t("completed"),
       onClick: handleTodayPaidFilter,
     },
   ];

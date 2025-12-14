@@ -36,8 +36,9 @@ import { SupplierEditDialog } from "./supplier-edit-dialog";
 import { SupplierDetailsDialog } from "./supplier-details-dialog";
 import { deleteSupplier, get_all_suppliers } from "@/lib/apis/suppliers";
 import toast from "react-hot-toast";
-import { ISupplier } from "@/app/dashboard/suppliers/page";
+import { ISupplier } from "@/app/[locale]/dashboard/suppliers/page";
 import { Pagination } from "@/components/ui/pagination";
+import { useTranslations } from "next-intl";
 
 export function SuppliersTable({
   suppliers,
@@ -56,6 +57,7 @@ export function SuppliersTable({
   limit: number;
   setLimit: any;
 }) {
+  const t = useTranslations("suppliers")
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState<
     (typeof suppliers)[0] | null
@@ -72,7 +74,7 @@ export function SuppliersTable({
     const { success, message } = await deleteSupplier(supplierId);
 
     if (success) {
-      toast.success("Supplier Deleted Successfully");
+      toast.success(t("deletedSuccessfully"));
       setSuppliers(suppliers.filter((sup) => sup._id !== supplierId));
     } else {
       toast.error(message);
@@ -97,20 +99,19 @@ export function SuppliersTable({
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="font-heading">Supplier Directory</CardTitle>
+          <CardTitle className="font-heading">{t("supplierDirectory")}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center py-12 text-center">
           <div className="mb-4 p-3 bg-muted rounded-full">
             <Package className="h-10 w-10 text-muted-foreground" />
           </div>
-          <h3 className="text-xl font-semibold mb-1">No suppliers found</h3>
+          <h3 className="text-xl font-semibold mb-1">{t("noSuppliersFound")}</h3>
           <p className="text-muted-foreground mb-4">
-            You don't have any suppliers yet. Start by adding your first
-            supplier.
+            {t("noSuppliersMessage")}
           </p>
           <Button>
             <Building2 className="h-4 w-4 mr-2" />
-            Add Supplier
+            {t("addSupplier")}
           </Button>
         </CardContent>
       </Card>
@@ -121,18 +122,18 @@ export function SuppliersTable({
     <>
       <Card>
         <CardHeader>
-          <CardTitle className="font-heading">Supplier Directory</CardTitle>
+          <CardTitle className="font-heading">{t("supplierDirectory")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Supplier</TableHead>
-                  <TableHead>Contact Person</TableHead>
-                  <TableHead>email</TableHead>
-                  <TableHead>phone</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>{t("nameSort")}</TableHead>
+                  <TableHead>{t("contactPersonSort")}</TableHead>
+                  <TableHead>{t("emailLabel")}</TableHead>
+                  <TableHead>{t("phoneLabel")}</TableHead>
+                  <TableHead>{t("status")}</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -177,7 +178,7 @@ export function SuppliersTable({
                       <Badge
                         variant={supplier.isActive ? "default" : "destructive"}
                       >
-                        {supplier.isActive ? "Active" : "Inactive"}
+                        {supplier.isActive ? t("activeStatus") : t("inactiveStatus")}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -192,13 +193,13 @@ export function SuppliersTable({
                             onClick={() => handleViewSupplier(supplier)}
                           >
                             <Eye className="h-4 w-4 mr-2" />
-                            View Details
+                            {t("viewDetails")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleEdit(supplier)}
                           >
                             <Edit className="h-4 w-4 mr-2" />
-                            Edit
+                            {t("editButton")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -212,7 +213,7 @@ export function SuppliersTable({
           {/* Pagination */}
           <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-sm text-muted-foreground">
-              Showing {suppliers.length} of {totalPages * limit} suppliers
+              {t("showingSuppliers")} {suppliers.length} {t("ofSuppliers")} {totalPages * limit} {t("suppliersCount")}
             </div>
             <Pagination
               currentPage={currentPage}

@@ -1,10 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import type React from "react"
+
+import { useState, useEffect, useRef } from "react"
+import { useTranslations } from "next-intl"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Dialog,
   DialogContent,
@@ -31,9 +34,7 @@ interface ProductBackend {
   barcode?: string;
   unit: string;
   categoryId: any;
-  currentStock: number;
   minQty: number;
-  recommendedQty: number;
   description?: string;
   imageUrl?: string;
 }
@@ -56,15 +57,15 @@ export function ProductEditDialog({
     barcode: "",
     unit: "",
     categoryId: "",
-    currentStock: 0,
     minQty: 0,
-    recommendedQty: 0,
     description: "",
   });
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const t = useTranslations("products");
+
 
   useEffect(() => {
     if (product) {
@@ -76,9 +77,7 @@ export function ProductEditDialog({
           typeof product.categoryId === "object"
             ? product.categoryId?._id || ""
             : product.categoryId || "",
-        currentStock: product.currentStock,
         minQty: product.minQty,
-        recommendedQty: product.recommendedQty,
         description: product.description || "",
       });
       setImage(null);
@@ -116,9 +115,7 @@ export function ProductEditDialog({
       barcode: "",
       unit: "",
       categoryId: "",
-      currentStock: 0,
       minQty: 0,
-      recommendedQty: 0,
       description: "",
     });
     setImage(null);
@@ -134,9 +131,7 @@ export function ProductEditDialog({
     fd.append("name", formData.name);
     fd.append("unit", formData.unit);
     fd.append("categoryId", formData.categoryId);
-    fd.append("currentStock", formData.currentStock.toString());
     fd.append("minQty", formData.minQty.toString());
-    fd.append("recommendedQty", formData.recommendedQty.toString());
     if (formData.barcode) fd.append("barcode", formData.barcode);
     if (formData.description) fd.append("description", formData.description);
     if (image) fd.append("image", image);
@@ -166,13 +161,9 @@ export function ProductEditDialog({
     >
       <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-heading">
-            {product ? "Edit Product" : "Add Product"}
-          </DialogTitle>
+          <DialogTitle className="font-heading">{product ? t("editProduct") : t("addNewProduct")}</DialogTitle>
           <DialogDescription>
-            {product
-              ? "Update product attributes. Image optional."
-              : "Provide product details."}
+            {product ? t("editProductDescription") : t("addProductDescription")}
           </DialogDescription>
         </DialogHeader>
 
@@ -227,10 +218,11 @@ export function ProductEditDialog({
           {/* Basic fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Name *</Label>
+              <Label htmlFor="name">{t("productName")}</Label>
               <Input
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
+                placeholder={t("productNamePlaceholder")}
                 required
               />
             </div>
@@ -277,75 +269,40 @@ export function ProductEditDialog({
             </div>
 
           {/* Stock */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label>Current Stock *</Label>
-              <Input
-                type="number"
-                min={0}
-                value={formData.currentStock}
-                onChange={(e) =>
-                  handleInputChange(
-                    "currentStock",
-                    parseInt(e.target.value) || 0
-                  )
-                }
-                required
-              />
-            </div>
+          <div className="grid grid-cols-1 gap-4">
             <div className="space-y-2">
               <Label>Minimum Qty *</Label>
               <Input
                 type="number"
                 min={0}
                 value={formData.minQty}
-                onChange={(e) =>
-                  handleInputChange("minQty", parseInt(e.target.value) || 0)
-                }
+                onChange={(e) => {
+                  const v = e.target.value;
+                  const num = v === "" ? NaN : parseInt(v);
+                  handleInputChange("minQty", Number.isNaN(num) ? 0 : num);
+                }}
                 required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Recommended Qty (Optional)</Label>
-              <Input
-                type="number"
-                min={0}
-                value={formData.recommendedQty}
-                onChange={(e) =>
-                  handleInputChange(
-                    "recommendedQty",
-                    parseInt(e.target.value) || 0
-                  )
-                }
               />
             </div>
           </div>
 
           {/* Description */}
           <div className="space-y-2">
-            <Label>Description (Optional)</Label>
+            <Label htmlFor="description">{t("description")}</Label>
             <Textarea
-              rows={3}
+              id="description"
               value={formData.description}
-              onChange={(e) =>
-                handleInputChange("description", e.target.value)
-              }
-              placeholder="Describe the product"
+              onChange={(e) => handleInputChange("description", e.target.value)}
+              placeholder={t("descriptionPlaceholder")}
+              rows={3}
             />
           </div>
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={isSubmitting}
-            >
-              Cancel
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              {t("cancel")}
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : "Save"}
-            </Button>
+            <Button type="submit">{product ? t("update") : t("addProductButton")}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

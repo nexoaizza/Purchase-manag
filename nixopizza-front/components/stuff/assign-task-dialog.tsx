@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,8 +28,8 @@ import {
 } from "lucide-react";
 import { ProductSelect } from "@/components/ui/product-select";
 import { getProducts } from "@/lib/apis/products";
-import { IProduct } from "@/app/dashboard/products/page";
-import { ISupplier } from "@/app/dashboard/suppliers/page";
+import { IProduct } from "@/app/[locale]/dashboard/products/page";
+import { ISupplier } from "@/app/[locale]/dashboard/suppliers/page";
 import toast from "react-hot-toast";
 import { IUser } from "@/store/user.store";
 import { createTask } from "@/lib/apis/task";
@@ -50,6 +51,7 @@ export function AssignTaskDialog({
   open,
   onOpenChange,
 }: AssignTaskDialogProps) {
+  const t = useTranslations("staff");
   const [taskName, setTaskName] = useState("");
   const [deadline, setDeadline] = useState("");
   const [taskItems, setTaskItems] = useState<ITaskItem[]>([
@@ -84,7 +86,7 @@ export function AssignTaskDialog({
       } catch (error) {
         console.error("Error fetching products:", error);
         setProducts([]);
-        setError("Failed to load products. Please refresh the page.");
+        setError(t("loadProductsError"));
       } finally {
         setIsLoadingProducts(false);
       }
@@ -133,29 +135,29 @@ export function AssignTaskDialog({
 
     // Validation
     if (!stuff) {
-      setError("No staff member selected");
+      setError(t("noStaffSelected"));
       return;
     }
 
     if (!taskName.trim()) {
-      setError("Task name is required");
+      setError(t("taskNameRequired"));
       return;
     }
 
     if (!deadline) {
-      setError("Deadline is required");
+      setError(t("deadlineRequired"));
       return;
     }
 
     if (taskItems.length === 0) {
-      setError("Please add at least one task item");
+      setError(t("addAtLeastOneItem"));
       return;
     }
 
     // Check if all items have products selected
     const hasEmptyProducts = taskItems.some((item) => !item.productId);
     if (hasEmptyProducts) {
-      setError("Please select products for all task items");
+      setError(t("selectProductsForAll"));
       return;
     }
 
@@ -179,15 +181,15 @@ export function AssignTaskDialog({
       const { success, message, task } = await createTask(taskData);
 
       if (success) {
-        toast.success("Task assigned successfully");
+        toast.success(t("taskAssignedSuccess"));
         resetForm();
         onOpenChange(false);
       } else {
-        setError(message || "Failed to assign task");
+        setError(message || t("failedToAssignTask"));
         console.error("Error creating task:", message);
       }
     } catch (error) {
-      setError("An unexpected error occurred. Please try again.");
+      setError(t("unexpectedError"));
       console.error("Error creating task:", error);
     } finally {
       setIsSubmitting(false);
@@ -216,10 +218,10 @@ export function AssignTaskDialog({
         <DialogHeader>
           <DialogTitle className="font-heading flex items-center gap-2 text-xl">
             <Package className="h-5 w-5" />
-            Assign Task
+            {t("assignTask")}
           </DialogTitle>
           <DialogDescription>
-            Assign a new task to {stuff?.fullname || "staff member"}
+            {t("assignTaskDescription")} {stuff?.fullname || t("staffMember")}
           </DialogDescription>
         </DialogHeader>
 
@@ -233,7 +235,7 @@ export function AssignTaskDialog({
         {isLoadingProducts && (
           <div className="bg-blue-50 text-blue-700 px-4 py-3 rounded-lg flex items-center gap-2 border border-blue-200">
             <Loader2 className="h-4 w-4 animate-spin" />
-            <span className="text-sm">Loading products...</span>
+            <span className="text-sm">{t("loadingProducts")}</span>
           </div>
         )}
 
@@ -241,13 +243,13 @@ export function AssignTaskDialog({
           {/* Task Name */}
           <div className="space-y-2">
             <Label htmlFor="taskName" className="text-sm font-medium">
-              Task Name *
+              {t("taskName")} *
             </Label>
             <Input
               id="taskName"
               value={taskName}
               onChange={(e) => setTaskName(e.target.value)}
-              placeholder="Enter task name"
+              placeholder={t("taskNamePlaceholder")}
               required
               className="py-5 border-2 border-input focus-visible:ring-2 focus-visible:ring-primary/30 rounded-lg"
             />
@@ -256,7 +258,7 @@ export function AssignTaskDialog({
           {/* Deadline */}
           <div className="space-y-2">
             <Label htmlFor="deadline" className="text-sm font-medium">
-              Deadline *
+              {t("deadline")} *
             </Label>
             <Input
               id="deadline"
@@ -273,7 +275,7 @@ export function AssignTaskDialog({
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <CardTitle className="font-heading text-lg">
-                  Task Items
+                  {t("taskItems")}
                 </CardTitle>
                 <Button
                   type="button"
@@ -284,7 +286,7 @@ export function AssignTaskDialog({
                   className="gap-2 rounded-full border-2 border-input px-4"
                 >
                   <Plus className="h-4 w-4" />
-                  Add Item
+                  {t("addItem")}
                 </Button>
               </div>
             </CardHeader>
@@ -299,7 +301,7 @@ export function AssignTaskDialog({
                       >
                         <div className="flex-1 space-y-2">
                           <Label className="text-sm font-medium">
-                            Product *
+                            {t("product")} *
                           </Label>
                           <ProductSelect
                             products={products}
@@ -307,23 +309,23 @@ export function AssignTaskDialog({
                             onProductChange={(product) =>
                               handleProductSelect(index, product)
                             }
-                            placeholder="Select product"
+                            placeholder={t("selectProduct")}
                             className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg"
                           />
                         </div>
                         <div className="w-full sm:w-32 space-y-2">
                           <Label className="text-sm font-medium">
-                            Quantity *
+                            {t("quantity")} *
                           </Label>
                           <Input
                             type="number"
-                            min="1"
+                            min="0"
                             value={item.quantity}
                             onChange={(e) =>
                               updateTaskItem(
                                 index,
                                 "quantity",
-                                parseInt(e.target.value) || 1
+                                parseInt(e.target.value) || 0
                               )
                             }
                             className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg py-5"
@@ -350,11 +352,11 @@ export function AssignTaskDialog({
           {/* Notes */}
           <div className="space-y-2">
             <Label htmlFor="notes" className="text-sm font-medium">
-              Notes (Optional)
+              {t("notes")} ({t("optional")})
             </Label>
             <Textarea
               id="notes"
-              placeholder="Add any special instructions or notes for this task..."
+              placeholder={t("taskNotesPlaceholder")}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
@@ -370,7 +372,7 @@ export function AssignTaskDialog({
               disabled={isSubmitting}
               className="rounded-full px-6"
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               type="submit"
@@ -388,10 +390,10 @@ export function AssignTaskDialog({
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Assigning...
+                  {t("assigning")}
                 </>
               ) : (
-                "Assign Task"
+                t("assignTaskButton")
               )}
             </Button>
           </DialogFooter>

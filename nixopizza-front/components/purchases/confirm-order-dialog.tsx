@@ -15,8 +15,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload, X, Loader2, CheckCircle } from "lucide-react";
 import toast from "react-hot-toast";
-import { IOrder } from "@/app/dashboard/purchases/page";
+import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
 import { confirmOrder } from "@/lib/apis/purchase-list";
+import { useTranslations } from "next-intl";
 
 
 interface ConfirmOrderDialogProps {
@@ -32,6 +33,7 @@ export function ConfirmOrderDialog({
   onOpenChange,
   onOrderUpdated,
 }: ConfirmOrderDialogProps) {
+  const t = useTranslations("purchases");
   const [totalAmount, setTotalAmount] = useState<string>("");
   const [billFile, setBillFile] = useState<File | null>(null);
   const [billPreview, setBillPreview] = useState<string | null>(null);
@@ -50,7 +52,7 @@ export function ConfirmOrderDialog({
     const file = e.target.files?.[0];
     if (file) {
       if (!file.type.match("image.*") && !file.type.match("application/pdf")) {
-        toast.error("Please select an image or PDF file");
+        toast.error(t("fileFormats"));
         return;
       }
 
@@ -66,12 +68,12 @@ export function ConfirmOrderDialog({
 
 const handleConfirm = async () => {
   if (!billFile) {
-    toast.error("Please upload a bill");
+    toast.error(t("uploadBillError"));
     return;
   }
 
   if (!totalAmount || parseFloat(totalAmount) <= 0) {
-    toast.error("Please enter a valid total amount");
+    toast.error(t("enterValidAmount"));
     return;
   }
 
@@ -89,7 +91,7 @@ const handleConfirm = async () => {
     );
 
     if (success && updatedOrder) {
-  toast.success("Order confirmed successfully");
+  toast.success(t("orderConfirmed"));
   onOrderUpdated(updatedOrder);
   onOpenChange(false);
   resetForm();
@@ -99,11 +101,11 @@ const handleConfirm = async () => {
     window.location.reload();
   }, 800);
 } else {
-  toast.error(message || "Failed to confirm order");
+  toast.error(message || t("unexpectedError"));
 }
   } catch (error) {
     console.error("Error confirming order:", error);
-    toast.error("Failed to confirm order");
+    toast.error(t("unexpectedError"));
   } finally {
     setIsLoading(false);
   }
@@ -124,10 +126,10 @@ const handleConfirm = async () => {
         <DialogHeader>
           <DialogTitle className="font-heading flex items-center gap-2">
             <CheckCircle className="h-5 w-5" />
-            Confirm Order
+            {t("confirmOrder")}
           </DialogTitle>
           <DialogDescription>
-            Upload bill and set the final price for order {order.orderNumber}
+            {t("uploadBill")} {order.orderNumber}
           </DialogDescription>
         </DialogHeader>
 
@@ -135,7 +137,7 @@ const handleConfirm = async () => {
           {/* Total Amount */}
           <div className="space-y-2">
             <Label htmlFor="totalAmount" className="text-sm font-medium">
-              Total Amount (DA) *
+              {t("totalAmountField")}
             </Label>
             <Input
               id="totalAmount"
@@ -144,7 +146,7 @@ const handleConfirm = async () => {
               min="0"
               value={totalAmount}
               onChange={(e) => setTotalAmount(e.target.value)}
-              placeholder="Enter total amount"
+              placeholder={t("enterTotalAmount")}
               className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg py-5"
             />
           </div>
@@ -152,7 +154,7 @@ const handleConfirm = async () => {
           {/* Bill Upload */}
           <div className="space-y-2">
             <Label htmlFor="bill" className="text-sm font-medium">
-              Bill (Bon) *
+              {t("bill")}
             </Label>
             <div className="flex items-center gap-4">
               {billPreview ? (
@@ -188,10 +190,10 @@ const handleConfirm = async () => {
                   className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md cursor-pointer hover:opacity-90 transition-opacity"
                 >
                   <Upload className="h-4 w-4" />
-                  {billPreview ? "Change Bill" : "Upload Bill"}
+                  {billPreview ? t("changeBill") : t("uploadBillLabel")}
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  PNG, JPG, PDF up to 5MB
+                  {t("fileFormats")}
                 </p>
                 <Input
                   id="bill-upload"
@@ -206,25 +208,25 @@ const handleConfirm = async () => {
 
           {/* Order Summary */}
           <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-            <h4 className="font-semibold text-sm mb-2">Order Summary</h4>
+            <h4 className="font-semibold text-sm mb-2">{t("orderSummary")}</h4>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Supplier:</span>
+              <span className="text-muted-foreground">{t("supplierSummary")}</span>
               <span className="font-medium">{order.supplierId?.name}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Items:</span>
-              <span className="font-medium">{order.items.length} items</span>
+              <span className="text-muted-foreground">{t("itemsSummary")}</span>
+              <span className="font-medium">{order.items.length} {t("items")}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Assigned to:</span>
+              <span className="text-muted-foreground">{t("assignedTo")}</span>
               <span className="font-medium">
-                {order.staffId?.fullname || "Not assigned"}
+                {order.staffId?.fullname || t("notAssigned")}
               </span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Current Total:</span>
+              <span className="text-muted-foreground">{t("currentTotal")}</span>
               <span className="font-medium">
-                {order.totalAmount.toFixed(2)} DA
+                {order.totalAmount.toFixed(2)} {t("da")}
               </span>
             </div>
           </div>
@@ -241,7 +243,7 @@ const handleConfirm = async () => {
             disabled={isLoading}
             className="rounded-full px-6"
           >
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             type="button"
@@ -252,10 +254,10 @@ const handleConfirm = async () => {
             {isLoading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Confirming...
+                {t("confirmingOrder")}
               </>
             ) : (
-              "Confirm Order"
+              t("confirmButton")
             )}
           </Button>
         </DialogFooter>

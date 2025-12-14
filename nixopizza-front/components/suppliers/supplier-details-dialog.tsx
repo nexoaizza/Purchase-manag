@@ -22,10 +22,11 @@ import {
   CheckCircle2,
   XCircle,
 } from "lucide-react";
-import { ISupplier } from "@/app/dashboard/suppliers/page";
-import { ICategory } from "@/app/dashboard/categories/page";
+import { ISupplier } from "@/app/[locale]/dashboard/suppliers/page";
+import { ICategory } from "@/app/[locale]/dashboard/categories/page";
 import { useEffect, useState } from "react";
 import { getCategories } from "@/lib/apis/categories";
+import { useTranslations } from "next-intl";
 
 interface SupplierOrdersDialogProps {
   supplier: ISupplier | null;
@@ -40,6 +41,7 @@ export function SupplierDetailsDialog({
   open,
   onOpenChange,
 }: SupplierOrdersDialogProps) {
+  const t = useTranslations("suppliers")
   const [categories, setCategories] = useState<ICategory[]>([]);
 
   useEffect(() => {
@@ -65,7 +67,7 @@ export function SupplierDetailsDialog({
         <DialogHeader>
           <DialogTitle className="font-heading text-2xl flex items-center gap-2">
             <Building2 className="h-6 w-6" />
-            Supplier Details
+            {t("supplierDetails")}
           </DialogTitle>
         </DialogHeader>
 
@@ -92,12 +94,12 @@ export function SupplierDetailsDialog({
                         {supplier.isActive ? (
                           <>
                             <CheckCircle2 className="h-3 w-3 mr-1" />
-                            Active
+                            {t("activeStatus")}
                           </>
                         ) : (
                           <>
                             <XCircle className="h-3 w-3 mr-1" />
-                            Inactive
+                            {t("inactiveStatus")}
                           </>
                         )}
                       </Badge>
@@ -113,32 +115,32 @@ export function SupplierDetailsDialog({
             <CardContent className="pt-0">
               <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <User className="h-5 w-5" />
-                Contact Information
+                {t("contactInformationTitle")}
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Contact Person</p>
+                  <p className="text-sm text-muted-foreground">{t("contactPersonField")}</p>
                   <p className="font-medium flex items-center gap-2">
                     <User className="h-4 w-4 text-muted-foreground" />
                     {supplier.contactPerson}
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Email</p>
+                  <p className="text-sm text-muted-foreground">{t("emailLabel")}</p>
                   <p className="font-medium flex items-center gap-2">
                     <Mail className="h-4 w-4 text-muted-foreground" />
                     {supplier.email}
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Phone</p>
+                  <p className="text-sm text-muted-foreground">{t("phoneLabel")}</p>
                   <p className="font-medium flex items-center gap-2">
                     <Phone className="h-4 w-4 text-muted-foreground" />
                     {supplier.phone1}
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Address</p>
+                  <p className="text-sm text-muted-foreground">{t("addressLabel")}</p>
                   <p className="font-medium flex items-center gap-2">
                     <MapPin className="h-4 w-4 text-muted-foreground" />
                     {supplier.address}
@@ -154,7 +156,7 @@ export function SupplierDetailsDialog({
               <CardContent className="pt-0">
                 <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
                   <Tag className="h-5 w-5" />
-                  Categories
+                  {t("categories")}
                 </h4>
                 <div className="flex flex-wrap gap-2">
                   {supplierCategories.map((category) => (
@@ -177,7 +179,7 @@ export function SupplierDetailsDialog({
               <CardContent className="pt-0">
                 <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
                   <FileText className="h-5 w-5" />
-                  Notes
+                  {t("notes")}
                 </h4>
                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                   {supplier.notes}
@@ -194,7 +196,7 @@ export function SupplierDetailsDialog({
             onClick={() => onOpenChange(false)}
             className="rounded-full px-6"
           >
-            Close
+            {t("close")}
           </Button>
         </div>
       </DialogContent>

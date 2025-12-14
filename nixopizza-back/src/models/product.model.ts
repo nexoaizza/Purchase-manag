@@ -7,9 +7,9 @@ export interface IProduct extends Document {
   categoryId: Schema.Types.ObjectId;
   imageUrl?: string;              // optional blob/public URL
   description?: string;
-  currentStock: number;
   minQty: number;
   recommendedQty: number;
+  expectedLifeTime?: number; // in days
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -43,11 +43,6 @@ const productSchema = new Schema<IProduct>(
     description: {
       type: String,
     },
-    currentStock: {
-      type: Number,
-      required: [true, "Product Stock Is Required"],
-      default: 0,
-    },
     minQty: {
       type: Number,
       default: 0,
@@ -55,6 +50,10 @@ const productSchema = new Schema<IProduct>(
     recommendedQty: {
       type: Number,
       default: 0,
+    },
+    expectedLifeTime: {
+      type: Number,
+      required: false,
     },
   },
   {

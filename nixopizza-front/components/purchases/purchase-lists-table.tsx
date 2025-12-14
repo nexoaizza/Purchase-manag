@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
@@ -26,7 +28,6 @@ import { PurchaseOrderDialog } from "@/components/purchases/purchase-order-dialo
 import { ReceiptPreviewDialog } from "./receipt-preview-dialog";
 import { AssignStaffDialog } from "./assign-staff-dialog";
 import { Pagination } from "@/components/ui/pagination";
-import { IOrder } from "@/app/dashboard/purchases/page";
 import { resolveImage } from "@/lib/resolveImage";
 import { useAuth } from "@/hooks/useAuth";
 import { SubmitReviewDialog } from "./submit-review-dialog";
@@ -34,6 +35,7 @@ import { VerifyOrderDialog } from "./verify-order-dialog";
 import { MarkPaidDialog } from "./mark-paid-dialog";
 import { updateOrder } from "@/lib/apis/purchase-list";
 import toast from "react-hot-toast";
+import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
 
 export function PurchaseListsTable({
   purchaseOrders,
@@ -52,6 +54,7 @@ export function PurchaseListsTable({
   limit: number;
   setLimit: (l: number) => void;
 }) {
+  const t = useTranslations("purchases");
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
   const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
@@ -243,17 +246,17 @@ export function PurchaseListsTable({
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="font-heading">Purchase Orders</CardTitle>
+          <CardTitle className="font-heading">{t("purchaseOrders")}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center py-12 text-center">
           <div className="mb-4 p-3 bg-muted rounded-full">
             <Package className="h-10 w-10 text-muted-foreground" />
           </div>
           <h3 className="text-xl font-semibold mb-1">
-            No purchase orders found
+            {t("noPurchaseOrders")}
           </h3>
           <p className="text-muted-foreground mb-4">
-            You don't have any purchase orders with this filtration.
+            {t("noPurchaseOrdersMessage")}
           </p>
         </CardContent>
       </Card>
@@ -264,7 +267,7 @@ export function PurchaseListsTable({
     <>
       <Card>
         <CardHeader>
-          <CardTitle className="font-heading">Purchase Orders</CardTitle>
+          <CardTitle className="font-heading">{t("purchaseOrders")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
@@ -334,21 +337,21 @@ export function PurchaseListsTable({
                         </div>
                       ) : (
                         <span className="text-muted-foreground text-sm">
-                          Not assigned
+                          {t("notAssigned")}
                         </span>
                       )}
                     </TableCell>
                     <TableCell>
                       <span className="font-medium">{order.items.length}</span>
                       <span className="text-muted-foreground text-sm ml-1">
-                        items
+                        {t("items")}
                       </span>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                         <span className="font-medium">
-                          {order.totalAmount.toFixed(2)} DA
+                          {order.totalAmount.toFixed(2)} {t("da")}
                         </span>
                       </div>
                     </TableCell>
@@ -391,7 +394,7 @@ export function PurchaseListsTable({
                             }}
                           >
                             <Eye className="h-4 w-4 mr-2" />
-                            View Details
+                            {t("viewDetails")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() =>
@@ -399,7 +402,7 @@ export function PurchaseListsTable({
                             }
                           >
                             <Download className="h-4 w-4 mr-2" />
-                            Export PDF
+                            {t("exportPDF")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -412,7 +415,7 @@ export function PurchaseListsTable({
 
           <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-sm text-muted-foreground">
-              Showing {purchaseOrders.length} of {totalPages * limit} orders
+              {t("showing")} {purchaseOrders.length} {t("of")} {totalPages * limit} {t("orders")}
             </div>
             <Pagination
               currentPage={currentPage}
