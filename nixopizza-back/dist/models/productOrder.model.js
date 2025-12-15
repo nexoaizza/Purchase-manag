@@ -10,6 +10,7 @@ const productOrderSchema = new mongoose_1.Schema({
     quantity: {
         type: Number,
         required: [true, "Product Quantity is Required"],
+        min: 0,
     },
     expirationDate: {
         type: Date,
@@ -17,9 +18,12 @@ const productOrderSchema = new mongoose_1.Schema({
     unitCost: {
         type: Number,
         required: [true, "Product Price is Required"],
+        min: 0,
     },
     remainingQte: {
         type: Number,
+        default: 0,
+        min: 0,
     },
     isExpired: {
         type: Boolean,
@@ -28,11 +32,12 @@ const productOrderSchema = new mongoose_1.Schema({
     expiredQuantity: {
         type: Number,
         default: 0,
+        min: 0,
     },
 }, {
     timestamps: true,
 });
-// Add index for efficient expiration queries
+// Index for efficient expiration queries
 productOrderSchema.index({ expirationDate: 1, isExpired: 1 });
 const ProductOrder = (0, mongoose_1.model)("ProductOrder", productOrderSchema);
 exports.default = ProductOrder;

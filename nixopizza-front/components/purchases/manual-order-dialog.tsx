@@ -29,11 +29,12 @@ import { createOrder } from "@/lib/apis/purchase-list";
 import { ProductSelect } from "@/components/ui/product-select";
 import { SupplierSelect } from "@/components/ui/supplier-select";
 import { getProducts } from "@/lib/apis/products";
-import { IProduct } from "@/app/dashboard/products/page";
-import { ISupplier } from "@/app/dashboard/suppliers/page";
-import { IOrder } from "@/app/dashboard/purchases/page";
+import { IProduct } from "@/app/[locale]/dashboard/products/page";
+import { ISupplier } from "@/app/[locale]/dashboard/suppliers/page";
+import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
 import toast from "react-hot-toast";
 import { resolveImage } from "@/lib/resolveImage";
+import LoadTemplateDialog from "@/components/purchases/templates/load-template-dialog";
 
 interface IOrderItem {
   _id?: string;
@@ -64,6 +65,7 @@ export function ManualOrderDialog({
   const [expectedDate, setExpectedDate] = useState<string>("");
   const [billFile, setBillFile] = useState<File | null>(null);
   const [billPreview, setBillPreview] = useState<string | null>(null);
+  const [openLoadTpl, setOpenLoadTpl] = useState(false);
 
   // Products state
   const [products, setProducts] = useState<IProduct[]>([]);
@@ -194,6 +196,21 @@ export function ManualOrderDialog({
     }
     if (orderItems.length === 0) {
       setError("Please add at least one order item");
+      return;
+    }
+    // Validate quantities and product selections before submit
+    if (
+      orderItems.some(
+        (it) =>
+          !it.productId ||
+          it.productId.trim() === "" ||
+          Number.isNaN(it.quantity) ||
+          it.quantity <= 0
+      )
+    ) {
+      setError(
+        "Please enter valid quantities (> 0) and select products for all items"
+      );
       return;
     }
     if (orderItems.some((item) => !item.productId)) {
@@ -350,6 +367,18 @@ export function ManualOrderDialog({
                   <Plus className="h-4 w-4" />
                   Add Item
                 </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    if (!selectedSupplier) return toast.error("Select a supplier first");
+                    setOpenLoadTpl(true);
+                  }}
+                  className="gap-2 rounded-full border-2 border-input"
+                >
+                  Load Template
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
@@ -387,15 +416,13 @@ export function ManualOrderDialog({
                         </Label>
                         <Input
                           type="number"
-                          min="1"
+                          min="0"
                           value={item.quantity}
-                          onChange={(e) =>
-                            updateOrderItem(
-                              index,
-                              "quantity",
-                              parseInt(e.target.value) || 1
-                            )
-                          }
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            const num = v === "" ? NaN : parseInt(v);
+                            updateOrderItem(index, "quantity", Number.isNaN(num) ? 0 : num);
+                          }}
                           className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg py-5"
                         />
                       </div>
@@ -524,7 +551,34 @@ export function ManualOrderDialog({
             </Button>
           </DialogFooter>
         </form>
+        <LoadTemplateDialog
+          open={openLoadTpl}
+          onOpenChange={setOpenLoadTpl}
+          supplierId={selectedSupplier?._id}
+          onPick={(tpl) => {
+            if (!selectedSupplier) return;
+            const allowedIds = new Set(filteredProducts.map((p) => p._id));
+            const mapped = (tpl.items || [])
+              .filter((it: any) => {
+                const id = typeof it.productId === "string" ? it.productId : it.productId?._id; return allowedIds.has(id);
+              })
+              .map((it: any) => ({
+                productId: typeof it.productId === "string" ? it.productId : it.productId?._id,
+                quantity: it.quantity,
+                unitCost: 0,
+                expirationDate: new Date(),
+              }));
+            if (!mapped.length) { toast.error("No items from template match this supplier"); return; }
+            setOrderItems(mapped);
+            setSelectedProducts(
+              mapped.map((m: IOrderItem) => filteredProducts.find((p: IProduct) => p._id === m.productId) || null)
+            );
+            toast.success(`Loaded ${mapped.length} items from template`);
+          }}
+        />
       </DialogContent>
     </Dialog>
   );
 }
+// Dual export to satisfy any import style
+export default ManualOrderDialog;

@@ -15,10 +15,11 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AddSupplierDialog } from "./add-supplier-dialog";
 import { getCategories } from "@/lib/apis/categories";
-import { ICategory } from "@/app/dashboard/categories/page";
+import { ICategory } from "@/app/[locale]/dashboard/categories/page";
 import { Badge } from "@/components/ui/badge";
 import { CategorySelect } from "@/components/ui/category-select";
-import { ISupplier } from "@/app/dashboard/suppliers/page";
+import { ISupplier } from "@/app/[locale]/dashboard/suppliers/page";
+import { useTranslations } from "next-intl";
 
 export function SuppliersHeader({
   onSearchChange,
@@ -33,6 +34,7 @@ export function SuppliersHeader({
   onCategoryChange: (categoryIds: string[]) => void;
   onAdding: (supplier: ISupplier) => void;
 }) {
+  const t = useTranslations("suppliers")
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("name");
@@ -106,10 +108,10 @@ export function SuppliersHeader({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-heading font-bold text-foreground">
-            Suppliers
+            {t("title")}
           </h1>
           <p className="text-muted-foreground">
-            Manage your supplier directory and contacts
+            {t("subtitle")}
           </p>
         </div>
         <AddSupplierDialog onAdding={onAdding} />
@@ -120,7 +122,7 @@ export function SuppliersHeader({
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search suppliers..."
+            placeholder={t("searchSuppliers")}
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-10 border-2 border-input focus-visible:ring-2 focus-visible:ring-primary/30"
@@ -130,22 +132,22 @@ export function SuppliersHeader({
           <div className="flex gap-2">
             <Select value={statusFilter} onValueChange={handleStatusChange}>
               <SelectTrigger className="w-[180px] border-2 border-input focus:ring-2 focus:ring-primary/30">
-                <SelectValue placeholder="Status" />
+                <SelectValue placeholder={t("status")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Suppliers</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="all">{t("allSuppliers")}</SelectItem>
+                <SelectItem value="active">{t("activeStatus")}</SelectItem>
+                <SelectItem value="inactive">{t("inactiveStatus")}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={sortBy} onValueChange={handleSortChange}>
               <SelectTrigger className="w-[180px] border-2 border-input focus:ring-2 focus:ring-primary/30">
-                <SelectValue placeholder="Sort by" />
+                <SelectValue placeholder={t("sortBy")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="name">Name</SelectItem>
-                <SelectItem value="contactPerson">Contact Person</SelectItem>
-                <SelectItem value="createdAt">Date Added</SelectItem>
+                <SelectItem value="name">{t("nameSort")}</SelectItem>
+                <SelectItem value="contactPerson">{t("contactPersonSort")}</SelectItem>
+                <SelectItem value="createdAt">{t("dateAdded")}</SelectItem>
               </SelectContent>
             </Select>
             <Button
@@ -168,7 +170,7 @@ export function SuppliersHeader({
               categories={availableCategories}
               selectedCategory={null}
               onCategoryChange={handleCategoryChange}
-              placeholder="Select Categories"
+              placeholder={t("selectCategories")}
               className="min-w-[280px] border-2 border-input focus:ring-2 focus:ring-primary/30"
             />
 

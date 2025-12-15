@@ -3,6 +3,7 @@
 import type React from "react";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { IProduct } from "../products/products-table";
+import { IProduct } from "@/app/[locale]/dashboard/products/page";
 
 interface LowStockItem {
   id: string;
@@ -51,13 +52,14 @@ export function QuickOrderDialog({
   open,
   onOpenChange,
 }: QuickOrderDialogProps) {
+  const t = useTranslations("alerts");
   const [orderQuantity, setOrderQuantity] = useState(0);
   const [estimatedPrice, setEstimatedPrice] = useState(0);
 
   useEffect(() => {
     if (item) {
-      // Calculate suggested order quantity (restore to max stock)
-      const suggestedQuantity = item.maxQty - item.currentStock;
+      // Calculate suggested order quantity (restore to min qty)
+      const suggestedQuantity = item.minQty - item.currentStock;
       setOrderQuantity(suggestedQuantity);
       // Mock price calculation
       setEstimatedPrice(suggestedQuantity * 15.99);
@@ -87,11 +89,11 @@ export function QuickOrderDialog({
         quantity = item.minQty - item.currentStock;
         break;
       case "max":
-        quantity = item.maxQty - item.currentStock;
+        quantity = item.minQty * 2 - item.currentStock;
         break;
       case "optimal":
         // 30 days worth of stock
-        quantity = Math.ceil((item.maxQty / 2) * 30) - item.currentStock;
+        quantity = Math.ceil((item.minQty / 2) * 30) - item.currentStock;
         break;
     }
     setOrderQuantity(Math.max(0, quantity));
@@ -102,12 +104,12 @@ export function QuickOrderDialog({
 
   const getPriorityText = (stock: number, min: number) => {
     if (stock <= 0) {
-      return "Critical";
+      return t("critical");
     }
     if (stock < min / 2) {
-      return "High";
+      return t("high");
     } else {
-      return "Medium";
+      return t("medium");
     }
   };
 
@@ -128,10 +130,10 @@ export function QuickOrderDialog({
         <DialogHeader>
           <DialogTitle className="font-heading flex items-center gap-2">
             <Package className="h-5 w-5" />
-            Quick Order
+            {t("quickOrder")}
           </DialogTitle>
           <DialogDescription>
-            Create a purchase order for this low stock item.
+            {t("quickOrderDescription")}
           </DialogDescription>
         </DialogHeader>
 
@@ -146,32 +148,34 @@ export function QuickOrderDialog({
             </div>
             <div className="text-sm text-muted-foreground">
               <p>
-                Current Stock: {item.currentStock} / {item.maxQty}
+                {t("currentStock")} {item.currentStock} / {item.minQty}
               </p>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="quantity">Order Quantity</Label>
+              <Label htmlFor="quantity">{t("orderQuantity")}</Label>
               <Input
                 id="quantity"
                 type="number"
                 value={orderQuantity}
                 onChange={(e) => {
-                  const qty = Number.parseInt(e.target.value) || 0;
-                  setOrderQuantity(qty);
-                  setEstimatedPrice(qty * 15.99);
+                  const v = e.target.value;
+                  const qty = v === "" ? NaN : Number.parseInt(v);
+                  const safeQty = Number.isNaN(qty) ? 0 : qty;
+                  setOrderQuantity(safeQty);
+                  setEstimatedPrice(safeQty * 15.99);
                 }}
-                min="1"
+                min="0"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="quantity">Select supplier</Label>
+              <Label htmlFor="supplier">{t("selectSupplierLabel")}</Label>
               <Select>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a supplier" />
+                  <SelectValue placeholder={t("selectSupplier")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={"asd"}>
@@ -196,13 +200,13 @@ export function QuickOrderDialog({
             {/* Order Summary */}
             <div className="p-3 bg-card border rounded-lg">
               <div className="flex justify-between items-center">
-                <span className="text-sm">Estimated Total:</span>
+                <span className="text-sm">{t("estimatedTotal")}</span>
                 <span className="font-medium">
                   ${estimatedPrice.toFixed(2)}
                 </span>
               </div>
               <div className="flex justify-between items-center text-sm text-muted-foreground">
-                <span>New Stock Level:</span>
+                <span>{t("newStockLevel")}</span>
                 <span>{item.currentStock + orderQuantity}</span>
               </div>
             </div>
@@ -213,9 +217,9 @@ export function QuickOrderDialog({
                 variant="outline"
                 onClick={() => onOpenChange(false)}
               >
-                Cancel
+                {t("cancel")}
               </Button>
-              <Button type="submit">Create Order</Button>
+              <Button type="submit">{t("createOrder")}</Button>
             </DialogFooter>
           </form>
         </div>

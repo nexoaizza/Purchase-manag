@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +20,7 @@ import {
   ShoppingCart,
   TrendingDown,
 } from "lucide-react";
-import { IProduct } from "@/app/dashboard/products/page";
+import { IProduct } from "@/app/[locale]/dashboard/products/page";
 import Link from "next/link";
 
 export function LowStockTable({
@@ -27,22 +28,24 @@ export function LowStockTable({
 }: {
   lowStockItems: IProduct[];
 }) {
+  const t = useTranslations("alerts");
+  
   const getPriorityBadge = (product: IProduct) => {
     if (product.currentStock === 0) {
-      return <Badge variant="destructive">Critical</Badge>;
+      return <Badge variant="destructive">{t("critical")}</Badge>;
     } else if (product.currentStock < product.minQty / 2) {
       return (
         <Badge
           variant="secondary"
           className="bg-orange-500/20 text-orange-700 hover:bg-orange-500/30"
         >
-          High
+          {t("high")}
         </Badge>
       );
     } else {
       return (
         <Badge variant="outline" className="border-amber-500 text-amber-700">
-          Medium
+          {t("medium")}
         </Badge>
       );
     }
@@ -52,17 +55,32 @@ export function LowStockTable({
     return Math.max(0, Math.min(100, (current / (max || 1)) * 100));
   };
 
-  const getPriorityText = (stock: number, min: number) => {
-    if (stock <= 0) return "Critical";
-    if (stock < min / 2) return "High";
-    return "Medium";
-  };
+  if (lowStockItems.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-heading">
+            {t("itemsRequiringAttention")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="mb-4 p-3 bg-muted rounded-full">
+            <Package className="h-10 w-10 text-muted-foreground" />
+          </div>
+          <h3 className="text-xl font-semibold mb-1">{t("noAlertsFound")}</h3>
+          <p className="text-muted-foreground">
+            {t("noAlertsMessage")}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="font-heading">
-          Items Requiring Attention
+          {t("itemsRequiringAttention")}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -70,17 +88,17 @@ export function LowStockTable({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Product</TableHead>
-                <TableHead>Stock Level</TableHead>
-                <TableHead>Priority</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>{t("product")}</TableHead>
+                <TableHead>{t("stockLevel")}</TableHead>
+                <TableHead>{t("priority")}</TableHead>
+                <TableHead>{t("actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {lowStockItems.map((item) => {
-                const stockPercentage = getStockPercentage(
+                  const stockPercentage = getStockPercentage(
                   item.currentStock,
-                  item.maxQty
+                  item.minQty
                 );
                 return (
                   <TableRow key={item._id}>
@@ -117,7 +135,7 @@ export function LowStockTable({
                         </div>
                         <Progress value={stockPercentage} className="h-2" />
                         <div className="text-xs text-muted-foreground">
-                          Min: {item.minQty}
+                          {t("min")} {item.minQty}
                         </div>
                       </div>
                     </TableCell>
@@ -127,7 +145,7 @@ export function LowStockTable({
                       <Button size="sm" asChild className="gap-2">
                         <Link href="/dashboard/purchases">
                           <ShoppingCart className="h-3 w-3" />
-                          Create Order
+                          {t("createOrder")}
                         </Link>
                       </Button>
                     </TableCell>

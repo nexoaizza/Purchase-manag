@@ -15,8 +15,8 @@ import { useEffect, useState } from "react";
 import { GeneratePurchaseListDialog } from "./generate-purchase-list-dialog";
 import { ManualOrderDialog } from "./manual-order-dialog";
 import { MultiSupplierSelect } from "@/components/ui/multi-supplier-select";
-import { ISupplier } from "@/app/dashboard/suppliers/page";
-import { IOrder } from "@/app/dashboard/purchases/page";
+import { ISupplier } from "@/app/[locale]/dashboard/suppliers/page";
+import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { useTranslations } from "next-intl";
 
 export function PurchasesHeader({
   onSearchChange,
@@ -47,6 +48,7 @@ export function PurchasesHeader({
   initialStatus?: string;
   initialDateRange?: { from: Date | null; to: Date | null };
 }) {
+  const t = useTranslations("purchases");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState(initialStatus);
   const [selectedSuppliers, setSelectedSuppliers] = useState<ISupplier[]>([]);
@@ -113,10 +115,10 @@ export function PurchasesHeader({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-heading font-bold text-foreground">
-            Purchase Management
+            {t("title")}
           </h1>
           <p className="text-muted-foreground">
-            Manage purchase orders and supplier communications
+            {t("subtitle")}
           </p>
         </div>
         <div className="flex gap-2">
@@ -129,7 +131,7 @@ export function PurchasesHeader({
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search purchase orders..."
+            placeholder={t("searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-10 border-2 border-input focus-visible:ring-2 focus-visible:ring-primary/30"
@@ -140,22 +142,24 @@ export function PurchasesHeader({
           {/* Status Filter */}
           <Select value={statusFilter} onValueChange={handleStatusChange}>
             <SelectTrigger className="w-[180px] border-2 border-input focus:ring-2 focus:ring-primary/30">
-              <SelectValue placeholder="Status" />
+              <SelectValue placeholder={t("status")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Orders</SelectItem>
-              <SelectItem value="not assigned">Not Assigned</SelectItem>
-              <SelectItem value="assigned">Assigned</SelectItem>
-              <SelectItem value="confirmed">Confirmed</SelectItem>
-              <SelectItem value="paid">Paid</SelectItem>
-            </SelectContent>
+  <SelectItem value="all">All Orders</SelectItem>
+  <SelectItem value="not assigned">Not Assigned</SelectItem>
+  <SelectItem value="assigned">Assigned</SelectItem>
+  <SelectItem value="pending_review">Pending Review</SelectItem>
+  <SelectItem value="verified">Verified</SelectItem>
+  <SelectItem value="paid">Paid</SelectItem>
+  <SelectItem value="canceled">Canceled</SelectItem>
+</SelectContent>
           </Select>
 
           {/* Supplier Filter */}
           <MultiSupplierSelect
             selectedSuppliers={selectedSuppliers}
             onSuppliersChange={handleSupplierChange}
-            placeholder="Select suppliers..."
+            placeholder={t("selectSuppliers")}
             className="min-w-[200px] max-w-[400px] border-2 border-input focus:ring-2 focus:ring-primary/30"
           />
 
@@ -175,7 +179,7 @@ export function PurchasesHeader({
                     {format(dateRange.from, "PP")} - {format(dateRange.to, "PP")}
                   </>
                 ) : (
-                  <span>Pick a date range</span>
+                  <span>{t("pickDateRange")}</span>
                 )}
                 {(dateRange.from || dateRange.to) && (
                   <X
@@ -191,7 +195,7 @@ export function PurchasesHeader({
             <PopoverContent className="w-auto p-0" align="start">
               <div className="p-3 space-y-3">
                 <div>
-                  <p className="text-sm font-medium mb-2">From Date</p>
+                  <p className="text-sm font-medium mb-2">{t("fromDate")}</p>
                   <Calendar
                     mode="single"
                     selected={dateRange.from || undefined}
@@ -202,7 +206,7 @@ export function PurchasesHeader({
                   />
                 </div>
                 <div>
-                  <p className="text-sm font-medium mb-2">To Date</p>
+                  <p className="text-sm font-medium mb-2">{t("toDate")}</p>
                   <Calendar
                     mode="single"
                     selected={dateRange.to || undefined}
@@ -221,13 +225,13 @@ export function PurchasesHeader({
           {/* Sort Filter */}
           <Select value={sortBy} onValueChange={handleSortChange}>
             <SelectTrigger className="w-[180px] border-2 border-input focus:ring-2 focus:ring-primary/30">
-              <SelectValue placeholder="Sort by" />
+              <SelectValue placeholder={t("sortBy")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="createdAt">Date Added</SelectItem>
-              <SelectItem value="orderNumber">Order Number</SelectItem>
-              <SelectItem value="totalAmount">Total Amount</SelectItem>
-              <SelectItem value="supplierId.name">Supplier</SelectItem>
+              <SelectItem value="createdAt">{t("dateAdded")}</SelectItem>
+              <SelectItem value="orderNumber">{t("orderNumber")}</SelectItem>
+              <SelectItem value="totalAmount">{t("totalAmountSort")}</SelectItem>
+              <SelectItem value="supplierId.name">{t("supplierSort")}</SelectItem>
             </SelectContent>
           </Select>
 

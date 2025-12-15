@@ -1,14 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
-import { X, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { resolveImage } from "@/lib/resolveImage";
+import { Search, X } from "lucide-react";
+import { getProducts } from "@/lib/apis/products";
+import { IProduct } from "@/app/[locale]/dashboard/products/page";
 
 interface Product {
   _id: string;
   name: string;
   imageUrl?: string;
   barcode?: string;
-  currentStock: number;
   minQty: number;
 }
 
@@ -190,7 +191,7 @@ export function ProductSelect({
                   <div className="flex flex-col">
                     <span className="font-medium">{product.name}</span>
                     <span className="text-xs text-muted-foreground truncate max-w-[200px]">
-                      {product.barcode} - {product.currentStock} in stock
+                      {product.barcode}
                     </span>
                   </div>
                 </div>

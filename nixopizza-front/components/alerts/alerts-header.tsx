@@ -1,6 +1,7 @@
 // components/alerts/alerts-header.tsx
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -24,6 +25,7 @@ export function AlertsHeader({
   status?: StatusFilter;
   onFilterChange: (filters: { name?: string; status?: string }) => void;
 }) {
+  const t = useTranslations("alerts");
   const [searchQuery, setSearchQuery] = useState(initialName);
   const [priorityFilter, setPriorityFilter] = useState<StatusFilter>(
     initialStatus as StatusFilter
@@ -47,10 +49,10 @@ export function AlertsHeader({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Low Stock Alerts
+            {t("title")}
           </h1>
           <p className="text-muted-foreground">
-            Monitor products that need restocking
+            {t("subtitle")}
           </p>
         </div>
         <Button
@@ -60,7 +62,7 @@ export function AlertsHeader({
           className="gap-2"
         >
           <RefreshCw className="h-4 w-4" />
-          Refresh
+          {t("refresh")}
         </Button>
       </div>
 
@@ -68,7 +70,7 @@ export function AlertsHeader({
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search products..."
+            placeholder={t("searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -80,13 +82,13 @@ export function AlertsHeader({
             onValueChange={(v) => setPriorityFilter(v as StatusFilter)}
           >
             <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Priority" />
+              <SelectValue placeholder={t("priorityFilter")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Priorities</SelectItem>
-              <SelectItem value="critical">Critical</SelectItem>
-              <SelectItem value="high">High</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
+              <SelectItem value="all">{t("allPriorities")}</SelectItem>
+              <SelectItem value="critical">{t("critical")}</SelectItem>
+              <SelectItem value="high">{t("high")}</SelectItem>
+              <SelectItem value="medium">{t("medium")}</SelectItem>
             </SelectContent>
           </Select>
           <Button variant="outline" size="icon" onClick={handleRefresh}>

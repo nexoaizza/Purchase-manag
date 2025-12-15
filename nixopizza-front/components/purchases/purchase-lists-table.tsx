@@ -1,4 +1,3 @@
-// components/purchases/purchase-lists-table.tsx
 "use client";
 
 import { useState } from "react";
@@ -6,20 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import {
   MoreHorizontal,
@@ -30,14 +22,20 @@ import {
   UserPlus,
   CheckCircle,
   DollarSign,
+  XCircle,
 } from "lucide-react";
 import { PurchaseOrderDialog } from "@/components/purchases/purchase-order-dialog";
 import { ReceiptPreviewDialog } from "./receipt-preview-dialog";
 import { AssignStaffDialog } from "./assign-staff-dialog";
-import { ConfirmOrderDialog } from "./confirm-order-dialog";
 import { Pagination } from "@/components/ui/pagination";
-import { IOrder } from "@/app/dashboard/purchases/page";
 import { resolveImage } from "@/lib/resolveImage";
+import { useAuth } from "@/hooks/useAuth";
+import { SubmitReviewDialog } from "./submit-review-dialog";
+import { VerifyOrderDialog } from "./verify-order-dialog";
+import { MarkPaidDialog } from "./mark-paid-dialog";
+import { updateOrder } from "@/lib/apis/purchase-list";
+import toast from "react-hot-toast";
+import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
 
 export function PurchaseListsTable({
   purchaseOrders,
@@ -49,19 +47,24 @@ export function PurchaseListsTable({
   setLimit,
 }: {
   purchaseOrders: IOrder[];
-  setPurchaseOrders: any;
+  setPurchaseOrders: React.Dispatch<React.SetStateAction<IOrder[]>>;
   totalPages: number;
   currentPage: number;
-  setCurrentPage: any;
+  setCurrentPage: (p: number) => void;
   limit: number;
-  setLimit: any;
+  setLimit: (l: number) => void;
 }) {
+  const t = useTranslations("purchases");
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
   const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
-  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
-  const [isLoading] = useState(false);
+  const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
+  const [isVerifyDialogOpen, setIsVerifyDialogOpen] = useState(false);
+  const [isMarkPaidDialogOpen, setIsMarkPaidDialogOpen] = useState(false);
+  const [isCancelLoading, setIsCancelLoading] = useState(false);
+
+  const { user } = useAuth();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -69,86 +72,169 @@ export function PurchaseListsTable({
         return "secondary";
       case "assigned":
         return "default";
-      case "confirmed":
+      case "pending_review":
         return "outline";
+      case "verified":
+        return "default";
       case "paid":
         return "default";
+      case "canceled":
+        return "destructive";
       default:
         return "secondary";
     }
   };
 
-  const handleViewOrder = (order: IOrder) => {
-    setSelectedOrder(order);
-    setIsOrderDialogOpen(true);
-  };
-
-  const handleViewReceipt = (order: IOrder) => {
-    setSelectedOrder(order);
-    setIsReceiptDialogOpen(true);
-  };
-
-  const handleAssignStaff = (order: IOrder) => {
-    setSelectedOrder(order);
-    setIsAssignDialogOpen(true);
-  };
-
-  const handleConfirmOrder = (order: IOrder) => {
-    setSelectedOrder(order);
-    setIsConfirmDialogOpen(true);
-  };
-
   const handleOrderUpdated = (updatedOrder: IOrder) => {
-    setPurchaseOrders((prevOrders: IOrder[]) =>
-      prevOrders.map((ord) =>
-        ord._id === updatedOrder._id ? updatedOrder : ord
-      )
+    setPurchaseOrders(prevOrders =>
+      prevOrders.map(ord => (ord._id === updatedOrder._id ? updatedOrder : ord))
     );
   };
 
-  const handleExportOrder = (orderId: string) => {
-    // Placeholder for PDF export logic
-    console.log("Exporting order:", orderId);
+  const handleCancelOrder = async (order: IOrder) => {
+    if (!["not assigned", "assigned", "pending_review"].includes(order.status)) {
+      toast.error("You can only cancel before verification.");
+      return;
+    }
+    setIsCancelLoading(true);
+    try {
+      const { success, order: updated, message } = await updateOrder(order._id, {
+        status: "canceled",
+        canceledDate: new Date().toISOString(),
+      });
+      if (success && updated) {
+        toast.success("Order canceled");
+        handleOrderUpdated(updated);
+      } else {
+        toast.error(message || "Failed to cancel order");
+      }
+    } catch {
+      toast.error("Error canceling order");
+    } finally {
+      setIsCancelLoading(false);
+    }
+  };
+
+  const getLatestStatusUpdate = (order: IOrder) => {
+    const dates = [
+      order.assignedDate,
+      order.pendingReviewDate,
+      order.verifiedDate,
+      order.paidDate,
+      order.canceledDate,
+    ].filter(Boolean) as Date[];
+    if (dates.length === 0) return new Date(order.createdAt);
+    return new Date(Math.max(...dates.map(d => new Date(d).getTime())));
   };
 
   const getStatusAction = (order: IOrder) => {
     switch (order.status) {
       case "not assigned":
         return (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => handleAssignStaff(order)}
-            className="gap-2"
-          >
-            <UserPlus className="h-3 w-3" />
-            Assign
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setSelectedOrder(order);
+                setIsAssignDialogOpen(true);
+              }}
+              className="gap-2"
+            >
+              <UserPlus className="h-3 w-3" />
+              Assign
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={isCancelLoading}
+              className="gap-2 border-red-600 text-red-600 hover:bg-red-50"
+              onClick={() => handleCancelOrder(order)}
+            >
+              <XCircle className="h-3 w-3" />
+              {isCancelLoading ? "Canceling..." : "Cancel"}
+            </Button>
+          </div>
         );
       case "assigned":
         return (
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              className="gap-2 bg-orange-600 text-white hover:bg-orange-700"
+              onClick={() => {
+                setSelectedOrder(order);
+                setIsSubmitDialogOpen(true);
+              }}
+            >
+              <CheckCircle className="h-3 w-3" />
+              Submit Bill
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={isCancelLoading}
+              className="gap-2 border-red-600 text-red-600 hover:bg-red-50"
+              onClick={() => handleCancelOrder(order)}
+            >
+              <XCircle className="h-3 w-3" />
+              {isCancelLoading ? "Canceling..." : "Cancel"}
+            </Button>
+          </div>
+        );
+      case "pending_review":
+        return user?.role === "admin" ? (
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              className="gap-2 bg-orange-600 text-white hover:bg-orange-700"
+              onClick={() => {
+                setSelectedOrder(order);
+                setIsVerifyDialogOpen(true);
+              }}
+            >
+              <CheckCircle className="h-3 w-3" />
+              Verify
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={isCancelLoading}
+              className="gap-2 border-red-600 text-red-600 hover:bg-red-50"
+              onClick={() => handleCancelOrder(order)}
+            >
+              <XCircle className="h-3 w-3" />
+              {isCancelLoading ? "Canceling..." : "Cancel"}
+            </Button>
+          </div>
+        ) : (
+          <Badge variant="outline">Waiting Verification</Badge>
+        );
+      case "verified":
+        return (
           <Button
             size="sm"
-            variant="outline"
-            onClick={() => handleConfirmOrder(order)}
-            className="gap-2"
+            className="gap-2 bg-orange-600 text-white hover:bg-orange-700"
+            onClick={() => {
+              setSelectedOrder(order);
+              setIsMarkPaidDialogOpen(true);
+            }}
           >
-            <CheckCircle className="h-3 w-3" />
-            Confirm
+            <DollarSign className="h-3 w-3" />
+            Mark Paid
           </Button>
-        );
-      case "confirmed":
-        return (
-          <Badge variant="outline" className="gap-1">
-            <CheckCircle className="h-3 w-3" />
-            Ready for Payment
-          </Badge>
         );
       case "paid":
         return (
-          <Badge variant="default" className="gap-1">
-            <DollarSign className="h-3 w-3" />
+          <Badge variant="outline" className="gap-1">
+            <CheckCircle className="h-3 w-3" />
             Paid
+          </Badge>
+        );
+      case "canceled":
+        return (
+          <Badge variant="destructive" className="gap-1">
+            Canceled
           </Badge>
         );
       default:
@@ -160,17 +246,17 @@ export function PurchaseListsTable({
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="font-heading">Purchase Orders</CardTitle>
+          <CardTitle className="font-heading">{t("purchaseOrders")}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center py-12 text-center">
           <div className="mb-4 p-3 bg-muted rounded-full">
             <Package className="h-10 w-10 text-muted-foreground" />
           </div>
           <h3 className="text-xl font-semibold mb-1">
-            No purchase orders found
+            {t("noPurchaseOrders")}
           </h3>
           <p className="text-muted-foreground mb-4">
-            You don't have any purchase orders with this filtration.
+            {t("noPurchaseOrdersMessage")}
           </p>
         </CardContent>
       </Card>
@@ -181,7 +267,7 @@ export function PurchaseListsTable({
     <>
       <Card>
         <CardHeader>
-          <CardTitle className="font-heading">Purchase Orders</CardTitle>
+          <CardTitle className="font-heading">{t("purchaseOrders")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
@@ -193,14 +279,15 @@ export function PurchaseListsTable({
                   <TableHead>Staff</TableHead>
                   <TableHead>Items</TableHead>
                   <TableHead>Total Value</TableHead>
+                  <TableHead>Last Update</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Action</TableHead>
-                  <TableHead className="w-[50px]"></TableHead>
-                  <TableHead className="w-[50px]"></TableHead>
+                  <TableHead></TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {purchaseOrders.map((order) => (
+                {purchaseOrders.map(order => (
                   <TableRow key={order._id}>
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -250,22 +337,26 @@ export function PurchaseListsTable({
                         </div>
                       ) : (
                         <span className="text-muted-foreground text-sm">
-                          Not assigned
+                          {t("notAssigned")}
                         </span>
                       )}
                     </TableCell>
                     <TableCell>
                       <span className="font-medium">{order.items.length}</span>
                       <span className="text-muted-foreground text-sm ml-1">
-                        items
+                        {t("items")}
                       </span>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
+                        <DollarSign className="h-4 w-4 text-muted-foreground" />
                         <span className="font-medium">
-                          {order.totalAmount.toFixed(2)} DA
+                          {order.totalAmount.toFixed(2)} {t("da")}
                         </span>
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      {getLatestStatusUpdate(order).toLocaleString("en-GB")}
                     </TableCell>
                     <TableCell>
                       <Badge variant={getStatusColor(order.status) as any}>
@@ -278,7 +369,10 @@ export function PurchaseListsTable({
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleViewReceipt(order)}
+                          onClick={() => {
+                            setSelectedOrder(order);
+                            setIsReceiptDialogOpen(true);
+                          }}
                           title="Preview Receipt"
                         >
                           <Receipt className="h-4 w-4" />
@@ -294,16 +388,21 @@ export function PurchaseListsTable({
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
-                            onClick={() => handleViewOrder(order)}
+                            onClick={() => {
+                              setSelectedOrder(order);
+                              setIsOrderDialogOpen(true);
+                            }}
                           >
                             <Eye className="h-4 w-4 mr-2" />
-                            View Details
+                            {t("viewDetails")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => handleExportOrder(order._id)}
+                            onClick={() =>
+                              console.log("Export order:", order._id)
+                            }
                           >
                             <Download className="h-4 w-4 mr-2" />
-                            Export PDF
+                            {t("exportPDF")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -314,10 +413,9 @@ export function PurchaseListsTable({
             </Table>
           </div>
 
-          {/* Pagination */}
           <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-sm text-muted-foreground">
-              Showing {purchaseOrders.length} of {totalPages * limit} orders
+              {t("showing")} {purchaseOrders.length} {t("of")} {totalPages * limit} {t("orders")}
             </div>
             <Pagination
               currentPage={currentPage}
@@ -347,10 +445,22 @@ export function PurchaseListsTable({
         onOpenChange={setIsAssignDialogOpen}
         onOrderUpdated={handleOrderUpdated}
       />
-      <ConfirmOrderDialog
+      <SubmitReviewDialog
         order={selectedOrder}
-        open={isConfirmDialogOpen}
-        onOpenChange={setIsConfirmDialogOpen}
+        open={isSubmitDialogOpen}
+        onOpenChange={setIsSubmitDialogOpen}
+        onOrderUpdated={handleOrderUpdated}
+      />
+      <VerifyOrderDialog
+        order={selectedOrder}
+        open={isVerifyDialogOpen}
+        onOpenChange={setIsVerifyDialogOpen}
+        onOrderUpdated={handleOrderUpdated}
+      />
+      <MarkPaidDialog
+        order={selectedOrder}
+        open={isMarkPaidDialogOpen}
+        onOpenChange={setIsMarkPaidDialogOpen}
         onOrderUpdated={handleOrderUpdated}
       />
     </>

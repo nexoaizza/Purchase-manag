@@ -15,45 +15,68 @@ import {
   Bell,
   Shapes,
   Zap,
+  MoreVertical,
+  Cog,
+  Warehouse,
+  Box,
+  FileText,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { logoutUser } from "@/lib/apis/auth";
-import { useAuth } from "@/hooks/useAuth";
+import { getProfile, useAuth } from "@/hooks/useAuth";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { user } = useAuth(); // ✅ valid hook usage
+  const { user } = useAuth();
+  const locale = useLocale();
+  const isRTL = locale === "ar";
+  const t = useTranslations("navigation");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
 
   const navigation =
     user?.role === "admin"
       ? [
-          { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
-          { name: "Categories", href: "/dashboard/categories", icon: Shapes },
-          { name: "Products", href: "/dashboard/products", icon: Package },
-          { name: "Suppliers", href: "/dashboard/suppliers", icon: Users },
-          { name: "Purchase Lists", href: "/dashboard/purchases", icon: ShoppingCart },
-          { name: "Shortcuts", href: "/dashboard/shortcuts", icon: Zap },
-          { name: "Low Stock", href: "/dashboard/alerts", icon: AlertTriangle },
-          { name: "Staff", href: "/dashboard/stuff", icon: Users },
-          { name: "Tasks", href: "/dashboard/tasks", icon: Users },
-          { name: "Notifications", href: "/dashboard/notifications", icon: Bell },
+          { name: t("dashboard"), href: "/dashboard", icon: BarChart3 },
+          { name: t("categories"), href: "/dashboard/categories", icon: Shapes },
+          { name: t("products"), href: "/dashboard/products", icon: Package },
+          { name: t("stocks"), href: "/dashboard/stocks", icon: Warehouse },
+          { name: t("stockItems"), href: "/dashboard/stock-items", icon: Box },
+          { name: t("suppliers"), href: "/dashboard/suppliers", icon: Users },
+          {
+            name: t("purchaseLists"),
+            href: "/dashboard/purchases",
+            icon: ShoppingCart,
+          },
+          { name: t("templates"), href: "/dashboard/purchases/templates", icon: FileText },
+          { name: t("shortcuts"), href: "/dashboard/shortcuts", icon: Zap },
+          { name: t("lowStock"), href: "/dashboard/alerts", icon: AlertTriangle },
+          { name: t("staff"), href: "/dashboard/stuff", icon: Users },
+          { name: t("tasks"), href: "/dashboard/tasks", icon: Users },
+          {
+            name: t("notifications"),
+            href: "/dashboard/notifications",
+            icon: Bell,
+          },
         ]
       : [
-          { name: "Dashboard", href: "/dashboardstaff", icon: BarChart3 },
-          { name: "Orders", href: "/dashboardstaff/orders", icon: Users },
+          { name: t("dashboard"), href: "/dashboardstaff", icon: BarChart3 },
+          { name: t("orders"), href: "/dashboardstaff/orders", icon: Users },
         ];
-
-  const handleLogout = async () => {
-    await logoutUser();
-    window.location.href = "/";
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -62,24 +85,37 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <SheetTrigger asChild>
           <Button
             variant="outline"
-            className="fixed top-4 left-4 z-40 md:hidden"
+            className={cn(
+              "fixed top-4 z-40 md:hidden",
+              isRTL ? "right-4" : "left-4"
+            )}
             size="icon"
           >
             <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="p-0 w-64">
+        <SheetContent side={isRTL ? "right" : "left"} className="p-0 w-64">
           <Sidebar />
         </SheetContent>
       </Sheet>
 
       {/* Desktop sidebar */}
-      <div className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col">
+      <div
+        className={cn(
+          "hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col",
+          isRTL ? "md:right-0" : "md:left-0"
+        )}
+      >
         <Sidebar />
       </div>
 
       {/* Main content */}
-      <div className="md:pl-64">
+      <div
+        className={cn(
+          "md:w-[calc(100%-16rem)]",
+          isRTL ? "md:mr-64" : "md:ml-64"
+        )}
+      >
         <main className="py-6">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             {children}
@@ -89,18 +125,28 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     </div>
   );
 
+  /************************************
+   *            SIDEBAR
+   ************************************/
   function Sidebar() {
     return (
-      <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-card border-r border-border px-6 pb-4">
+      <div
+        className={cn(
+          "flex grow flex-col gap-y-5 overflow-y-auto bg-card border-r border-border px-6 pb-4",
+          isRTL && "border-r-0 border-l"
+        )}
+      >
         <div className="flex h-16 shrink-0 items-center">
           <img src="/nexo-logo.png" alt="Logo" className="w-[150px]" />
         </div>
+
         <nav className="flex flex-1 flex-col">
           <ul role="list" className="flex flex-1 flex-col gap-y-7">
             <li>
               <ul role="list" className="-mx-2 space-y-1">
                 {navigation.map((item) => {
                   const isActive = pathname === item.href;
+
                   return (
                     <li key={item.name}>
                       <Link
@@ -121,21 +167,91 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 })}
               </ul>
             </li>
+
+            {/* ⭐ USER MENU (new section) */}
             <li className="mt-auto">
-              <div className="space-y-1">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start gap-x-3 p-2 text-sm font-medium"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="h-5 w-5 shrink-0" />
-                  Sign Out
-                </Button>
-              </div>
+              <UserMenu />
             </li>
           </ul>
         </nav>
       </div>
     );
   }
+}
+
+/************************************
+ *      USER MENU COMPONENT
+ ************************************/
+function UserMenu() {
+  const [langIndex, setLangIndex] = useState(0);
+  const languages = [
+    { code: "fr", label: "FR", flag: "🇫🇷" },
+    { code: "ar", label: "AR", flag: "🇩🇿" },
+    { code: "en", label: "EN", flag: "🇬🇧" },
+  ];
+
+  const locale = useLocale();
+  const t = useTranslations("navigation");
+  const user = getProfile();
+  
+  const handleLogout = async () => {
+    await logoutUser();
+    window.location.href = "/";
+  };
+  
+  console.log("user", user);
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+       <div className="w-full cursor-pointer rounded-md hover:bg-muted relative">
+  <div className="flex items-center gap-2">
+    <Avatar className="h-8 w-8">
+      <AvatarImage
+        src={user?.avatar ?? undefined}
+        alt={user?.fullname}
+        className="object-cover"
+      />
+      <AvatarFallback
+        className="bg-orange-500 text-white font-semibold"
+      >
+        {(user?.fullname?.[0] || "N").toUpperCase()}
+      </AvatarFallback>
+    </Avatar>
+
+    {
+      (() => {
+        const full = user?.fullname || "";
+        const display = full.length > 18 ? `${full.slice(0, 18)}...` : full;
+        return (
+          <span className="text-sm font-medium" title={full}>
+            {display}
+          </span>
+        );
+      })()
+    }
+  </div>
+
+  <MoreVertical className={`w-4 h-4 absolute ${locale === "ar" ? "left-[-8px]" : "right-[-8px]"} top-0`} />
+</div>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent align="end" className="w-44">
+        <DropdownMenuItem
+          onClick={handleLogout}
+          className="flex items-center gap-2"
+        >
+          <LogOut className="h-4 w-4" />
+          {t("signOut")}
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          onClick={() => (window.location.href = `/${locale}/dashboard/parameters`) }
+          className="flex items-center gap-2"
+        >
+          <Cog className="h-4 w-4" />
+          {t("parameters")}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 }
