@@ -35,6 +35,7 @@ import { Badge } from "@/components/ui/badge";
 import { resolveImage } from "@/lib/resolveImage";
 import { TransferStockItemDialog } from "./transfer-stock-item-dialog";
 import { UtiliseStockItemDialog } from "./utilise-stock-item-dialog";
+import { WasteStockItemDialog } from "./waste-stock-item-dialog";
 import { useState } from "react";
 
 interface StockItemTableProps {
@@ -61,6 +62,7 @@ export function StockItemTable({
   const t = useTranslations("stockItems");
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
   const [isUtiliseDialogOpen, setIsUtiliseDialogOpen] = useState(false);
+  const [isWasteDialogOpen, setIsWasteDialogOpen] = useState(false);
   const [selectedStockItem, setSelectedStockItem] = useState<IStockItem | null>(null);
 
   const handleTransfer = (stockItem: IStockItem) => {
@@ -73,12 +75,22 @@ export function StockItemTable({
     setIsUtiliseDialogOpen(true);
   };
 
+  const handleWaste = (stockItem: IStockItem) => {
+    setSelectedStockItem(stockItem);
+    setIsWasteDialogOpen(true);
+  };
+
   const handleStockItemTransferred = () => {
     // Reload the page or refetch data
     window.location.reload();
   };
 
   const handleStockItemUtilised = () => {
+    // Reload the page or refetch data
+    window.location.reload();
+  };
+
+  const handleStockItemWasted = () => {
     // Reload the page or refetch data
     window.location.reload();
   };
@@ -220,6 +232,10 @@ export function StockItemTable({
                             <ArrowRightLeft className="mr-2 h-4 w-4" />
                             {t("transfer")}
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleWaste(item)}>
+                            <AlertCircle className="mr-2 h-4 w-4" />
+                            {t("waste")}
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => onEdit(item)}>
                             <Edit className="mr-2 h-4 w-4" />
                             {t("edit")}
@@ -262,6 +278,13 @@ export function StockItemTable({
         open={isUtiliseDialogOpen}
         onOpenChange={setIsUtiliseDialogOpen}
         onStockItemUtilised={handleStockItemUtilised}
+      />
+
+      <WasteStockItemDialog
+        stockItem={selectedStockItem}
+        open={isWasteDialogOpen}
+        onOpenChange={setIsWasteDialogOpen}
+        onStockItemWasted={handleStockItemWasted}
       />
     </Card>
   );

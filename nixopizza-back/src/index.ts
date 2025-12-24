@@ -17,6 +17,8 @@ import notificationRouter from "./routes/notification.router";
 import stockRouter from "./routes/stock.router";
 import stockItemRouter from "./routes/stock-item.router";
 import templateRouter from "./routes/template.router";
+import transferRouter from "./routes/transfer.router";
+import wasteRouter from "./routes/waste.router";
 
 import blobUploadRouter from "./routes/blobUpload.router";
 import User from "./models/user.model";
@@ -94,6 +96,8 @@ app.use("/api/notifications", notificationRouter);
 app.use("/api/stocks", stockRouter);
 app.use("/api/stock-items", stockItemRouter);
 app.use("/api/templates", templateRouter);
+app.use("/api/transfers", transferRouter);
+app.use("/api/wastes", wasteRouter);
 
 const PORT = process.env.PORT || 5000;
 

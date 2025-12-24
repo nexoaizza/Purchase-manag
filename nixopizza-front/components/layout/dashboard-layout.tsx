@@ -20,6 +20,8 @@ import {
   Warehouse,
   Box,
   FileText,
+  ArrowRightLeft,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -56,6 +58,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           { name: t("products"), href: "/dashboard/products", icon: Package },
           { name: t("stocks"), href: "/dashboard/stocks", icon: Warehouse },
           { name: t("stockItems"), href: "/dashboard/stock-items", icon: Box },
+          { name: t("transfers"), href: "/dashboard/transfers", icon: ArrowRightLeft },
+          { name: t("waste"), href: "/dashboard/waste", icon: Trash2 },
           { name: t("suppliers"), href: "/dashboard/suppliers", icon: Users },
           {
             name: t("purchaseLists"),

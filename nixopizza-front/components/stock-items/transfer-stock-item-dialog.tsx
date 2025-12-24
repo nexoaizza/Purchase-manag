@@ -24,6 +24,7 @@ import { Package, ArrowRight } from "lucide-react";
 import toast from "react-hot-toast";
 import { updateStockItem, createStockItem, IStockItem } from "@/lib/apis/stock-items";
 import { getStocks } from "@/lib/apis/stocks";
+import { createTransfer } from "@/lib/apis/transfers";
 
 interface TransferStockItemDialogProps {
   stockItem: IStockItem | null;
@@ -135,7 +136,7 @@ export function TransferStockItemDialog({
       }
 
       // Create new stock item in destination stock
-      const { success: createSuccess, message: createMessage } = await createStockItem({
+      const { success: createSuccess, message: createMessage, stockItem: newStockItem } = await createStockItem({
         stock: destinationStock,
         product: productId,
         price: stockItem.price,
@@ -147,6 +148,21 @@ export function TransferStockItemDialog({
         toast.error(createMessage || "Failed to create destination stock item");
         setLoading(false);
         return;
+      }
+
+      // Create transfer record in the transfer API
+      const { success: transferSuccess, message: transferMessage } = await createTransfer({
+        items: [newStockItem?._id || stockItem._id],
+        takenFrom: stockItemId,
+        takenTo: destinationStock,
+        quantity: quantity,
+        status: "pending", // Mark as arrived since we're doing immediate transfer
+      });
+
+      if (!transferSuccess) {
+        // Log error but don't fail the transfer since items were already moved
+        console.error("Failed to create transfer record:", transferMessage);
+        toast.error("Transfer completed but failed to create record");
       }
 
       toast.success(t("stockItemTransferred") || "Stock item transferred successfully");
