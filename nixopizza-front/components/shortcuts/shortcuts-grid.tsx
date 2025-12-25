@@ -2,7 +2,15 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Clock, TrendingUp, AlertCircle, CheckCircle, DollarSign, Zap } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  TrendingUp,
+  AlertCircle,
+  CheckCircle,
+  DollarSign,
+  Zap,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
@@ -13,7 +21,7 @@ export function ShortcutsGrid() {
   const getLastThursday = () => {
     const today = new Date();
     const dayOfWeek = today.getDay(); // 0 = Sunday, 4 = Thursday
-    
+
     // Calculate days since last Thursday (inclusive of today if today is Thursday)
     let daysToSubtract;
     if (dayOfWeek >= 4) {
@@ -23,11 +31,11 @@ export function ShortcutsGrid() {
       // If today is before Thursday, go back to last week's Thursday
       daysToSubtract = dayOfWeek + 3;
     }
-    
+
     const lastThursday = new Date(today);
     lastThursday.setDate(today.getDate() - daysToSubtract);
     lastThursday.setHours(0, 0, 0, 0);
-    
+
     return lastThursday;
   };
 
@@ -35,72 +43,82 @@ export function ShortcutsGrid() {
     const today = new Date();
     const startOfDay = new Date(today);
     startOfDay.setHours(0, 0, 0, 0);
-    
+
     const endOfDay = new Date(today);
     endOfDay.setHours(23, 59, 59, 999);
-    
+
     return { startOfDay, endOfDay };
   };
 
   const handleLastWeekFilter = () => {
     const lastThursday = getLastThursday();
     const today = new Date();
-    
+
     // Format dates as ISO strings for URL params
     const startDate = lastThursday.toISOString();
     const endDate = today.toISOString();
-    
+
     // Navigate to purchases page with query parameters - EXCLUDING paid
     const params = new URLSearchParams({
       dateFrom: startDate,
       dateTo: endDate,
       status: "not assigned,assigned,confirmed", // All statuses EXCEPT paid
     });
-    
+
     router.push(`/dashboard/purchases?${params.toString()}`);
   };
 
   const handleLastWeekPaidFilter = () => {
     const lastThursday = getLastThursday();
     const today = new Date();
-    
+
     // Format dates as ISO strings for URL params
     const startDate = lastThursday.toISOString();
     const endDate = today.toISOString();
-    
+
     // Navigate to purchases page with query parameters - ONLY paid
     const params = new URLSearchParams({
       dateFrom: startDate,
       dateTo: endDate,
       status: "paid", // Only paid status
     });
-    
+
     router.push(`/dashboard/purchases?${params.toString()}`);
   };
 
   const handleTodayFilter = () => {
     const { startOfDay, endOfDay } = getTodayRange();
-    
+
     // Navigate to purchases page with query parameters - ALL statuses
     const params = new URLSearchParams({
       dateFrom: startOfDay.toISOString(),
       dateTo: endOfDay.toISOString(),
       status: "all",
     });
-    
+
     router.push(`/dashboard/purchases?${params.toString()}`);
   };
 
   const handleTodayPaidFilter = () => {
     const { startOfDay, endOfDay } = getTodayRange();
-    
+
     // Navigate to purchases page with query parameters - ONLY paid
     const params = new URLSearchParams({
       dateFrom: startOfDay.toISOString(),
       dateTo: endOfDay.toISOString(),
       status: "paid",
     });
-    
+
+    router.push(`/dashboard/purchases?${params.toString()}`);
+  };
+
+  const handleOwsUsFilter = () => {
+    // Navigate to purchases page with query parameters - ONLY verified (ows us)
+    // No date filter as requested
+    const params = new URLSearchParams({
+      status: "verified",
+    });
+
     router.push(`/dashboard/purchases?${params.toString()}`);
   };
 
@@ -140,6 +158,15 @@ export function ShortcutsGrid() {
       bgColor: "bg-emerald-50",
       count: t("completed"),
       onClick: handleTodayPaidFilter,
+    },
+    {
+      title: t("owsUs"),
+      description: t("owsUsDesc"),
+      icon: AlertCircle,
+      iconColor: "text-orange-600",
+      bgColor: "bg-orange-50",
+      count: "!",
+      onClick: handleOwsUsFilter,
     },
   ];
 

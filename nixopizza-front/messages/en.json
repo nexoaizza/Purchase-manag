@@ -89,7 +89,9 @@
         "active": "Active",
         "paid": "Paid",
         "today": "Today",
-        "completed": "Completed"
+        "completed": "Completed",
+        "owsUs": "Ows Us (Verified)",
+        "owsUsDesc": "Verified purchases waiting for payment"
     },
     "staff": {
         "title": "Staff",
