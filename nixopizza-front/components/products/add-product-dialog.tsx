@@ -41,10 +41,10 @@ export function AddProductDialog() {
     barcode: "",
     unit: "",
     categoryId: "",
-    currentStock: 0,
     minQty: 0,
-    recommendedQty: 0,
     description: "",
+    recommendedQty: 0,
+    currentStock: 0,
   });
 
   const handleInputChange = (field: string, value: string | number) =>
@@ -74,10 +74,10 @@ export function AddProductDialog() {
       barcode: "",
       unit: "",
       categoryId: "",
-      currentStock: 0,
       minQty: 0,
-      recommendedQty: 0,
       description: "",
+      recommendedQty: 0,
+      currentStock: 0,
     });
     setImage(null);
     setImagePreview(null);
@@ -90,9 +90,7 @@ export function AddProductDialog() {
     fd.append("name", formData.name);
     fd.append("unit", formData.unit);
     fd.append("categoryId", formData.categoryId);
-    fd.append("currentStock", formData.currentStock.toString());
     fd.append("minQty", formData.minQty.toString());
-    fd.append("recommendedQty", formData.recommendedQty.toString());
     if (formData.barcode) fd.append("barcode", formData.barcode);
     if (formData.description) fd.append("description", formData.description);
     if (image) fd.append("image", image);

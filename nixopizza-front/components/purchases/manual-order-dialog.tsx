@@ -34,6 +34,7 @@ import { ISupplier } from "@/app/[locale]/dashboard/suppliers/page";
 import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
 import toast from "react-hot-toast";
 import { resolveImage } from "@/lib/resolveImage";
+import LoadTemplateDialog from "@/components/purchases/templates/load-template-dialog";
 
 interface IOrderItem {
   _id?: string;
@@ -64,6 +65,7 @@ export function ManualOrderDialog({
   const [expectedDate, setExpectedDate] = useState<string>("");
   const [billFile, setBillFile] = useState<File | null>(null);
   const [billPreview, setBillPreview] = useState<string | null>(null);
+  const [openLoadTpl, setOpenLoadTpl] = useState(false);
 
   // Products state
   const [products, setProducts] = useState<IProduct[]>([]);
@@ -365,6 +367,18 @@ export function ManualOrderDialog({
                   <Plus className="h-4 w-4" />
                   Add Item
                 </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    if (!selectedSupplier) return toast.error("Select a supplier first");
+                    setOpenLoadTpl(true);
+                  }}
+                  className="gap-2 rounded-full border-2 border-input"
+                >
+                  Load Template
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
@@ -537,6 +551,31 @@ export function ManualOrderDialog({
             </Button>
           </DialogFooter>
         </form>
+        <LoadTemplateDialog
+          open={openLoadTpl}
+          onOpenChange={setOpenLoadTpl}
+          supplierId={selectedSupplier?._id}
+          onPick={(tpl) => {
+            if (!selectedSupplier) return;
+            const allowedIds = new Set(filteredProducts.map((p) => p._id));
+            const mapped = (tpl.items || [])
+              .filter((it: any) => {
+                const id = typeof it.productId === "string" ? it.productId : it.productId?._id; return allowedIds.has(id);
+              })
+              .map((it: any) => ({
+                productId: typeof it.productId === "string" ? it.productId : it.productId?._id,
+                quantity: it.quantity,
+                unitCost: 0,
+                expirationDate: new Date(),
+              }));
+            if (!mapped.length) { toast.error("No items from template match this supplier"); return; }
+            setOrderItems(mapped);
+            setSelectedProducts(
+              mapped.map((m: IOrderItem) => filteredProducts.find((p: IProduct) => p._id === m.productId) || null)
+            );
+            toast.success(`Loaded ${mapped.length} items from template`);
+          }}
+        />
       </DialogContent>
     </Dialog>
   );

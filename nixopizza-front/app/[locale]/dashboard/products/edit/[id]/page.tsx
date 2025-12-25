@@ -53,6 +53,7 @@ interface IProduct {
   currentStock: number;
   minQty: number;
   recommendedQty: number;
+  expectedLifeTime?: number;
 }
 
 export default function EditProductPage() {
@@ -77,6 +78,7 @@ export default function EditProductPage() {
     currentStock: 0,
     minQty: 0,
     recommendedQty: 0,
+    expectedLifeTime: 0,
   });
 
   // image state
@@ -115,6 +117,7 @@ export default function EditProductPage() {
         currentStock: product.currentStock,
         minQty: product.minQty,
         recommendedQty: product.recommendedQty,
+        expectedLifeTime: product.expectedLifeTime,
         categoryId: product.categoryId,
       });
       setPreviewImage(resolveImage(product.imageUrl));
@@ -171,6 +174,7 @@ export default function EditProductPage() {
     form.append("currentStock", String(formData.currentStock));
     form.append("minQty", String(formData.minQty));
     form.append("recommendedQty", String(formData.recommendedQty));
+    if (formData.expectedLifeTime) form.append("expectedLifeTime", String(formData.expectedLifeTime));
     if (imageFile) {
       form.append("image", imageFile);
     }
@@ -403,24 +407,6 @@ export default function EditProductPage() {
             <CardContent className="space-y-6 pt-2">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="currentStock" className="text-sm font-medium">
-                    Current Stock *
-                  </Label>
-                  <Input
-                    id="currentStock"
-                    type="number"
-                    value={formData.currentStock}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "currentStock",
-                        Number.parseInt(e.target.value) || 0
-                      )
-                    }
-                    min={0}
-                    className="py-5 border-2 border-input focus-visible:ring-2 focus-visible:ring-primary/30 rounded-lg"
-                  />
-                </div>
-                <div className="space-y-2">
                   <Label htmlFor="minQty" className="text-sm font-medium">
                     Minimum Quantity *
                   </Label>
@@ -449,6 +435,24 @@ export default function EditProductPage() {
                     onChange={(e) =>
                       handleInputChange(
                         "recommendedQty",
+                        Number.parseInt(e.target.value) || 0
+                      )
+                    }
+                    min={0}
+                    className="py-5 border-2 border-input focus-visible:ring-2 focus-visible:ring-primary/30 rounded-lg"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="expectedLifeTime" className="text-sm font-medium">
+                    Expected Life Time (Days)
+                  </Label>
+                  <Input
+                    id="expectedLifeTime"
+                    type="number"
+                    value={formData.expectedLifeTime || 0}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "expectedLifeTime",
                         Number.parseInt(e.target.value) || 0
                       )
                     }

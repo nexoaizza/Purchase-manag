@@ -58,8 +58,8 @@ export function QuickOrderDialog({
 
   useEffect(() => {
     if (item) {
-      // Calculate suggested order quantity (restore to recommended qty)
-      const suggestedQuantity = item.recommendedQty - item.currentStock;
+      // Calculate suggested order quantity (restore to min qty)
+      const suggestedQuantity = item.minQty - item.currentStock;
       setOrderQuantity(suggestedQuantity);
       // Mock price calculation
       setEstimatedPrice(suggestedQuantity * 15.99);
@@ -89,11 +89,11 @@ export function QuickOrderDialog({
         quantity = item.minQty - item.currentStock;
         break;
       case "max":
-        quantity = item.recommendedQty - item.currentStock;
+        quantity = item.minQty * 2 - item.currentStock;
         break;
       case "optimal":
         // 30 days worth of stock
-        quantity = Math.ceil((item.recommendedQty / 2) * 30) - item.currentStock;
+        quantity = Math.ceil((item.minQty / 2) * 30) - item.currentStock;
         break;
     }
     setOrderQuantity(Math.max(0, quantity));
@@ -148,7 +148,7 @@ export function QuickOrderDialog({
             </div>
             <div className="text-sm text-muted-foreground">
               <p>
-                {t("currentStock")} {item.currentStock} / {item.recommendedQty}
+                {t("currentStock")} {item.currentStock} / {item.minQty}
               </p>
             </div>
           </div>

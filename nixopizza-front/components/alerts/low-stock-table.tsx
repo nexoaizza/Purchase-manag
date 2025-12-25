@@ -98,7 +98,7 @@ export function LowStockTable({
               {lowStockItems.map((item) => {
                   const stockPercentage = getStockPercentage(
                   item.currentStock,
-                  item.recommendedQty
+                  item.minQty
                 );
                 return (
                   <TableRow key={item._id}>

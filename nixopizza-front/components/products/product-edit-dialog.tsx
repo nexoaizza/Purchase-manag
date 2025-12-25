@@ -34,9 +34,7 @@ interface ProductBackend {
   barcode?: string;
   unit: string;
   categoryId: any;
-  currentStock: number;
   minQty: number;
-  recommendedQty: number;
   description?: string;
   imageUrl?: string;
 }
@@ -59,9 +57,7 @@ export function ProductEditDialog({
     barcode: "",
     unit: "",
     categoryId: "",
-    currentStock: 0,
     minQty: 0,
-    recommendedQty: 0,
     description: "",
   });
   const [image, setImage] = useState<File | null>(null);
@@ -81,9 +77,7 @@ export function ProductEditDialog({
           typeof product.categoryId === "object"
             ? product.categoryId?._id || ""
             : product.categoryId || "",
-        currentStock: product.currentStock,
         minQty: product.minQty,
-        recommendedQty: product.recommendedQty,
         description: product.description || "",
       });
       setImage(null);
@@ -121,9 +115,7 @@ export function ProductEditDialog({
       barcode: "",
       unit: "",
       categoryId: "",
-      currentStock: 0,
       minQty: 0,
-      recommendedQty: 0,
       description: "",
     });
     setImage(null);
@@ -139,9 +131,7 @@ export function ProductEditDialog({
     fd.append("name", formData.name);
     fd.append("unit", formData.unit);
     fd.append("categoryId", formData.categoryId);
-    fd.append("currentStock", formData.currentStock.toString());
     fd.append("minQty", formData.minQty.toString());
-    fd.append("recommendedQty", formData.recommendedQty.toString());
     if (formData.barcode) fd.append("barcode", formData.barcode);
     if (formData.description) fd.append("description", formData.description);
     if (image) fd.append("image", image);
@@ -279,21 +269,7 @@ export function ProductEditDialog({
             </div>
 
           {/* Stock */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label>Current Stock *</Label>
-              <Input
-                type="number"
-                min={0}
-                value={formData.currentStock}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  const num = v === "" ? NaN : parseInt(v);
-                  handleInputChange("currentStock", Number.isNaN(num) ? 0 : num);
-                }}
-                required
-              />
-            </div>
+          <div className="grid grid-cols-1 gap-4">
             <div className="space-y-2">
               <Label>Minimum Qty *</Label>
               <Input
@@ -308,19 +284,6 @@ export function ProductEditDialog({
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Label>Recommended Qty (Optional)</Label>
-              <Input
-                type="number"
-                min={0}
-                value={formData.recommendedQty}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  const num = v === "" ? NaN : parseInt(v);
-                  handleInputChange("recommendedQty", Number.isNaN(num) ? 0 : num);
-                }}
-              />
-            </div>
           </div>
 
           {/* Description */}
@@ -332,11 +295,6 @@ export function ProductEditDialog({
               onChange={(e) => handleInputChange("description", e.target.value)}
               placeholder={t("descriptionPlaceholder")}
               rows={3}
-              value={formData.description}
-              onChange={(e) =>
-                handleInputChange("description", e.target.value)
-              }
-              placeholder="Describe the product"
             />
           </div>
 

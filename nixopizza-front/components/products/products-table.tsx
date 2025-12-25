@@ -99,7 +99,6 @@ export function ProductsTable({
               <TableRow>
                 <TableHead>{t("product")}</TableHead>
                 <TableHead>{t("categoryHeader")}</TableHead>
-                <TableHead>{t("stockHeader")}</TableHead>
                 <TableHead>{t("statusHeader")}</TableHead>
                 <TableHead className="text-right">{t("actions")}</TableHead>
               </TableRow>
@@ -107,10 +106,7 @@ export function ProductsTable({
 
             <TableBody>
               {products.map((product) => {
-                const stockStatus = getStockStatus(
-                  product.currentStock,
-                  product.minQty
-                );
+                const stockStatus = { variant: "outline" as const, color: "", label: t("inStock") };
 
                 return (
                   <TableRow key={product._id}>
@@ -122,11 +118,6 @@ export function ProductsTable({
                             alt={product.name}
                             className="w-14 h-14 rounded-lg object-cover"
                           />
-                          {product.currentStock <= product.minQty && (
-                            <div className="absolute -top-1 -right-1 bg-destructive rounded-full p-1">
-                              <AlertTriangle className="h-3 w-3 text-destructive-foreground" />
-                            </div>
-                          )}
                         </div>
 
                         <div>
@@ -148,8 +139,6 @@ export function ProductsTable({
                         <span>{product.categoryId?.name}</span>
                       </div>
                     </TableCell>
-
-                    <TableCell>{product.currentStock}</TableCell>
 
                     <TableCell>
                       <Badge

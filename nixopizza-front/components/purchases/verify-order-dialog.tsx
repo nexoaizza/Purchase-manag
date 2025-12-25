@@ -1,7 +1,7 @@
 // components/purchases/verify-order-dialog.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,11 +11,63 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { verifyOrder } from "@/lib/apis/purchase-list";
+import { createMultipleStockItems } from "@/lib/apis/stock-items";
 import { useAuth } from "@/hooks/useAuth";
+import toast from "react-hot-toast";
+
+export interface IOrder {
+  _id: string;
+  bon: string;
+  orderNumber: string;
+  supplierId: {
+    name: string;
+    email: string;
+    _id: string;
+    image: string;
+    address: string;
+    phone1: string;
+    phone2?: string;
+    phone3?: string;
+    city?: string;
+    contactPerson: string;
+  };
+  staffId: {
+    fullname: string;
+    email: string;
+    _id: string;
+    avatar: string;
+  } | null;
+  status: "not assigned" | "assigned" | "pending_review" | "verified" | "paid" | "canceled";
+  totalAmount: number;
+  items: {
+    _id?: string;
+    productId: {
+      name: string;
+      _id: string;
+      imageUrl?: string;
+      barcode?: string;
+    };
+    quantity: number;
+    expirationDate: Date;
+    unitCost: number;
+    remainingQte: number;
+    isExpired: boolean;
+    expiredQuantity: number;
+  }[];
+  notes: string;
+}
 import { resolveImage } from "@/lib/resolveImage";
-import { ShieldCheck, Package, Receipt, DollarSign, User, Building2 } from "lucide-react";
+import { getStocks } from "@/lib/apis/stocks";
+import { ShieldCheck, Package, Receipt, DollarSign, User, Building2, Warehouse } from "lucide-react";
 
 interface VerifyOrderDialogProps {
   order: IOrder | null;
@@ -31,7 +83,23 @@ export function VerifyOrderDialog({
   onOrderUpdated,
 }: VerifyOrderDialogProps) {
   const [loading, setLoading] = useState(false);
+  const [stocks, setStocks] = useState<any[]>([]);
+  const [selectedStock, setSelectedStock] = useState<string>("");
   const { user } = useAuth();
+
+  useEffect(() => {
+    if (open) {
+      fetchStocks();
+      setSelectedStock("");
+    }
+  }, [open]);
+
+  const fetchStocks = async () => {
+    const { success, stocks: fetchedStocks } = await getStocks({ limit: 100 });
+    if (success) {
+      setStocks(fetchedStocks);
+    }
+  };
 
   if (!order) return null;
 
@@ -42,21 +110,49 @@ export function VerifyOrderDialog({
     if (order.status !== "pending_review") {
       return;
     }
+    if (!selectedStock) {
+      return;
+    }
     setLoading(true);
     try {
+      // Prepare stock items from order items
+      const stockItems = order.items.map((item: any) => ({
+        product: item.productId._id,
+        price: item.unitCost,
+        quantity: item.quantity,
+        expireAt: item.expirationDate || undefined,
+      }));
+
+      // Create stock items
+      const { success: stockSuccess, message: stockMessage } = await createMultipleStockItems({
+        stockId: selectedStock,
+        items: stockItems,
+      });
+
+      if (!stockSuccess) {
+        toast.error(stockMessage || "Failed to create stock items");
+        setLoading(false);
+        return;
+      }
+
+      // Verify order
       const { success, order: updated, message } = await verifyOrder(order._id);
       if (success && updated) {
+        toast.success("Order verified and stock items created successfully");
         onOrderUpdated(updated);
         onOpenChange(false);
       } else {
-        console.error(message || "Failed to verify");
+        toast.error(message || "Failed to verify order");
       }
+    } catch (error: any) {
+      toast.error("An error occurred during verification");
+      console.error(error);
     } finally {
       setLoading(false);
     }
   };
 
-  const canVerify = user?.role === "admin" && order.status === "pending_review" && !!order.bon;
+  const canVerify = user?.role === "admin" && order.status === "pending_review" && !!order.bon && !!selectedStock;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -109,7 +205,7 @@ export function VerifyOrderDialog({
           <div className="border rounded-lg p-3">
             <div className="text-xs text-muted-foreground mb-2">Items</div>
             <div className="max-h-48 overflow-auto space-y-2 pr-1">
-              {order.items.map((it, idx) => (
+              {order.items.map((it: any, idx: number) => (
                 <div key={idx} className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
                     <Package className="h-4 w-4 text-muted-foreground" />
@@ -121,6 +217,33 @@ export function VerifyOrderDialog({
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Stock Selection */}
+          <div className="border rounded-lg p-3 space-y-3">
+            <div className="flex items-center gap-2">
+              <Warehouse className="h-4 w-4" />
+              <Label className="font-medium">Select Stock for Order Items</Label>
+            </div>
+            <div className="space-y-2">
+              <Select value={selectedStock} onValueChange={setSelectedStock}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a stock..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {stocks.map((stock: any) => (
+                    <SelectItem key={stock._id} value={stock._id}>
+                      {stock.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {!selectedStock && (
+                <p className="text-xs text-muted-foreground">
+                  You must select a stock to verify the order
+                </p>
+              )}
             </div>
           </div>
 

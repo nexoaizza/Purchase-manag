@@ -1,9 +1,4 @@
 // controllers/order.controller.ts
-// Flow: not assigned -> assigned -> pending_review -> verified -> paid (canceled allowed before verified)
-// Includes item editing in submitOrderForReview (assigned -> pending_review)
-// Adds statusHistory tracking for every status transition
-// Removes deprecated execPopulate usage (Mongoose >=6)
-
 import { Request, Response } from "express";
 import Product from "../models/product.model";
 import Order from "../models/order.model";
@@ -13,6 +8,8 @@ import { deleteImage } from "../utils/Delete";
 import crypto from "crypto";
 import { uploadBufferToBlob } from "../utils/blob";
 import { sendPushNotification } from "../services/firebase.service";
+// [ADDED] Import the WhatsApp service
+import { sendWhatsAppMessage } from "../services/whatsapp.service";
 
 /**
  * Helper: generate order number like ORD-YYYYMMDD-RAND
@@ -59,13 +56,14 @@ async function populateOrder(orderDoc: any) {
     { path: "staffId", select: "avatar email fullname" },
     {
       path: "supplierId",
+      // [NOTE] Ensure phone1 is selected to send the WhatsApp message
       select: "email name image contactPerson address phone1 phone2 phone3 city",
     },
     {
       path: "items",
       populate: {
         path: "productId",
-        select: "name currentStock imageUrl barcode",
+        select: "name imageUrl barcode unit", // Added 'unit' for better message details
       },
     },
   ]);
@@ -182,11 +180,51 @@ export const assignOrder = async (req: Request, res: Response): Promise<void> =>
     pushStatusHistory(order, prevStatus, "assigned", req.user?.userId);
 
     await order.save();
-    const populated = await populateOrder(order);
+    
+    // We cast to any here to easily access populated fields without strict TS errors
+    const populated: any = await populateOrder(order);
 
-    // Send push notification to assigned staff
+    // --- [START] WhatsApp Bot Logic ---
     try {
-      const staff = await User.findById(staffId);
+      // 1. Fetch the staff member who was just assigned
+      const staff: any = await User.findById(staffId);
+      
+      // 2. Check if the assigned staff is the Bot
+      if (staff && staff.fullname === "Nexo_bot") {
+        const supplier = populated.supplierId;
+
+        // 3. If supplier has a phone number, construct and send message
+        if (supplier && supplier.phone1) {
+          
+          // Format the items list string
+          const itemsList = populated.items
+            .map((item: any) => {
+              const pName = item.productId?.name || "Product";
+              // const pUnit = item.productId?.unit || "units"; 
+              const qty = item.quantity;
+              return `- ${pName}: ${qty}`;
+            })
+            .join("\n");
+
+          // Construct the message body
+          const messageBody = `*New Order Request*\n` +
+            `Order No: ${populated.orderNumber}\n` +
+            `Date: ${new Date().toISOString().split('T')[0]}\n\n` +
+            `*Items:*\n${itemsList}\n\n` +
+            `Please confirm availability.`;
+
+          // Clean the phone number (remove + and -) for the API
+          const cleanPhone = supplier.phone1.replace(/[^0-9]/g, "");
+
+          await sendWhatsAppMessage(cleanPhone, messageBody);
+        } else {
+          console.log("Nexo_bot assigned, but supplier has no phone1.");
+        }
+      }
+
+      // --- [END] WhatsApp Bot Logic ---
+
+      // Existing Push Notification Logic
       if (staff && staff.fcmToken) {
         await sendPushNotification(
           staff.fcmToken,
@@ -199,8 +237,8 @@ export const assignOrder = async (req: Request, res: Response): Promise<void> =>
         );
       }
     } catch (notificationError) {
-      console.error("Failed to send push notification:", notificationError);
-      // Don't fail the request if notification fails
+      console.error("Failed to send notification (push or whatsapp):", notificationError);
+      // We do not return here, so the response still returns success for the assignment
     }
 
     res
@@ -329,6 +367,7 @@ export const submitOrderForReview = async (
       order: populated,
     });
   } catch (error: any) {
+    console.log(error)
     res
       .status(500)
       .json({ message: "Internal Server Error", error: error.message });
@@ -357,18 +396,6 @@ export const verifyOrder = async (req: Request, res: Response): Promise<void> =>
     if (!order.bon) {
       res.status(400).json({ message: "Bill missing" });
       return;
-    }
-
-    // Inventory update
-    for (const item of order.items) {
-      const po: any = await ProductOrder.findById((item as any)._id);
-      if (po) {
-        const product = await Product.findById(po.productId);
-        if (product) {
-          product.currentStock += po.quantity;
-          await product.save();
-        }
-      }
     }
 
     const prevStatus = order.status;
@@ -557,7 +584,7 @@ export const getOrdersByFilter = async (
           path: "items",
           populate: {
             path: "productId",
-            select: "name currentStock imageUrl barcode",
+            select: "name imageUrl barcode",
           },
         },
       ])
