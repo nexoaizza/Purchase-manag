@@ -22,6 +22,8 @@ type Product = {
 
 type Item = { productId: string; quantity: number; product?: Product | null };
 
+import { useTranslations } from "next-intl";
+
 export default function TemplateEditorDialog({
   open,
   onOpenChange,
@@ -33,6 +35,7 @@ export default function TemplateEditorDialog({
   onSaved: (tpl: PurchaseTemplateDTO) => void;
   initial?: PurchaseTemplateDTO | null;
 }) {
+  const t = useTranslations("templates");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [items, setItems] = useState<Item[]>([{ productId: "", quantity: 1, product: null }]);
@@ -82,28 +85,28 @@ export default function TemplateEditorDialog({
   const handleSupplierChange = (newSupplier: ISupplier | null) => {
     const hasProducts = items.some((it) => it.productId && it.productId.trim() !== "");
     if (hasProducts && supplier && newSupplier?._id !== supplier._id) {
-      toast.error("Please remove all selected products before changing the supplier");
+      toast.error(t("supplierChangeWarning"));
       return;
     }
     setSupplier(newSupplier);
   };
 
   const onSubmit = async () => {
-    if (!name.trim()) return toast.error("Template name is required");
-    if (!supplier) return toast.error("Please select a supplier");
+    if (!name.trim()) return toast.error(t("nameRequired"));
+    if (!supplier) return toast.error(t("supplierRequired"));
     if (!items.length || items.some((i) => !i.productId || i.quantity < 0)) {
-      return toast.error("Please add items (quantity can be 0, not negative)");
+      return toast.error(t("itemsRequired"));
     }
     setLoading(true);
     try {
       const payload = { name: name.trim(), description: description.trim(), supplierId: supplier._id, items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })) };
       const res = initial?._id ? await updateTemplate(initial._id, payload) : await createTemplate(payload);
       if (res.success && res.template) {
-        toast.success(initial?._id ? "Template updated" : "Template created");
+        toast.success(initial?._id ? t("updateSuccess") : t("createSuccess"));
         onSaved(res.template);
         onOpenChange(false);
       } else {
-        toast.error(res.message || "Failed to save template");
+        toast.error(res.message || t("saveError"));
       }
     } finally {
       setLoading(false);
@@ -114,26 +117,26 @@ export default function TemplateEditorDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[720px]">
         <DialogHeader>
-          <DialogTitle>{initial ? "Edit Template" : "Create Template"}</DialogTitle>
-          <DialogDescription>Define a reusable set of products and quantities.</DialogDescription>
+          <DialogTitle>{initial ? t("editTemplate") : t("createTemplate")}</DialogTitle>
+          <DialogDescription>{t("editorSubtitle")}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Name</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Weekly pizza ingredients" />
+              <Label>{t("name")}</Label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("namePlaceholder")} />
             </div>
             <div className="space-y-2">
-              <Label>Description</Label>
-              <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Used every Monday" />
+              <Label>{t("description")}</Label>
+              <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t("descriptionPlaceholder")} />
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Supplier</Label>
-            <SupplierSelect selectedSupplier={supplier} onSupplierChange={handleSupplierChange} placeholder="Select a supplier" />
+            <Label>{t("supplier")}</Label>
+            <SupplierSelect selectedSupplier={supplier} onSupplierChange={handleSupplierChange} placeholder={t("selectSupplier")} />
           </div>
           <div className="space-y-2">
-            <Label>Items</Label>
+            <Label>{t("items")}</Label>
             <div className="space-y-3">
               {items.map((it, idx) => (
                 <div key={idx} className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
@@ -147,11 +150,11 @@ export default function TemplateEditorDialog({
                       disabled={!supplier}
                       selectedProduct={it.product || products.find((p) => p._id === it.productId) || null}
                       onSelect={(p) => updateItem(idx, { productId: p?._id || "", product: (p as any) || null })}
-                      placeholder="Select product"
+                      placeholder={t("selectProduct")}
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <Label className="text-xs">Quantity</Label>
+                    <Label className="text-xs">{t("quantity")}</Label>
                     <Input
                       type="number"
                       min={0}
@@ -162,9 +165,9 @@ export default function TemplateEditorDialog({
                     />
                   </div>
                   <div className="flex gap-2">
-                    <Button type="button" variant="outline" onClick={() => removeRow(idx)} disabled={items.length <= 1}>Remove</Button>
+                    <Button type="button" variant="outline" onClick={() => removeRow(idx)} disabled={items.length <= 1}>{t("remove")}</Button>
                     {idx === items.length - 1 && (
-                      <Button type="button" variant="secondary" onClick={addRow}>Add</Button>
+                      <Button type="button" variant="secondary" onClick={addRow}>{t("add")}</Button>
                     )}
                   </div>
                 </div>
@@ -173,8 +176,8 @@ export default function TemplateEditorDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>Cancel</Button>
-          <Button type="button" onClick={onSubmit} disabled={loading}>{initial ? "Save Changes" : "Create Template"}</Button>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>{t("cancel")}</Button>
+          <Button type="button" onClick={onSubmit} disabled={loading}>{initial ? t("saveChanges") : t("createTemplate")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -24,6 +24,8 @@ import toast from "react-hot-toast";
 import { resolveImage } from "@/lib/resolveImage";
 import { Pagination } from "@/components/ui/pagination";
 
+import { useTranslations } from "next-intl";
+
 export function TemplatesTable({
   templates,
   setTemplates,
@@ -33,6 +35,7 @@ export function TemplatesTable({
   setTemplates: React.Dispatch<React.SetStateAction<PurchaseTemplateDTO[]>>;
   onRefresh: () => void;
 }) {
+  const t = useTranslations("templates");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<PurchaseTemplateDTO | null>(null);
@@ -48,14 +51,14 @@ export function TemplatesTable({
   };
 
   const handleDelete = async (templateId: string) => {
-    if (!confirm("Are you sure you want to delete this template?")) return;
+    if (!confirm(t("deleteConfirm"))) return;
     
     const res = await deleteTemplate(templateId);
     if (res.success) {
-      toast.success("Template deleted successfully");
+      toast.success(t("deleteSuccess"));
       setTemplates(templates.filter((t) => t._id !== templateId));
     } else {
-      toast.error(res.message || "Failed to delete template");
+      toast.error(res.message || t("deleteError"));
     }
   };
 
@@ -68,15 +71,15 @@ export function TemplatesTable({
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="font-heading">Templates Directory</CardTitle>
+          <CardTitle className="font-heading">{t("directoryTitle")}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center py-12 text-center">
           <div className="mb-4 p-3 bg-muted rounded-full">
             <FileText className="h-10 w-10 text-muted-foreground" />
           </div>
-          <h3 className="text-xl font-semibold mb-1">No templates found</h3>
+          <h3 className="text-xl font-semibold mb-1">{t("noTemplatesFound")}</h3>
           <p className="text-muted-foreground mb-4">
-            Create your first template to get started
+            {t("noTemplatesMessage")}
           </p>
         </CardContent>
       </Card>
@@ -87,17 +90,17 @@ export function TemplatesTable({
     <>
       <Card>
         <CardHeader>
-          <CardTitle className="font-heading">Templates Directory</CardTitle>
+          <CardTitle className="font-heading">{t("directoryTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Supplier</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Items</TableHead>
+                  <TableHead>{t("name")}</TableHead>
+                  <TableHead>{t("supplier")}</TableHead>
+                  <TableHead>{t("description")}</TableHead>
+                  <TableHead>{t("items")}</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -150,18 +153,18 @@ export function TemplatesTable({
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => handleView(template)}>
                               <Eye className="h-4 w-4 mr-2" />
-                              View Details
+                              {t("viewDetails")}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleEdit(template)}>
                               <Edit className="h-4 w-4 mr-2" />
-                              Edit
+                              {t("edit")}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleDelete(template._id)}
                               className="text-destructive"
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
+                              {t("delete")}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>

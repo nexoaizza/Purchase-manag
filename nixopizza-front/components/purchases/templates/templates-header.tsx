@@ -4,6 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Search, Plus } from "lucide-react";
 import { useState } from "react";
 
+import { useTranslations } from "next-intl";
+
 export function TemplatesHeader({
   onSearchChange,
   onCreateClick,
@@ -11,6 +13,7 @@ export function TemplatesHeader({
   onSearchChange: (search: string) => void;
   onCreateClick: () => void;
 }) {
+  const t = useTranslations("templates");
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleSearchChange = (value: string) => {
@@ -23,15 +26,15 @@ export function TemplatesHeader({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-heading font-bold text-foreground">
-            Purchase Templates
+            {t("title")}
           </h1>
           <p className="text-muted-foreground">
-            Manage your reusable purchase templates
+            {t("subtitle")}
           </p>
         </div>
         <Button onClick={onCreateClick} className="gap-2">
           <Plus className="h-4 w-4" />
-          Create Template
+          {t("createTemplate")}
         </Button>
       </div>
 
@@ -40,7 +43,7 @@ export function TemplatesHeader({
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search templates..."
+            placeholder={t("searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-10 border-2 border-input focus-visible:ring-2 focus-visible:ring-primary/30"

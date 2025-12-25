@@ -7,7 +7,10 @@ import { TemplatesHeader } from "@/components/purchases/templates/templates-head
 import { TemplatesTable } from "@/components/purchases/templates/templates-table";
 import TemplateEditorDialog from "@/components/purchases/templates/template-editor-dialog";
 
+import { useTranslations } from "next-intl";
+
 export default function TemplatesPage() {
+  const t = useTranslations("templates");
   const [templates, setTemplates] = useState<PurchaseTemplateDTO[]>([]);
   const [filteredTemplates, setFilteredTemplates] = useState<PurchaseTemplateDTO[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,7 +64,7 @@ export default function TemplatesPage() {
           onCreateClick={handleCreateClick}
         />
         {loading ? (
-          <div className="text-center py-12 text-muted-foreground">Loading templates...</div>
+          <div className="text-center py-12 text-muted-foreground">{t("loading")}</div>
         ) : (
           <TemplatesTable
             templates={filteredTemplates}
