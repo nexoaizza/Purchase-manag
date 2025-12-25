@@ -94,7 +94,10 @@
         "active": "Actif",
         "paid": "Payé",
         "today": "Aujourd'hui",
-        "completed": "Terminé"
+        "completed": "Terminé",
+        "owsUs": "Nous Doit (Vérifié)",
+        "owsUsDesc": "Achats vérifiés en attente de paiement",
+        "toPay": "À Payer"
     },
     "staff": {
         "title": "Personnel",
@@ -536,10 +539,7 @@
         "typeInfo": "Info",
         "dayAgo": "jour",
         "daysAgo": "jours",
-        "typeInfo": "info",
-        "typeWarning": "avertissement",
-        "typeCritical": "critique",
-        "typeSuccess": "succès",
+
         "categoryInventory": "inventaire",
         "categoryOrders": "commandes",
         "categorySupliers": "fournisseurs",

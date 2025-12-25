@@ -165,7 +165,7 @@ export function ShortcutsGrid() {
       icon: AlertCircle,
       iconColor: "text-orange-600",
       bgColor: "bg-orange-50",
-      count: "!",
+      count: t("toPay"),
       onClick: handleOwsUsFilter,
     },
   ];

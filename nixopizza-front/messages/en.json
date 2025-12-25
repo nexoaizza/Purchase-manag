@@ -96,7 +96,8 @@
         "today": "Today",
         "completed": "Completed",
         "owsUs": "Ows Us (Verified)",
-        "owsUsDesc": "Verified purchases waiting for payment"
+        "owsUsDesc": "Verified purchases waiting for payment",
+        "toPay": "To Pay"
     },
     "staff": {
         "title": "Staff",
@@ -538,10 +539,6 @@
         "typeInfo": "Info",
         "dayAgo": "day ago",
         "daysAgo": "days ago",
-        "typeInfo": "info",
-        "typeWarning": "warning",
-        "typeCritical": "critical",
-        "typeSuccess": "success",
         "categoryInventory": "inventory",
         "categoryOrders": "orders",
         "categorySupliers": "suppliers",
