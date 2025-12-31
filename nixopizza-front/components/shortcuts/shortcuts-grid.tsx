@@ -113,13 +113,8 @@ export function ShortcutsGrid() {
   };
 
   const handleOwsUsFilter = () => {
-    // Navigate to purchases page with query parameters - ONLY verified (ows us)
-    // No date filter as requested
-    const params = new URLSearchParams({
-      status: "verified",
-    });
-
-    router.push(`/dashboard/purchases?${params.toString()}`);
+    // Navigate to the dedicated Ows Us page
+    router.push(`/dashboard/ows-us`);
   };
 
   const shortcuts = [
