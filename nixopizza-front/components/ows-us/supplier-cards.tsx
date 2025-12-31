@@ -23,7 +23,7 @@ interface SupplierCardsProps {
 
 export function SupplierCards({ suppliers, weekStart, weekEnd }: SupplierCardsProps) {
   const router = useRouter();
-  const t = useTranslations("owsUs");
+  const t = useTranslations("toPay");
 
   const handleCardClick = (supplierId: string) => {
     const params = new URLSearchParams({

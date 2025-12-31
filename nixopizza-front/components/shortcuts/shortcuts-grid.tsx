@@ -113,8 +113,8 @@ export function ShortcutsGrid() {
   };
 
   const handleOwsUsFilter = () => {
-    // Navigate to the dedicated Ows Us page
-    router.push(`/dashboard/ows-us`);
+    // Navigate to the dedicated To Pay page
+    router.push(`/dashboard/to-pay`);
   };
 
   const shortcuts = [

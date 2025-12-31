@@ -95,7 +95,7 @@
         "paid": "Paid",
         "today": "Today",
         "completed": "Completed",
-        "owsUs": "Ows Us (Verified)",
+        "owsUs": "To Pay",
         "owsUsDesc": "Verified purchases waiting for payment",
         "toPay": "To Pay"
     },
@@ -812,6 +812,15 @@
         "updateSuccess": "Template updated",
         "createSuccess": "Template created",
         "saveError": "Failed to save template",
+        "toPay": {
+            "title": "To Pay",
+            "subtitle": "View suppliers with verified orders from this week",
+            "noSuppliers": "No suppliers found",
+            "noSuppliersMessage": "No suppliers have verified orders this week",
+            "ordersCount": "Orders",
+            "totalAmount": "Total Amount",
+            "viewOrders": "View Orders"
+        },
         "supplierChangeWarning": "Please remove all selected products before changing the supplier",
         "templateDetails": "Template Details",
         "supplierInfo": "Supplier Information",
