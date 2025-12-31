@@ -480,6 +480,7 @@
         "assignedFilter": "Assignée",
         "confirmedFilter": "Confirmée",
         "paidFilter": "Payée",
+        "optional": "Facultatif",
         "expectedDateLabel": "Date de livraison prévue",
         "expectedTimeLabel": "Heure de livraison prévue",
         "selectSuppliers": "Sélectionner les fournisseurs...",
