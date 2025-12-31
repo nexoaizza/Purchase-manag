@@ -480,6 +480,8 @@
         "assignedFilter": "معين",
         "confirmedFilter": "مؤكد",
         "paidFilter": "مدفوع",
+        "expectedDateLabel": "تاريخ التسليم المتوقع",
+        "expectedTimeLabel": "وقت التسليم المتوقع",
         "selectSuppliers": "اختر الموردين...",
         "pickDateRange": "اختر نطاق التاريخ",
         "fromDate": "من تاريخ",

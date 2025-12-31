@@ -35,6 +35,7 @@ import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
 import toast from "react-hot-toast";
 import { resolveImage } from "@/lib/resolveImage";
 import LoadTemplateDialog from "@/components/purchases/templates/load-template-dialog";
+import { useTranslations } from "next-intl";
 
 interface IOrderItem {
   _id?: string;
@@ -54,6 +55,7 @@ export function ManualOrderDialog({
 }: {
   addNewOrder: (newOrder: IOrder) => void;
 }) {
+  const t = useTranslations("purchases");
   const [open, setOpen] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState<ISupplier | null>(
     null
@@ -63,6 +65,7 @@ export function ManualOrderDialog({
   ]);
   const [notes, setNotes] = useState("");
   const [expectedDate, setExpectedDate] = useState<string>("");
+  const [expectedTime, setExpectedTime] = useState<string>("");
   const [billFile, setBillFile] = useState<File | null>(null);
   const [billPreview, setBillPreview] = useState<string | null>(null);
   const [openLoadTpl, setOpenLoadTpl] = useState(false);
@@ -227,9 +230,13 @@ export function ManualOrderDialog({
       dataToSend.append("notes", notes);
 
       if (expectedDate) {
+        let finalExpectedDate = expectedDate;
+        if (expectedTime) {
+          finalExpectedDate = `${expectedDate}T${expectedTime}`;
+        }
         dataToSend.append(
           "expectedDate",
-          new Date(expectedDate).toISOString()
+          new Date(finalExpectedDate).toISOString()
         );
       }
 
@@ -273,6 +280,7 @@ export function ManualOrderDialog({
     setFilteredProducts([]);
     setNotes("");
     setExpectedDate("");
+    setExpectedTime("");
     setBillFile(null);
     setBillPreview(null);
     setError(null);
@@ -489,18 +497,32 @@ export function ManualOrderDialog({
           {/* Bill Upload (currently commented out in original) */}
           {/* You can re-enable if needed; now uses billPreview object URL directly */}
 
-          {/* Expected Date */}
-          <div className="space-y-2">
-            <Label htmlFor="expectedDate" className="text-sm font-medium">
-              Expected Delivery Date (Optional)
-            </Label>
-            <Input
-              id="expectedDate"
-              type="date"
-              value={expectedDate}
-              onChange={(e) => setExpectedDate(e.target.value)}
-              className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg"
-            />
+          {/* Expected Date & Time */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="expectedDate" className="text-sm font-medium">
+                {t("expectedDateLabel")} ({t("optional")})
+              </Label>
+              <Input
+                id="expectedDate"
+                type="date"
+                value={expectedDate}
+                onChange={(e) => setExpectedDate(e.target.value)}
+                className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="expectedTime" className="text-sm font-medium">
+                {t("expectedTimeLabel")} ({t("optional")})
+              </Label>
+              <Input
+                id="expectedTime"
+                type="time"
+                value={expectedTime}
+                onChange={(e) => setExpectedTime(e.target.value)}
+                className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg"
+              />
+            </div>
           </div>
 
           {/* Notes */}

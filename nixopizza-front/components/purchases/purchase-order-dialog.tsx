@@ -193,6 +193,17 @@ export function PurchaseOrderDialog({
                   </div>
                 </CardContent>
               </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="text-sm text-muted-foreground">{t("expectedDateLabel")}</div>
+                  <div className="font-medium flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    {order.expectedDate
+                      ? formatDateTime(order.expectedDate)
+                      : "N/A"}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
             {/* Supplier */}

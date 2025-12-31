@@ -480,6 +480,8 @@
         "assignedFilter": "Assigned",
         "confirmedFilter": "Confirmed",
         "paidFilter": "Paid",
+        "expectedDateLabel": "Expected Delivery Date",
+        "expectedTimeLabel": "Expected Delivery Time",
         "selectSuppliers": "Select suppliers...",
         "pickDateRange": "Pick a date range",
         "fromDate": "From Date",
