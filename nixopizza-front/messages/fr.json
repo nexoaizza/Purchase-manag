@@ -813,15 +813,6 @@
         "updateSuccess": "Modèle mis à jour",
         "createSuccess": "Modèle créé",
         "saveError": "Échec de l'enregistrement du modèle",
-        "toPay": {
-            "title": "Fournisseurs à payer",
-            "subtitle": "Voir les fournisseurs avec des commandes vérifiées de cette semaine",
-            "noSuppliers": "Aucun fournisseur trouvé",
-            "noSuppliersMessage": "Aucun fournisseur n'a de commandes vérifiées cette semaine",
-            "ordersCount": "Commandes",
-            "totalAmount": "Montant total",
-            "viewOrders": "Voir les commandes"
-        },
         "supplierChangeWarning": "Veuillez retirer tous les produits sélectionnés avant de changer de fournisseur",
         "templateDetails": "Détails du modèle",
         "supplierInfo": "Informations du fournisseur",
@@ -830,5 +821,14 @@
         "unknownProduct": "Produit inconnu",
         "barcode": "Code-barres",
         "close": "Fermer"
-    }
+    },
+        "toPay": {
+            "title": "Fournisseurs à payer",
+            "subtitle": "Voir les fournisseurs avec des commandes vérifiées de cette semaine",
+            "noSuppliers": "Aucun fournisseur trouvé",
+            "noSuppliersMessage": "Aucun fournisseur n'a de commandes vérifiées cette semaine",
+            "ordersCount": "Commandes",
+            "totalAmount": "Montant total",
+            "viewOrders": "Voir les commandes"
+        }
 }
