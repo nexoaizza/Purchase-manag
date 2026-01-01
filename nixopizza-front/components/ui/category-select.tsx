@@ -14,7 +14,7 @@ interface Category {
 interface Props {
   categories: Category[];
   selectedCategory: Category | null;
-  onSelect: (c: Category | null) => void;
+  onSelect: any;
   placeholder?: string;
   className?: string;
   isLoading?: boolean;
@@ -146,7 +146,7 @@ export function CategorySelect({
 
       {isOpen && (
         <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover p-1 text-popover-foreground shadow-md">
-          <div className="max-h-60 overflow-auto">
+          <div className="max-h-[200px] overflow-auto">
             {filteredCategories && filteredCategories.length > 0 ? (
               filteredCategories.map((c) => (
                 <div

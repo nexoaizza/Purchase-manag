@@ -51,7 +51,7 @@ export function MultiSelect({
       <PopoverTrigger asChild>
         <div
           className={cn(
-            "flex min-h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs transition-[color,box-shadow] hover:bg-accent/50 cursor-pointer",
+            "flex min-h-9 w-full items-center justify-between rounded-md border border-gray-300 dark:border-gray-600 bg-transparent px-3 py-2 text-sm shadow-xs transition-[color,box-shadow] hover:bg-accent/50 cursor-pointer",
             className
           )}
         >
