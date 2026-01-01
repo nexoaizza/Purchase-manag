@@ -16,6 +16,7 @@ import { markOrderPaid } from "@/lib/apis/purchase-list";
 import { resolveImage } from "@/lib/resolveImage";
 import { DollarSign, Package, Receipt, Building2, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslations } from "next-intl";
 
 interface MarkPaidDialogProps {
   order: IOrder | null;
@@ -30,6 +31,7 @@ export function MarkPaidDialog({
   onOpenChange,
   onOrderUpdated,
 }: MarkPaidDialogProps) {
+  const t = useTranslations("purchases");
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
@@ -46,7 +48,7 @@ export function MarkPaidDialog({
         onOrderUpdated(updated);
         onOpenChange(false);
       } else {
-        console.error(message || "Failed to mark paid");
+        console.error(message || t("failedToMarkPaid"));
       }
     } finally {
       setLoading(false);
@@ -59,10 +61,10 @@ export function MarkPaidDialog({
         <DialogHeader>
           <DialogTitle className="font-heading flex items-center gap-2">
             <DollarSign className="h-5 w-5" />
-            Mark Order as Paid
+            {t("markPaidTitle")}
           </DialogTitle>
           <DialogDescription>
-            Review details and receipt before marking as paid
+            {t("reviewBeforeMarkPaid")}
           </DialogDescription>
         </DialogHeader>
 
@@ -70,34 +72,34 @@ export function MarkPaidDialog({
           {/* Summary */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div className="border rounded-lg p-3">
-              <div className="text-xs text-muted-foreground">Order</div>
+              <div className="text-xs text-muted-foreground">{t("orderLabel")}</div>
               <div className="font-mono text-sm">{order.orderNumber}</div>
             </div>
             <div className="border rounded-lg p-3 flex items-center gap-2">
               <Building2 className="h-4 w-4 text-muted-foreground" />
               <div>
-                <div className="text-xs text-muted-foreground">Supplier</div>
+                <div className="text-xs text-muted-foreground">{t("supplier")}</div>
                 <div className="text-sm">{order.supplierId?.name}</div>
               </div>
             </div>
             <div className="border rounded-lg p-3 flex items-center gap-2">
               <User className="h-4 w-4 text-muted-foreground" />
               <div>
-                <div className="text-xs text-muted-foreground">Assigned To</div>
+                <div className="text-xs text-muted-foreground">{t("assignedTo")}</div>
                 <div className="text-sm">
-                  {order.staffId?.fullname || "Not assigned"}
+                  {order.staffId?.fullname || t("notAssigned")}
                 </div>
               </div>
             </div>
             <div className="border rounded-lg p-3">
-              <div className="text-xs text-muted-foreground">Total</div>
-              <div className="text-sm">{order.totalAmount.toFixed(2)} DA</div>
+              <div className="text-xs text-muted-foreground">{t("total")}</div>
+              <div className="text-sm">{order.totalAmount.toFixed(2)} {t("da")}</div>
             </div>
           </div>
 
           {/* Items brief */}
           <div className="border rounded-lg p-3">
-            <div className="text-xs text-muted-foreground mb-2">Items</div>
+            <div className="text-xs text-muted-foreground mb-2">{t("items")}</div>
             <div className="max-h-48 overflow-auto space-y-2 pr-1">
               {order.items.map((it, idx) => (
                 <div key={idx} className="flex items-center justify-between text-sm">
@@ -106,8 +108,8 @@ export function MarkPaidDialog({
                     <span>{it.productId?.name}</span>
                   </div>
                   <div>
-                    {it.quantity} × {it.unitCost} DA ={" "}
-                    {(it.quantity * it.unitCost).toFixed(2)} DA
+                    {it.quantity} × {it.unitCost} {t("da")} ={" "}
+                    {(it.quantity * it.unitCost).toFixed(2)} {t("da")}
                   </div>
                 </div>
               ))}
@@ -119,24 +121,24 @@ export function MarkPaidDialog({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm font-medium">
                 <Receipt className="h-4 w-4" />
-                Receipt
+                {t("receiptLabel")}
               </div>
               {order.bon && (
                 <Button
                   variant="outline"
                   onClick={() => window.open(resolveImage(order.bon!), "_blank")}
                 >
-                  View
+                  {t("viewReceipt")}
                 </Button>
               )}
             </div>
             {!order.bon ? (
               <div className="text-sm text-muted-foreground mt-2">
-                No receipt uploaded yet.
+                {t("noReceiptUploaded")}
               </div>
             ) : order.bon.toLowerCase().endsWith(".pdf") ? (
               <div className="mt-3 text-sm">
-                PDF uploaded – click View to open.
+                {t("pdfUploaded")}
               </div>
             ) : (
               <img
@@ -150,14 +152,14 @@ export function MarkPaidDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             onClick={handleMarkPaid}
             disabled={!canMark || loading}
             className="bg-orange-600 hover:bg-orange-700 text-white"
           >
-            {loading ? "Marking..." : "Mark Paid"}
+            {loading ? t("markingPaid") : t("markPaidButton")}
           </Button>
         </DialogFooter>
       </DialogContent>

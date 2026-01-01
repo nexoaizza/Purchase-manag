@@ -44,22 +44,29 @@ export default function StockItemsPage() {
       // Filter by expiration status
       if (expirationStatus && expirationStatus !== "all") {
         const now = new Date();
-        const sevenDaysFromNow = new Date();
-        sevenDaysFromNow.setDate(now.getDate() + 7);
 
         filteredItems = filteredItems.filter((item: IStockItem) => {
-          if (!item.expireAt) {
+          // Skip items without expectedLifeTime
+          if (!item.product?.expectedLifeTime || item.product.expectedLifeTime <= 0) {
             return expirationStatus === "fresh";
           }
           
-          const expireDate = new Date(item.expireAt);
+          const createdAt = item.createdAt ? new Date(item.createdAt) : new Date();
+          const expectedLifeTimeDays = item.product.expectedLifeTime;
+          const expirationDate = new Date(createdAt);
+          expirationDate.setDate(expirationDate.getDate() + expectedLifeTimeDays);
+          
+          // Calculate how much time has passed
+          const timeElapsedMs = now.getTime() - createdAt.getTime();
+          const totalLifetimeMs = expectedLifeTimeDays * 24 * 60 * 60 * 1000;
+          const percentagePassed = timeElapsedMs / totalLifetimeMs;
           
           if (expirationStatus === "expired") {
-            return expireDate < now;
+            return now > expirationDate;
           } else if (expirationStatus === "expiring-soon") {
-            return expireDate >= now && expireDate <= sevenDaysFromNow;
+            return percentagePassed > 0.7 && now <= expirationDate;
           } else if (expirationStatus === "fresh") {
-            return expireDate > sevenDaysFromNow;
+            return percentagePassed <= 0.7 && now <= expirationDate;
           }
           return true;
         });

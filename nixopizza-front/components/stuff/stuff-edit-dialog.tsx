@@ -81,11 +81,11 @@ export function StuffEditDialog({
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      toast.error("Please select a valid image");
+      toast.error(t("selectValidImage"));
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image exceeds 5MB");
+      toast.error(t("imageExceeds5MB"));
       return;
     }
     setFormData((prev) => ({ ...prev, avatar: file }));
@@ -120,12 +120,12 @@ export function StuffEditDialog({
 
     const data = await updateStuff(stuff._id, payload);
     if (data.success && data.staff) {
-      toast.success("Staff updated successfully!");
+      toast.success(t("staffUpdatedSuccess"));
       onUpdated(data.staff);
       setAvatarPreview(data.staff.avatar || avatarPreview);
       onOpenChange(false);
     } else {
-      toast.error(data.message || "Failed to update staff");
+      toast.error(data.message || t("failedUpdateStaff"));
     }
   };
 
@@ -142,7 +142,7 @@ export function StuffEditDialog({
         <div className="space-y-6 py-4">
           {/* Avatar Upload */}
           <div className="space-y-2">
-            <Label>Profile Picture</Label>
+            <Label>{t("profilePicture")}</Label>
             <label
               htmlFor="edit-staff-avatar"
               className="flex flex-col items-center justify-center gap-3 p-6 border-2 border-dashed border-muted-foreground/25 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
@@ -189,7 +189,7 @@ export function StuffEditDialog({
 
           {/* Email */}
           <div className="space-y-2">
-            <Label>Email *</Label>
+            <Label>{t("emailRequired")}</Label>
             <Input
               type="email"
               value={formData.email}
@@ -201,14 +201,14 @@ export function StuffEditDialog({
           {/* Phone Numbers */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Phone 1</Label>
+              <Label>{t("phone1")}</Label>
               <Input
                 value={formData.phone1}
                 onChange={(e) => handleInputChange("phone1", e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label>Phone 2</Label>
+              <Label>{t("phone2")}</Label>
               <Input
                 value={formData.phone2}
                 onChange={(e) => handleInputChange("phone2", e.target.value)}
@@ -217,14 +217,14 @@ export function StuffEditDialog({
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Phone 3</Label>
+              <Label>{t("phone3")}</Label>
               <Input
                 value={formData.phone3}
                 onChange={(e) => handleInputChange("phone3", e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label>Address</Label>
+              <Label>{t("addressField")}</Label>
               <Input
                 value={formData.address}
                 onChange={(e) => handleInputChange("address", e.target.value)}
@@ -245,7 +245,7 @@ export function StuffEditDialog({
               }
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select status" />
+                <SelectValue placeholder={t("selectStatusPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Active">{t("active")}</SelectItem>
@@ -256,12 +256,12 @@ export function StuffEditDialog({
 
           {/* Optional Password Change */}
           <div className="space-y-2">
-            <Label>New Password (leave blank to keep current)</Label>
+            <Label>{t("newPasswordOptional")}</Label>
             <Input
               type="password"
               value={formData.password}
               onChange={(e) => handleInputChange("password", e.target.value)}
-              placeholder="••••••••"
+              placeholder={t("passwordPlaceholder")}
             />
           </div>
 

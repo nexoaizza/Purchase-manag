@@ -22,6 +22,7 @@ export interface IProduct {
   minQty: number;
   createdAt?: Date;
   updatedAt?: Date;
+  recommendedQty?: number;
 }
 
 interface ProductsTableProps {
@@ -34,7 +35,6 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<IProduct[]>([]);
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
-  const [sort, setSort] = useState({ sortBy: "name", order: "asc" });
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -47,7 +47,6 @@ export default function ProductsPage() {
         page: currentPage,
         categoryId,
         name: search,
-        ...sort,
       });
       if (success) {
         setProducts(products);
@@ -57,7 +56,7 @@ export default function ProductsPage() {
       }
     };
     fetchProducts();
-  }, [limit, currentPage, search, categoryId, sort]);
+  }, [limit, currentPage, search, categoryId]);
 
   const handleEdit = (p: any) => {
     router.push(`/dashboard/products/edit/${p._id}`);
@@ -79,7 +78,6 @@ export default function ProductsPage() {
         <ProductsHeader
           onSearchChange={setSearch}
           onCategoryChange={setCategoryId}
-          onSortChange={setSort}
         />
         {/* You can later add pagination controls using currentPage/totalPages */}
         <ProductsTable

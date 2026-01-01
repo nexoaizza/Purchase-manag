@@ -54,26 +54,6 @@ export function ProductsTable({
 }: ProductsTableProps) {
   const t = useTranslations("products");
 
-  const getStockStatus = (stock: number, minStock: number) => {
-    if (stock === 0)
-      return {
-        label: t("outOfStock"),
-        variant: "outline" as const,
-        color: "text-destructive border-destructive",
-      };
-    if (stock <= minStock)
-      return {
-        label: t("lowStock"),
-        variant: "outline" as const,
-        color: "text-amber-600 border-amber-600",
-      };
-    return {
-      label: t("inStock"),
-      variant: "outline" as const,
-      color: "text-green-600 border-green-600",
-    };
-  };
-
   if (products.length === 0) {
     return (
       <Card className="border-0 shadow-sm">
@@ -99,15 +79,15 @@ export function ProductsTable({
               <TableRow>
                 <TableHead>{t("product")}</TableHead>
                 <TableHead>{t("categoryHeader")}</TableHead>
-                <TableHead>{t("statusHeader")}</TableHead>
+                <TableHead>{t("unit")}</TableHead>
+                <TableHead>{t("minQty")}</TableHead>
+                <TableHead>{t("recommendedQty")}</TableHead>
                 <TableHead className="text-right">{t("actions")}</TableHead>
               </TableRow>
             </TableHeader>
 
             <TableBody>
               {products.map((product) => {
-                const stockStatus = { variant: "outline" as const, color: "", label: t("inStock") };
-
                 return (
                   <TableRow key={product._id}>
                     <TableCell className="font-medium">
@@ -123,7 +103,7 @@ export function ProductsTable({
                         <div>
                           <div className="font-medium">{product.name}</div>
                           <div className="text-sm text-muted-foreground">
-                            {t("barcode")}: {product.barcode || "N/A"}
+                            {t("barcode")}: {product.barcode || t("notAvailable")}
                           </div>
                         </div>
                       </div>
@@ -141,12 +121,15 @@ export function ProductsTable({
                     </TableCell>
 
                     <TableCell>
-                      <Badge
-                        variant={stockStatus.variant}
-                        className={`${stockStatus.color} capitalize`}
-                      >
-                        {stockStatus.label}
-                      </Badge>
+                      <span className="capitalize">{t(`unit_${product.unit}`)}</span>
+                    </TableCell>
+
+                    <TableCell>
+                      <span>{product.minQty}</span>
+                    </TableCell>
+
+                    <TableCell>
+                      <span>{product.recommendedQty}</span>
                     </TableCell>
 
                     <TableCell className="text-right">

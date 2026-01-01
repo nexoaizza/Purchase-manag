@@ -12,9 +12,9 @@ import { getStocks, IStock } from "@/lib/apis/stocks";
 export default function TransfersPage() {
   const [transfers, setTransfers] = useState<ITransfer[]>([]);
   const [stocks, setStocks] = useState<IStock[]>([]);
-  const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [stockFilter, setStockFilter] = useState("all");
+  const [fromStockFilter, setFromStockFilter] = useState("all");
+  const [toStockFilter, setToStockFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -28,7 +28,7 @@ export default function TransfersPage() {
 
   useEffect(() => {
     fetchTransfers();
-  }, [currentPage, limit, statusFilter, stockFilter]);
+  }, [currentPage, limit, statusFilter, fromStockFilter, toStockFilter]);
 
   const fetchStocks = async () => {
     const { stocks: fetchedStocks, success } = await getStocks();
@@ -46,21 +46,13 @@ export default function TransfersPage() {
     };
 
     if (statusFilter && statusFilter !== "all") params.status = statusFilter;
-    if (stockFilter && stockFilter !== "all") params.stock = stockFilter;
+    if (fromStockFilter && fromStockFilter !== "all") params.takenFrom = fromStockFilter;
+    if (toStockFilter && toStockFilter !== "all") params.takenTo = toStockFilter;
 
     const { transfers: fetchedTransfers, pages, message, success } = await getTransfers(params);
     
     if (success) {
-      // Filter by search on client side
-      let filteredTransfers = fetchedTransfers || [];
-      if (search) {
-        filteredTransfers = filteredTransfers.filter(
-          (transfer: ITransfer) =>
-            transfer.takenFrom?.name?.toLowerCase().includes(search.toLowerCase()) ||
-            transfer.takenTo?.name?.toLowerCase().includes(search.toLowerCase())
-        );
-      }
-      setTransfers(filteredTransfers);
+      setTransfers(fetchedTransfers || []);
       setTotalPages(pages || 1);
     } else {
       toast.error(message);
@@ -100,12 +92,12 @@ export default function TransfersPage() {
       <div className="space-y-6 p-6">
         <TransferHeader
           onAddClick={() => setAddDialogOpen(true)}
-          search={search}
-          setSearch={setSearch}
           statusFilter={statusFilter}
           setStatusFilter={setStatusFilter}
-          stockFilter={stockFilter}
-          setStockFilter={setStockFilter}
+          fromStockFilter={fromStockFilter}
+          setFromStockFilter={setFromStockFilter}
+          toStockFilter={toStockFilter}
+          setToStockFilter={setToStockFilter}
           stocks={stocks}
         />
 

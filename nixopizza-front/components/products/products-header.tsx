@@ -3,36 +3,41 @@
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Plus, Search, Filter, ArrowUpDown } from "lucide-react";
-import { useState } from "react";
+import { Plus, Search } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { CategorySelect } from "../ui/category-select";
 import { ICategory } from "@/app/[locale]/dashboard/categories/page";
+import { getCategories } from "@/lib/apis/categories";
+import toast from "react-hot-toast";
 
 export function ProductsHeader({
   onSearchChange,
   onCategoryChange,
-  onSortChange,
 }: {
   onSearchChange: (search: string) => void;
   onCategoryChange: (categoryId: string) => void;
-  onSortChange: (sort: { sortBy: string; order: string }) => void;
 }) {
   const t = useTranslations("products");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<ICategory | null>(
     null
   );
-  const [sortBy, setSortBy] = useState("name");
-  const [order, setOrder] = useState("asc");
+  const [categories, setCategories] = useState<ICategory[]>([]);
   const router = useRouter();
+
+  // Fetch all categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const { categories: data, success, message } = await getCategories();
+      if (success) {
+        setCategories(data || []);
+      } else {
+        toast.error(message);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   // Handle search change
   const handleSearchChange = (value: string) => {
@@ -44,15 +49,6 @@ export function ProductsHeader({
   const handleCategoryChange = (category: ICategory | null) => {
     setSelectedCategory(category);
     onCategoryChange(category ? category._id : "");
-  };
-
-  // Handle sort change
-  const handleSortChange = (field: string) => {
-    setSortBy(field);
-    // Toggle order if same field is selected
-    const newOrder = sortBy === field && order === "asc" ? "desc" : "asc";
-    setOrder(newOrder);
-    onSortChange({ sortBy: field, order: newOrder });
   };
 
   return (
@@ -85,35 +81,12 @@ export function ProductsHeader({
           />
         </div>
         <CategorySelect
+          categories={categories}
           selectedCategory={selectedCategory}
-          onCategoryChange={handleCategoryChange}
+          onSelect={handleCategoryChange}
           placeholder={t("chooseCategory")}
           className="min-w-[220px]"
         />
-        <div className="flex gap-2">
-          <Select value={sortBy} onValueChange={handleSortChange}>
-            <SelectTrigger className="w-[180px] border-2 border-input focus:ring-2 focus:ring-primary/30">
-              <SelectValue placeholder={t("sortBy")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="name">{t("sortByName")}</SelectItem>
-              <SelectItem value="currentStock">{t("sortByStock")}</SelectItem>
-              <SelectItem value="createdAt">{t("sortByDate")}</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button
-            variant="outline"
-            size="icon"
-            className="border-2 border-input"
-            onClick={() => {
-              const newOrder = order === "asc" ? "desc" : "asc";
-              setOrder(newOrder);
-              onSortChange({ sortBy, order: newOrder });
-            }}
-          >
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
-        </div>
       </div>
     </div>
   );

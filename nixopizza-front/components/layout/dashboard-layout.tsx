@@ -8,7 +8,6 @@ import {
   Package,
   Users,
   ShoppingCart,
-  AlertTriangle,
   BarChart3,
   Menu,
   LogOut,
@@ -68,7 +67,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           },
           { name: t("templates"), href: "/dashboard/purchases/templates", icon: FileText },
           { name: t("shortcuts"), href: "/dashboard/shortcuts", icon: Zap },
-          { name: t("lowStock"), href: "/dashboard/alerts", icon: AlertTriangle },
           { name: t("staff"), href: "/dashboard/stuff", icon: Users },
           { name: t("tasks"), href: "/dashboard/tasks", icon: Users },
           {

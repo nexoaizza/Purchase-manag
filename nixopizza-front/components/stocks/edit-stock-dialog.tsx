@@ -62,7 +62,7 @@ export function EditStockDialog({
     setLoading(false);
 
     if (success) {
-      toast.success("Stock updated successfully");
+      toast.success(t("stockUpdated"));
       onStockUpdated();
       onOpenChange(false);
     } else {
@@ -79,8 +79,8 @@ export function EditStockDialog({
               <Warehouse className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <DialogTitle>Edit Stock</DialogTitle>
-              <DialogDescription>Update stock warehouse information</DialogDescription>
+              <DialogTitle>{t("editStock")}</DialogTitle>
+              <DialogDescription>{t("updateStockDescription")}</DialogDescription>
             </div>
           </div>
         </DialogHeader>
@@ -136,7 +136,7 @@ export function EditStockDialog({
               {t("cancel")}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Updating..." : "Update Stock"}
+              {loading ? t("updating") : t("updateStock")}
             </Button>
           </DialogFooter>
         </form>

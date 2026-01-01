@@ -59,9 +59,9 @@ export function TransferStockItemDialog({
     if (transferQuantity && stockItem) {
       const quantity = Number(transferQuantity);
       if (quantity <= 0) {
-        setQuantityError("Quantity must be greater than 0");
+        setQuantityError(t("quantityGreaterThanZero"));
       } else if (quantity > stockItem.quantity) {
-        setQuantityError(`Quantity cannot exceed ${stockItem.quantity}`);
+        setQuantityError(`${t("quantityCannotExceed")} ${stockItem.quantity}`);
       } else {
         setQuantityError("");
       }
@@ -91,7 +91,7 @@ export function TransferStockItemDialog({
 
     const quantity = Number(transferQuantity);
     if (quantity <= 0 || quantity > stockItem.quantity) {
-      toast.error(`Transfer quantity must be between 1 and ${stockItem.quantity}`);
+      toast.error(`${t("transferQuantityError")} ${stockItem.quantity}`);
       return;
     }
 
@@ -190,7 +190,7 @@ export function TransferStockItemDialog({
             {t("transferStockItem")}
           </DialogTitle>
           <DialogDescription>
-            Transfer stock items from one stock location to another
+            {t("transferDescription")}
           </DialogDescription>
         </DialogHeader>
 

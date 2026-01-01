@@ -12,8 +12,7 @@ import { getStocks, IStock } from "@/lib/apis/stocks";
 export default function WastePage() {
   const [wastes, setWastes] = useState<IWaste[]>([]);
   const [stocks, setStocks] = useState<IStock[]>([]);
-  const [search, setSearch] = useState("");
-  const [reasonFilter, setReasonFilter] = useState("all");
+  const [productFilter, setProductFilter] = useState("all");
   const [stockFilter, setStockFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -28,7 +27,7 @@ export default function WastePage() {
 
   useEffect(() => {
     fetchWastes();
-  }, [currentPage, limit, reasonFilter, stockFilter]);
+  }, [currentPage, limit, productFilter, stockFilter]);
 
   const fetchStocks = async () => {
     const { stocks: fetchedStocks, success } = await getStocks();
@@ -45,22 +44,13 @@ export default function WastePage() {
       order: "desc",
     };
 
-    if (reasonFilter && reasonFilter !== "all") params.reason = reasonFilter;
+    if (productFilter && productFilter !== "all") params.product = productFilter;
     if (stockFilter && stockFilter !== "all") params.stock = stockFilter;
 
     const { wastes: fetchedWastes, pages, message, success } = await getWastes(params);
     
     if (success) {
-      // Filter by search on client side
-      let filteredWastes = fetchedWastes || [];
-      if (search) {
-        filteredWastes = filteredWastes.filter(
-          (waste: IWaste) =>
-            waste.product?.name?.toLowerCase().includes(search.toLowerCase()) ||
-            waste.reason?.toLowerCase().includes(search.toLowerCase())
-        );
-      }
-      setWastes(filteredWastes);
+      setWastes(fetchedWastes || []);
       setTotalPages(pages || 1);
     } else {
       toast.error(message);
@@ -100,10 +90,8 @@ export default function WastePage() {
       <div className="space-y-6 p-6">
         <WasteHeader
           onAddClick={() => setAddDialogOpen(true)}
-          search={search}
-          setSearch={setSearch}
-          reasonFilter={reasonFilter}
-          setReasonFilter={setReasonFilter}
+          productFilter={productFilter}
+          setProductFilter={setProductFilter}
           stockFilter={stockFilter}
           setStockFilter={setStockFilter}
           stocks={stocks}

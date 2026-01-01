@@ -23,6 +23,7 @@ import { verifyOrder } from "@/lib/apis/purchase-list";
 import { createMultipleStockItems } from "@/lib/apis/stock-items";
 import { useAuth } from "@/hooks/useAuth";
 import toast from "react-hot-toast";
+import { useTranslations } from "next-intl";
 
 export interface IOrder {
   _id: string;
@@ -82,6 +83,7 @@ export function VerifyOrderDialog({
   onOpenChange,
   onOrderUpdated,
 }: VerifyOrderDialogProps) {
+  const t = useTranslations("purchases");
   const [loading, setLoading] = useState(false);
   const [stocks, setStocks] = useState<any[]>([]);
   const [selectedStock, setSelectedStock] = useState<string>("");
@@ -130,7 +132,7 @@ export function VerifyOrderDialog({
       });
 
       if (!stockSuccess) {
-        toast.error(stockMessage || "Failed to create stock items");
+        toast.error(stockMessage || t("failedCreateStockItems"));
         setLoading(false);
         return;
       }
@@ -138,14 +140,14 @@ export function VerifyOrderDialog({
       // Verify order
       const { success, order: updated, message } = await verifyOrder(order._id);
       if (success && updated) {
-        toast.success("Order verified and stock items created successfully");
+        toast.success(t("verifiedStockCreated"));
         onOrderUpdated(updated);
         onOpenChange(false);
       } else {
-        toast.error(message || "Failed to verify order");
+        toast.error(message || t("failedToVerify"));
       }
     } catch (error: any) {
-      toast.error("An error occurred during verification");
+      toast.error(t("errorDuringVerification"));
       console.error(error);
     } finally {
       setLoading(false);
@@ -160,10 +162,10 @@ export function VerifyOrderDialog({
         <DialogHeader>
           <DialogTitle className="font-heading flex items-center gap-2">
             <ShieldCheck className="h-5 w-5" />
-            Verify Order
+            {t("verifyOrderTitle")}
           </DialogTitle>
           <DialogDescription>
-            Review order details and receipt before verification
+            {t("reviewOrderBeforeVerification")}
           </DialogDescription>
         </DialogHeader>
 
@@ -171,31 +173,31 @@ export function VerifyOrderDialog({
           {/* Summary */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div className="border rounded-lg p-3">
-              <div className="text-xs text-muted-foreground">Order</div>
+              <div className="text-xs text-muted-foreground">{t("orderLabel")}</div>
               <div className="font-mono text-sm">{order.orderNumber}</div>
             </div>
             <div className="border rounded-lg p-3 flex items-center gap-2">
               <Building2 className="h-4 w-4 text-muted-foreground" />
               <div>
-                <div className="text-xs text-muted-foreground">Supplier</div>
+                <div className="text-xs text-muted-foreground">{t("supplier")}</div>
                 <div className="text-sm">{order.supplierId?.name}</div>
               </div>
             </div>
             <div className="border rounded-lg p-3 flex items-center gap-2">
               <User className="h-4 w-4 text-muted-foreground" />
               <div>
-                <div className="text-xs text-muted-foreground">Assigned To</div>
+                <div className="text-xs text-muted-foreground">{t("assignedTo")}</div>
                 <div className="text-sm">
-                  {order.staffId?.fullname || "Not assigned"}
+                  {order.staffId?.fullname || t("notAssigned")}
                 </div>
               </div>
             </div>
             <div className="border rounded-lg p-3 flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-muted-foreground" />
               <div>
-                <div className="text-xs text-muted-foreground">Total</div>
+                <div className="text-xs text-muted-foreground">{t("total")}</div>
                 <div className="text-sm">
-                  {order.totalAmount.toFixed(2)} DA
+                  {order.totalAmount.toFixed(2)} {t("da")}
                 </div>
               </div>
             </div>
@@ -203,7 +205,7 @@ export function VerifyOrderDialog({
 
           {/* Items brief */}
           <div className="border rounded-lg p-3">
-            <div className="text-xs text-muted-foreground mb-2">Items</div>
+            <div className="text-xs text-muted-foreground mb-2">{t("items")}</div>
             <div className="max-h-48 overflow-auto space-y-2 pr-1">
               {order.items.map((it: any, idx: number) => (
                 <div key={idx} className="flex items-center justify-between text-sm">
@@ -212,8 +214,8 @@ export function VerifyOrderDialog({
                     <span>{it.productId?.name}</span>
                   </div>
                   <div>
-                    {it.quantity} × {it.unitCost} DA ={" "}
-                    {(it.quantity * it.unitCost).toFixed(2)} DA
+                    {it.quantity} × {it.unitCost} {t("da")} ={" "}
+                    {(it.quantity * it.unitCost).toFixed(2)} {t("da")}
                   </div>
                 </div>
               ))}
@@ -224,12 +226,12 @@ export function VerifyOrderDialog({
           <div className="border rounded-lg p-3 space-y-3">
             <div className="flex items-center gap-2">
               <Warehouse className="h-4 w-4" />
-              <Label className="font-medium">Select Stock for Order Items</Label>
+              <Label className="font-medium">{t("selectStockForItems")}</Label>
             </div>
             <div className="space-y-2">
               <Select value={selectedStock} onValueChange={setSelectedStock}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a stock..." />
+                  <SelectValue placeholder={t("selectStock")} />
                 </SelectTrigger>
                 <SelectContent>
                   {stocks.map((stock: any) => (
@@ -241,7 +243,7 @@ export function VerifyOrderDialog({
               </Select>
               {!selectedStock && (
                 <p className="text-xs text-muted-foreground">
-                  You must select a stock to verify the order
+                  {t("mustSelectStock")}
                 </p>
               )}
             </div>
@@ -252,24 +254,24 @@ export function VerifyOrderDialog({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm font-medium">
                 <Receipt className="h-4 w-4" />
-                Receipt
+                {t("receiptLabel")}
               </div>
               {order.bon && (
                 <Button
                   variant="outline"
                   onClick={() => window.open(resolveImage(order.bon!), "_blank")}
                 >
-                  View
+                  {t("viewReceipt")}
                 </Button>
               )}
             </div>
             {!order.bon ? (
               <div className="text-sm text-muted-foreground mt-2">
-                No receipt uploaded yet.
+                {t("noReceiptUploaded")}
               </div>
             ) : order.bon.toLowerCase().endsWith(".pdf") ? (
               <div className="mt-3 text-sm">
-                PDF uploaded – click View to open.
+                {t("pdfUploaded")}
               </div>
             ) : (
               <img
@@ -283,14 +285,14 @@ export function VerifyOrderDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             onClick={handleVerify}
             disabled={!canVerify || loading}
             className="bg-orange-600 hover:bg-orange-700 text-white"
           >
-            {loading ? "Verifying..." : "Verify Order"}
+            {loading ? t("verifyingOrder") : t("verifyOrder")}
           </Button>
         </DialogFooter>
       </DialogContent>

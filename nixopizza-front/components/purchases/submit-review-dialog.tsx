@@ -16,6 +16,7 @@ import toast from "react-hot-toast";
 import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
 import { submitForReview } from "@/lib/apis/purchase-list";
 import { resolveImage } from "@/lib/resolveImage";
+import { useTranslations } from "next-intl";
 
 interface EditableItem {
   itemId: string;
@@ -38,6 +39,7 @@ export function SubmitReviewDialog({
   onOpenChange,
   onOrderUpdated,
 }: SubmitReviewDialogProps) {
+  const t = useTranslations("purchases");
   const [billFile, setBillFile] = useState<File | null>(null);
   const [billPreview, setBillPreview] = useState<string | null>(null);
 
@@ -78,7 +80,7 @@ export function SubmitReviewDialog({
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.match("image.*") && !file.type.match("application/pdf")) {
-      toast.error("Please select an image or PDF file");
+      toast.error(t("selectImageOrPdf"));
       return;
     }
     setBillFile(file);
@@ -103,16 +105,16 @@ export function SubmitReviewDialog({
   const handleSubmit = async () => {
     if (!order) return;
     if (order.status !== "assigned") {
-      toast.error("Order must be assigned first");
+      toast.error(t("orderMustBeAssigned"));
       return;
     }
     if (!billFile) {
-      toast.error("Bill file required");
+      toast.error(t("billFileRequired"));
       return;
     }
     // Basic validation
     if (items.some((i) => Number.isNaN(i.quantity) || Number.isNaN(i.unitCost) || i.quantity < 0 || i.unitCost < 0)) {
-      toast.error("Invalid item values (numbers >= 0)");
+      toast.error(t("invalidItemValues"));
       return;
     }
 
@@ -138,14 +140,14 @@ export function SubmitReviewDialog({
         fd
       );
       if (success && updated) {
-        toast.success("Submitted for review");
+        toast.success(t("submittedForReview"));
         onOrderUpdated(updated);
         onOpenChange(false);
       } else {
-        toast.error(message || "Failed to submit");
+        toast.error(message || t("failedToSubmit"));
       }
     } catch (e) {
-      toast.error("Error submitting for review");
+      toast.error(t("errorSubmittingReview"));
     } finally {
       setSaving(false);
     }
@@ -169,11 +171,10 @@ export function SubmitReviewDialog({
         <DialogHeader>
           <DialogTitle className="font-heading flex items-center gap-2">
             <Receipt className="h-5 w-5" />
-            Submit Bill & Adjust Items
+            {t("submitBillAdjust")}
           </DialogTitle>
           <DialogDescription>
-            Provide the supplier bill and adjust final item quantities / unit
-            prices before review. Order: {order.orderNumber}
+            {t("submitBillDescription")} {t("orderId")}: {order.orderNumber}
           </DialogDescription>
         </DialogHeader>
 
@@ -181,9 +182,9 @@ export function SubmitReviewDialog({
         <div className="space-y-6 py-2">
           <div className="border rounded-lg p-4 space-y-4">
             <div className="flex justify-between items-center">
-              <h3 className="font-medium text-sm">Editable Items</h3>
+              <h3 className="font-medium text-sm">{t("editableItems")}</h3>
               <span className="text-xs text-muted-foreground">
-                You can modify quantity and unit price before verification.
+                {t("canModifyBeforeVerification")}
               </span>
             </div>
             <div className="space-y-3">
@@ -249,10 +250,10 @@ export function SubmitReviewDialog({
             <div className="pt-3 border-t flex justify-between items-center">
               <div className="text-sm font-medium flex items-center gap-1">
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
-                Computed Total:
+                {t("computedTotal")}
               </div>
               <div className="text-lg font-semibold">
-                {computedTotal.toFixed(2)} DA
+                {computedTotal.toFixed(2)} {t("da")}
               </div>
             </div>
           </div>
@@ -260,7 +261,7 @@ export function SubmitReviewDialog({
           {/* Override total (optional) */}
           <div className="space-y-2">
             <Label htmlFor="overrideTotal" className="text-sm font-medium">
-              Override Total (Optional)
+              {t("overrideTotal")}
             </Label>
             <Input
               id="overrideTotal"
@@ -269,17 +270,16 @@ export function SubmitReviewDialog({
               step="0.01"
               value={overrideTotal}
               onChange={(e) => setOverrideTotal(e.target.value)}
-              placeholder={`Computed: ${computedTotal.toFixed(2)} DA`}
+              placeholder={`${t("computedTotal")} ${computedTotal.toFixed(2)} ${t("da")}`}
             />
             <p className="text-xs text-muted-foreground">
-              If the bill total differs due to rounding or external adjustments,
-              enter it here. Otherwise leave blank.
+              {t("overrideTotalHint")}
             </p>
           </div>
 
           {/* Bill Upload */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Bill (Bon) *</Label>
+            <Label className="text-sm font-medium">{t("billRequired")}</Label>
             <div className="flex items-center gap-4">
               {billPreview ? (
                 <div className="relative w-24 h-24 rounded-xl overflow-hidden border">
@@ -314,7 +314,7 @@ export function SubmitReviewDialog({
                   className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md cursor-pointer hover:opacity-90 transition-opacity text-sm"
                 >
                   <Upload className="h-4 w-4" />
-                  {billPreview ? "Change Bill" : "Upload Bill"}
+                  {t("selectBill")}
                 </Label>
                 <p className="text-xs text-muted-foreground">
                   PNG, JPG, PDF up to 5MB
@@ -335,7 +335,7 @@ export function SubmitReviewDialog({
             <div className="bg-muted/40 rounded-lg p-3 flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm">
                 <Receipt className="h-4 w-4" />
-                Previous bill present
+                {t("previousBillPresent")}
               </div>
               <Button
                 variant="outline"
@@ -344,7 +344,7 @@ export function SubmitReviewDialog({
                 className="gap-2"
               >
                 <Download className="h-4 w-4" />
-                View
+                {t("viewReceipt")}
               </Button>
             </div>
           )}
@@ -357,7 +357,7 @@ export function SubmitReviewDialog({
             onClick={() => onOpenChange(false)}
             disabled={saving}
           >
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             type="button"
@@ -370,7 +370,7 @@ export function SubmitReviewDialog({
             }
             className="bg-orange-600 hover:bg-orange-700 text-white"
           >
-            {saving ? "Submitting..." : "Submit for Review"}
+            {saving ? t("submittingReview") : t("submitForReview")}
           </Button>
         </DialogFooter>
       </DialogContent>

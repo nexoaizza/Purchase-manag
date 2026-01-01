@@ -5,6 +5,8 @@ import { SuppliersTable } from "@/components/suppliers/suppliers-table";
 import { SuppliersHeader } from "@/components/suppliers/suppliers-header";
 import { useEffect, useState } from "react";
 import { get_all_suppliers } from "@/lib/apis/suppliers";
+import { getCategories } from "@/lib/apis/categories";
+import { ICategory } from "@/app/[locale]/dashboard/categories/page";
 
 export interface ISupplier {
   _id: string;
@@ -27,27 +29,42 @@ export interface ISupplier {
 export default function SuppliersPage() {
   const [suppliers, setSuppliers] = useState<ISupplier[]>([]);
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState("all");
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
-  const [sort, setSort] = useState({ sortBy: "name", order: "asc" });
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [limit, setLimit] = useState(10);
+  const [categories, setCategories] = useState<ICategory[]>([]);
 
   const onAdding = (newSupplier: ISupplier) => {
     setSuppliers((prev) => [newSupplier, ...prev]);
   };
 
   useEffect(() => {
+    const fetchCategories = async () => {
+      const { success, categories } = await getCategories();
+      if (success) {
+        setCategories(categories);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
     const fetchSuppliers = async () => {
-      const response = await get_all_suppliers({
+      const params: any = {
         name: search,
         status,
-        categoryIds,
         page: currentPage,
         limit,
-        ...sort,
-      });
+      };
+      
+      // Only include categoryIds if there are any selected
+      if (categoryIds.length > 0) {
+        params.categoryIds = categoryIds;
+      }
+      
+      const response = await get_all_suppliers(params);
 
       if (response) {
         const { suppliers, pages } = response;
@@ -64,7 +81,7 @@ export default function SuppliersPage() {
     };
 
     fetchSuppliers();
-  }, [search, currentPage, limit, totalPages, status, categoryIds, sort]);
+  }, [search, currentPage, limit, status, categoryIds]);
 
   return (
     <DashboardLayout>
@@ -73,7 +90,6 @@ export default function SuppliersPage() {
           onAdding={onAdding}
           onSearchChange={setSearch}
           onStatusChange={setStatus}
-          onSortChange={setSort}
           onCategoryChange={setCategoryIds}
         />
         <SuppliersTable
@@ -84,6 +100,7 @@ export default function SuppliersPage() {
           setLimit={setLimit}
           suppliers={suppliers}
           setSuppliers={setSuppliers}
+          categories={categories}
         />
       </div>
     </DashboardLayout>

@@ -14,12 +14,14 @@ export default function AlertsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [limit, setLimit] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   useEffect(() => {
     const fetchStuff = async () => {
       const params: any = {
         page: currentPage,
         limit,
+        status: statusFilter,
       };
 
       if (searchQuery) {
@@ -35,7 +37,7 @@ export default function AlertsPage() {
       }
     };
     fetchStuff();
-  }, [currentPage, limit, searchQuery]);
+  }, [currentPage, limit, searchQuery, statusFilter]);
 
   const addNewStuff = (newStuff: IUser) => {
     setStuffs([...stuffs, newStuff]);
@@ -47,6 +49,8 @@ export default function AlertsPage() {
         <StuffHeader
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
+          statusFilter={statusFilter}
+          onStatusChange={setStatusFilter}
           addNewStuff={addNewStuff}
         />
         <StuffTable

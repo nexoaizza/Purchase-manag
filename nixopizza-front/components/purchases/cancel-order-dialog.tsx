@@ -15,6 +15,7 @@ import { AlertTriangle } from "lucide-react";
 import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
 import { updateOrder } from "@/lib/apis/purchase-list";
 import toast from "react-hot-toast";
+import { useTranslations } from "next-intl";
 
 interface CancelOrderDialogProps {
   order: IOrder | null;
@@ -29,6 +30,7 @@ export function CancelOrderDialog({
   onOpenChange,
   onOrderUpdated,
 }: CancelOrderDialogProps) {
+  const t = useTranslations("purchases");
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -46,7 +48,7 @@ export function CancelOrderDialog({
 
   const handleCancel = async () => {
     if (!canCancel) {
-      toast.error("You cannot cancel this order at its current stage.");
+      toast.error(t("cannotCancelAtStage"));
       return;
     }
     setLoading(true);
@@ -57,14 +59,14 @@ export function CancelOrderDialog({
         canceledDate: new Date().toISOString(),
       });
       if (success && updated) {
-        toast.success("Order canceled");
+        toast.success(t("canceledSuccessfully"));
         onOrderUpdated(updated);
         onOpenChange(false);
       } else {
-        toast.error(message || "Failed to cancel order");
+        toast.error(message || t("failedToCancelOrder"));
       }
     } catch (e) {
-      toast.error("Error canceling order");
+      toast.error(t("errorCancelingOrder"));
     } finally {
       setLoading(false);
     }
@@ -76,32 +78,31 @@ export function CancelOrderDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-red-600" />
-            Cancel Order
+            {t("cancelOrderTitle")}
           </DialogTitle>
           <DialogDescription>
-            You are about to cancel order {order.orderNumber}. This action cannot be
-            undone.
+            {t("cancelOrderDescription")} {order.orderNumber}. {t("cancelActionWarning")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
           <div className="text-sm">
-            Current Status: <span className="font-medium">{order.status}</span>
+            {t("currentStatusLabel")} <span className="font-medium">{order.status}</span>
           </div>
           {!canCancel && (
             <div className="text-sm text-red-600">
-              This order can no longer be canceled (already verified or paid).
+              {t("cannotCancelOrder")}
             </div>
           )}
           <div className="space-y-2">
             <label className="text-sm font-medium">
-              Cancellation Reason (optional)
+              {t("cancellationReason")}
             </label>
             <Textarea
               rows={3}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Provide a brief reason (optional)"
+              placeholder={t("provideCancelReason")}
               className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg"
             />
           </div>
@@ -113,14 +114,14 @@ export function CancelOrderDialog({
             onClick={() => onOpenChange(false)}
             disabled={loading}
           >
-            Close
+            {t("closeButton")}
           </Button>
           <Button
             className="bg-red-600 hover:bg-red-700 text-white"
             disabled={!canCancel || loading}
             onClick={handleCancel}
           >
-            {loading ? "Canceling..." : "Cancel Order"}
+            {loading ? t("cancelingOrder") : t("cancelOrderButton")}
           </Button>
         </DialogFooter>
       </DialogContent>

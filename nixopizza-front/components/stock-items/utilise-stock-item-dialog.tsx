@@ -46,9 +46,9 @@ export function UtiliseStockItemDialog({
     if (usedQuantity && stockItem) {
       const quantity = Number(usedQuantity);
       if (quantity <= 0) {
-        setQuantityError("Quantity must be greater than 0");
+        setQuantityError(t("quantityGreaterThanZero"));
       } else if (quantity > stockItem.quantity) {
-        setQuantityError(`Quantity cannot exceed ${stockItem.quantity}`);
+        setQuantityError(`${t("quantityCannotExceed")} ${stockItem.quantity}`);
       } else {
         setQuantityError("");
       }
@@ -67,7 +67,7 @@ export function UtiliseStockItemDialog({
 
     const quantity = Number(usedQuantity);
     if (quantity <= 0 || quantity > stockItem.quantity) {
-      toast.error(`Used quantity must be between 1 and ${stockItem.quantity}`);
+      toast.error(`${t("usedQuantityError")} ${stockItem.quantity}`);
       return;
     }
 
@@ -113,7 +113,7 @@ export function UtiliseStockItemDialog({
             {t("utiliseStockItem")}
           </DialogTitle>
           <DialogDescription>
-            Mark items as used and reduce the stock quantity
+            {t("utiliseDescription")}
           </DialogDescription>
         </DialogHeader>
 
@@ -167,12 +167,12 @@ export function UtiliseStockItemDialog({
             {/* Summary */}
             {usedQuantity && (
               <div className="rounded-lg bg-muted p-4 space-y-2">
-                <div className="text-sm font-medium">Summary:</div>
+                <div className="text-sm font-medium">{t("summaryTitle")}</div>
                 <div className="text-sm">
-                  Used: <span className="font-medium text-orange-600">{usedQuantity} {productUnit}</span>
+                  {t("used")}: <span className="font-medium text-orange-600">{usedQuantity} {productUnit}</span>
                 </div>
                 <div className="text-sm">
-                  Remaining: <span className="font-medium">{stockItem.quantity - Number(usedQuantity || 0)} {productUnit}</span>
+                  {t("remaining")}: <span className="font-medium">{stockItem.quantity - Number(usedQuantity || 0)} {productUnit}</span>
                 </div>
               </div>
             )}

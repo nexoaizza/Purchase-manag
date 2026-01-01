@@ -62,12 +62,12 @@ export function StuffTable({
   const getAccountStatus = (isActive: boolean) =>
     isActive
       ? {
-          label: "Active",
+          label: t("activeLabel"),
           variant: "default" as const,
           icon: <CheckCircle className="h-4 w-4" />,
         }
       : {
-          label: "Inactive",
+          label: t("inactiveLabel"),
           variant: "destructive" as const,
           icon: <XCircle className="h-4 w-4" />,
         };
@@ -80,14 +80,14 @@ export function StuffTable({
   const handleDelete = async (user: IUser) => {
     const data = await deleteStuff(user._id);
     if (data.success) {
-      toast.success("Staff deleted successfully");
+      toast.success(t("staffDeletedSuccess"));
       setStuffs(stuffs.filter((s) => s._id !== user._id));
       if (selectedStuff?._id === user._id) {
         setOpenEditDialog(false);
         setSelectedStuff(null);
       }
     } else {
-      toast.error(data.message || "Failed to delete staff");
+      toast.error(data.message || t("failedDeleteStaff"));
     }
   };
 
@@ -103,17 +103,17 @@ export function StuffTable({
     <>
       <Card>
         <CardHeader>
-          <CardTitle className="font-heading">Staff Directory</CardTitle>
+          <CardTitle className="font-heading">{t("staffDirectory")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Full Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>{t("fullNameHeader")}</TableHead>
+                  <TableHead>{t("emailHeader")}</TableHead>
+                  <TableHead>{t("roleHeader")}</TableHead>
+                  <TableHead>{t("statusHeader")}</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -161,21 +161,21 @@ export function StuffTable({
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem
-                              onClick={() => toast("Assign task flow TBD")}
+                              onClick={() => toast(t("assignTaskFlow"))}
                             >
                               <ClipboardList className="h-4 w-4 mr-2" />
-                              Assign Task
+                              {t("assignTaskAction")}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleEdit(user)}>
                               <Edit className="h-4 w-4 mr-2" />
-                              Edit
+                              {t("editAction")}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleDelete(user)}
                               className="text-destructive focus:text-destructive"
                             >
                               <XCircle className="h-4 w-4 mr-2" />
-                              Delete
+                              {t("deleteAction")}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -191,7 +191,7 @@ export function StuffTable({
           <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">
-                Rows per page:
+                {t("rowsPerPage")}
               </span>
               <select
                 className="border rounded-md px-2 py-1 text-sm"
@@ -216,10 +216,10 @@ export function StuffTable({
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(currentPage - 1)}
               >
-                Prev
+                {t("prevButton")}
               </Button>
               <span className="text-sm">
-                Page {currentPage} of {totalPages}
+                {t("pageText")} {currentPage} {t("ofText")} {totalPages}
               </span>
               <Button
                 variant="outline"
@@ -227,7 +227,7 @@ export function StuffTable({
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage(currentPage + 1)}
               >
-                Next
+                {t("nextButton")}
               </Button>
             </div>
           </div>

@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { listTemplates, PurchaseTemplateDTO } from "@/lib/apis/purchase-templates";
 import toast from "react-hot-toast";
+import { useTranslations } from "next-intl";
 
 export default function LoadTemplateDialog({
   open,
@@ -18,6 +19,7 @@ export default function LoadTemplateDialog({
   onPick: (tpl: PurchaseTemplateDTO) => void;
   supplierId?: string;
 }) {
+  const t = useTranslations("purchases");
   const [templates, setTemplates] = useState<PurchaseTemplateDTO[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -37,7 +39,7 @@ export default function LoadTemplateDialog({
         }
         setTemplates(tpls);
       } else {
-        toast.error(res.message || "Failed to load templates");
+        toast.error(res.message || t("failedLoadTemplates"));
       }
       setLoading(false);
     })();
@@ -45,7 +47,7 @@ export default function LoadTemplateDialog({
 
   const handleApply = () => {
     const tpl = templates.find((t) => t._id === selectedId);
-    if (!tpl) return toast.error("Please select a template");
+    if (!tpl) return toast.error(t("selectTemplateError"));
     onPick(tpl);
     onOpenChange(false);
   };
@@ -54,20 +56,20 @@ export default function LoadTemplateDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
-          <DialogTitle>Load Template</DialogTitle>
-          <DialogDescription>Select a saved template to prefill items.</DialogDescription>
+          <DialogTitle>{t("loadTemplateTitle")}</DialogTitle>
+          <DialogDescription>{t("loadTemplateDescription")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-2">
-          <Label>Template</Label>
+          <Label>{t("templateLabel")}</Label>
           <Select value={selectedId} onValueChange={setSelectedId}>
             <SelectTrigger>
-              <SelectValue placeholder={loading ? "Loading..." : "Choose a template"} />
+              <SelectValue placeholder={loading ? t("loadingTemplates") : t("chooseTemplate")} />
             </SelectTrigger>
             <SelectContent>
               {(templates || []).map((t) => (
                 <SelectItem key={t._id} value={t._id}>
-                  {t.name} • {t.items.length} items
+                  {t.name} • {t.items.length} {t("templateItems")}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -75,8 +77,8 @@ export default function LoadTemplateDialog({
         </div>
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button type="button" onClick={handleApply} disabled={!selectedId}>Apply</Button>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t("cancelButton")}</Button>
+          <Button type="button" onClick={handleApply} disabled={!selectedId}>{t("applyButton")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

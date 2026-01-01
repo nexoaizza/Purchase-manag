@@ -81,7 +81,7 @@ export default function AddProductPage() {
       return;
     }
     if (!formData.name.trim()) {
-      toast.error("Product name is required");
+      toast.error(t("productNameRequired"));
       return;
     }
 
@@ -118,7 +118,7 @@ export default function AddProductPage() {
     const file = e.target.files?.[0];
     if (file) {
       if (!file.type.match("image.*")) {
-        toast.error("Please select an image file");
+        toast.error(t("selectImageFile"));
         return;
       }
       setImage(file);
@@ -152,10 +152,10 @@ export default function AddProductPage() {
             </Button>
             <div>
               <h1 className="text-3xl font-heading font-bold text-gray-900">
-                Add Product
+                {t("addProductTitle")}
               </h1>
               <p className="text-gray-600 mt-1">
-                Create a new product. Image is optional.
+                {t("addProductSubtitle")}
               </p>
             </div>
           </div>
@@ -166,7 +166,7 @@ export default function AddProductPage() {
               className="gap-2 rounded-full px-4"
             >
               <X className="h-4 w-4" />
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               type="submit"
@@ -174,7 +174,7 @@ export default function AddProductPage() {
               className="gap-2 rounded-full px-6 bg-primary hover:bg-primary/90"
             >
               <PlusCircle className="h-4 w-4" />
-              Create Product
+              {t("createProduct")}
             </Button>
           </div>
         </div>
@@ -188,10 +188,10 @@ export default function AddProductPage() {
               </div>
               <div>
                 <CardTitle className="font-heading text-xl">
-                  Basic Information
+                  {t("basicInformation")}
                 </CardTitle>
                 <CardDescription>
-                  Essential product details and identification
+                  {t("basicInformationDescription")}
                 </CardDescription>
               </div>
             </div>
@@ -199,7 +199,7 @@ export default function AddProductPage() {
           <CardContent className="space-y-6 pt-2">
               {/* Image (optional) */}
               <div className="space-y-2">
-                <Label>Product Image (Optional)</Label>
+                <Label>{t("productImageOptional")}</Label>
                 <div className="flex items-center gap-4">
                   {imagePreview ? (
                     <div className="relative w-24 h-24 rounded-xl overflow-hidden border">
@@ -246,7 +246,7 @@ export default function AddProductPage() {
               {/* Basic info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Name *</Label>
+                  <Label>{t("nameRequired")}</Label>
                   <Input
                     value={formData.name}
                     onChange={(e) =>
@@ -256,7 +256,7 @@ export default function AddProductPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Barcode (Optional)</Label>
+                  <Label>{t("barcodeOptional")}</Label>
                   <Input
                     value={formData.barcode}
                     onChange={(e) =>
@@ -268,33 +268,33 @@ export default function AddProductPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Unit *</Label>
+                  <Label>{t("unitRequired")}</Label>
                   <Select
                     value={formData.unit}
                     onValueChange={(v) => handleInputChange("unit", v)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select unit" />
+                      <SelectValue placeholder={t("selectUnitPlaceholder")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="piece">Piece</SelectItem>
-                      <SelectItem value="box">Box</SelectItem>
-                      <SelectItem value="pack">Pack</SelectItem>
-                      <SelectItem value="bottle">Bottle</SelectItem>
-                      <SelectItem value="kilogram">Kilogram</SelectItem>
-                      <SelectItem value="liter">Liter</SelectItem>
-                      <SelectItem value="meter">Meter</SelectItem>
+                      <SelectItem value="piece">{t("piece")}</SelectItem>
+                      <SelectItem value="box">{t("box")}</SelectItem>
+                      <SelectItem value="pack">{t("pack")}</SelectItem>
+                      <SelectItem value="bottle">{t("bottle")}</SelectItem>
+                      <SelectItem value="kilogram">{t("kilogram")}</SelectItem>
+                      <SelectItem value="liter">{t("liter")}</SelectItem>
+                      <SelectItem value="meter">{t("meter")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Category *</Label>
+                  <Label>{t("categoryRequired")}</Label>
                   <CategorySelect
                     categories={availableCategories}
                     selectedCategory={selectedCategory}
                     onSelect={(c) => setSelectedCategory(c as ICategory | null)}
                     isLoading={false}
-                    placeholder="Select category"
+                    placeholder={t("selectCategoryPlaceholder")}
                     className="border rounded-md"
                   />
                 </div>
@@ -303,7 +303,7 @@ export default function AddProductPage() {
               {/* Stock */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label>Minimum Qty *</Label>
+                  <Label>{t("minimumQtyRequired")}</Label>
                   <Input
                     type="number"
                     min={0}
@@ -315,7 +315,7 @@ export default function AddProductPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Recommended Qty (Optional)</Label>
+                  <Label>{t("recommendedQtyOptional")}</Label>
                   <Input
                     type="number"
                     min={0}
@@ -329,7 +329,7 @@ export default function AddProductPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Expected Life Time (Days)</Label>
+                  <Label>{t("expectedLifeTimeDays")}</Label>
                   <Input
                     type="number"
                     min={0}
@@ -346,14 +346,14 @@ export default function AddProductPage() {
 
               {/* Description */}
               <div className="space-y-2">
-                <Label>Description (Optional)</Label>
+                <Label>{t("descriptionOptional")}</Label>
                 <Textarea
                   rows={3}
                   value={formData.description}
                   onChange={(e) =>
                     handleInputChange("description", e.target.value)
                   }
-                  placeholder="Describe the product"
+                  placeholder={t("describeProduct")}
                 />
               </div>
 

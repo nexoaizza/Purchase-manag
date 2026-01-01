@@ -201,7 +201,7 @@ export function SupplierEditDialog({
     const file = e.target.files?.[0];
     if (file) {
       if (!file.type.match("image.*")) {
-        toast.error("Please select an image file");
+        toast.error(t("selectImageFile"));
         return;
       }
       setImage(file);
@@ -273,7 +273,7 @@ export function SupplierEditDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label>Phone 1 *</Label>
+              <Label>{t("phone1Required")}</Label>
               <Input
                 value={formData.phone1}
                 onChange={(e) => handleInputChange("phone1", e.target.value)}
@@ -284,14 +284,14 @@ export function SupplierEditDialog({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label>Phone 2 (Optional)</Label>
+              <Label>{t("phone2Optional")}</Label>
               <Input
                 value={formData.phone2}
                 onChange={(e) => handleInputChange("phone2", e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label>Phone 3 (Optional)</Label>
+              <Label>{t("phone3Optional")}</Label>
               <Input
                 value={formData.phone3}
                 onChange={(e) => handleInputChange("phone3", e.target.value)}
@@ -301,7 +301,7 @@ export function SupplierEditDialog({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label>Address *</Label>
+              <Label>{t("addressRequired")}</Label>
               <Input
                 value={formData.address}
                 onChange={(e) => handleInputChange("address", e.target.value)}
@@ -309,7 +309,7 @@ export function SupplierEditDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label>City (Optional)</Label>
+              <Label>{t("cityOptional")}</Label>
               <Input
                 value={formData.city}
                 onChange={(e) => handleInputChange("city", e.target.value)}
@@ -318,7 +318,7 @@ export function SupplierEditDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Supplier Image (Optional)</Label>
+            <Label>{t("supplierImageOptional")}</Label>
             <div className="flex items-center gap-4">
               {imagePreview ? (
                 <div className="relative w-24 h-24 rounded-xl overflow-hidden border">
@@ -350,7 +350,7 @@ export function SupplierEditDialog({
                   {imagePreview ? t("changeImage") : t("uploadImage")}
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  PNG, JPG up to 5MB
+                  {t("imageUploadInfo")}
                 </p>
                 <Input
                   id="supplier-edit-image-upload"
@@ -364,14 +364,14 @@ export function SupplierEditDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Categories (Optional)</Label>
+            <Label>{t("categories")}</Label>
             <CategorySelect
               categories={availableCategories}
               selectedCategory={null}
               onSelect={(category: any) =>
                 handleAddCategory(category as ICategory | null)
               }
-              placeholder="Select categories"
+              placeholder={t("selectCategoriesPlaceholder")}
               className="border rounded-lg"
               isLoading={false}
             />
@@ -398,23 +398,23 @@ export function SupplierEditDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Status</Label>
+            <Label>{t("statusLabel")}</Label>
             <Select
               value={formData.isActive ? "Active" : "Inactive"}
               onValueChange={handleStatusChange}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select status" />
+                <SelectValue placeholder={t("selectStatusPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Active">Active</SelectItem>
-                <SelectItem value="Inactive">Inactive</SelectItem>
+                <SelectItem value="Active">{t("activeLabel")}</SelectItem>
+                <SelectItem value="Inactive">{t("inactiveLabel")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label>Notes (Optional)</Label>
+            <Label>{t("notesOptionalLabel")}</Label>
             <Textarea
               value={formData.notes}
               onChange={(e) => handleInputChange("notes", e.target.value)}

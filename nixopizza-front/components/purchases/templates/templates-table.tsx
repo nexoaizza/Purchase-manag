@@ -23,6 +23,7 @@ import TemplateViewDialog from "./template-view-dialog";
 import toast from "react-hot-toast";
 import { resolveImage } from "@/lib/resolveImage";
 import { Pagination } from "@/components/ui/pagination";
+import { useTranslations } from "next-intl";
 
 export function TemplatesTable({
   templates,
@@ -33,6 +34,7 @@ export function TemplatesTable({
   setTemplates: React.Dispatch<React.SetStateAction<PurchaseTemplateDTO[]>>;
   onRefresh: () => void;
 }) {
+  const t = useTranslations("purchases");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<PurchaseTemplateDTO | null>(null);
@@ -48,14 +50,14 @@ export function TemplatesTable({
   };
 
   const handleDelete = async (templateId: string) => {
-    if (!confirm("Are you sure you want to delete this template?")) return;
+    if (!confirm(t("confirmDeleteTemplate"))) return;
     
     const res = await deleteTemplate(templateId);
     if (res.success) {
-      toast.success("Template deleted successfully");
+      toast.success(t("templateDeletedSuccess"));
       setTemplates(templates.filter((t) => t._id !== templateId));
     } else {
-      toast.error(res.message || "Failed to delete template");
+      toast.error(res.message || t("failedDeleteTemplate"));
     }
   };
 
@@ -68,15 +70,15 @@ export function TemplatesTable({
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="font-heading">Templates Directory</CardTitle>
+          <CardTitle className="font-heading">{t("templatesDirectory")}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center py-12 text-center">
           <div className="mb-4 p-3 bg-muted rounded-full">
             <FileText className="h-10 w-10 text-muted-foreground" />
           </div>
-          <h3 className="text-xl font-semibold mb-1">No templates found</h3>
+          <h3 className="text-xl font-semibold mb-1">{t("noTemplatesFound")}</h3>
           <p className="text-muted-foreground mb-4">
-            Create your first template to get started
+            {t("createFirstTemplate")}
           </p>
         </CardContent>
       </Card>
@@ -87,17 +89,17 @@ export function TemplatesTable({
     <>
       <Card>
         <CardHeader>
-          <CardTitle className="font-heading">Templates Directory</CardTitle>
+          <CardTitle className="font-heading">{t("templatesDirectory")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Supplier</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Items</TableHead>
+                  <TableHead>{t("nameLabel")}</TableHead>
+                  <TableHead>{t("supplierLabel")}</TableHead>
+                  <TableHead>{t("descriptionLabel")}</TableHead>
+                  <TableHead>{t("itemsLabel")}</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -137,7 +139,7 @@ export function TemplatesTable({
                       </TableCell>
                       <TableCell>
                         <span className="text-sm font-medium">
-                          {template.items.length} item{template.items.length !== 1 ? "s" : ""}
+                          {template.items.length} {template.items.length !== 1 ? t("templateItems") : t("templateItems").slice(0, -1)}
                         </span>
                       </TableCell>
                       <TableCell>
@@ -150,18 +152,18 @@ export function TemplatesTable({
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => handleView(template)}>
                               <Eye className="h-4 w-4 mr-2" />
-                              View Details
+                              {t("viewDetails")}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleEdit(template)}>
                               <Edit className="h-4 w-4 mr-2" />
-                              Edit
+                              {t("editButton")}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleDelete(template._id)}
                               className="text-destructive"
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
+                              {t("deleteButton")}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
