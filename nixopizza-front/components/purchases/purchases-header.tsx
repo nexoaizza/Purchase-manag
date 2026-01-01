@@ -16,6 +16,7 @@ import { GeneratePurchaseListDialog } from "./generate-purchase-list-dialog";
 import { ManualOrderDialog } from "./manual-order-dialog";
 import { MultiSupplierSelect } from "@/components/ui/multi-supplier-select";
 import { ISupplier } from "@/app/[locale]/dashboard/suppliers/page";
+import { get_all_suppliers } from "@/lib/apis/suppliers";
 import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -37,6 +38,7 @@ export function PurchasesHeader({
   onRefresh,
   initialStatus = "all",
   initialDateRange = { from: null, to: null },
+  initialSupplierIds = [],
 }: {
   onSearchChange: (search: string) => void;
   onStatusChange: (status: string) => void;
@@ -47,6 +49,7 @@ export function PurchasesHeader({
   onRefresh?: () => void;
   initialStatus?: string;
   initialDateRange?: { from: Date | null; to: Date | null };
+  initialSupplierIds?: string[];
 }) {
   const t = useTranslations("purchases");
   const [searchQuery, setSearchQuery] = useState("");
@@ -64,6 +67,28 @@ export function PurchasesHeader({
   useEffect(() => {
     setDateRange(initialDateRange);
   }, [initialDateRange]);
+
+  useEffect(() => {
+    const fetchInitialSuppliers = async () => {
+      if (initialSupplierIds && initialSupplierIds.length > 0) {
+        try {
+          // We can fetch all suppliers and filter or if there's an API for multiple IDs
+          const data = await get_all_suppliers({ limit: 1000 });
+          if (data && data.suppliers) {
+            const filtered = data.suppliers.filter((s: ISupplier) => 
+              initialSupplierIds.includes(s._id)
+            );
+            setSelectedSuppliers(filtered);
+          }
+        } catch (error) {
+          console.error("Error fetching initial suppliers:", error);
+        }
+      } else {
+        setSelectedSuppliers([]);
+      }
+    };
+    fetchInitialSuppliers();
+  }, [initialSupplierIds]);
 
   // Handle search change
   const handleSearchChange = (value: string) => {

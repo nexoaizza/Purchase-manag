@@ -85,9 +85,14 @@ export default function PurchasesPage() {
     const statusParam = searchParams.get("status");
     const dateFrom = searchParams.get("dateFrom");
     const dateTo = searchParams.get("dateTo");
+    const supplierIdsParam = searchParams.get("supplierIds");
+
     if (statusParam) setStatus(statusParam);
     if (dateFrom && dateTo) {
       setDateRange({ from: new Date(dateFrom), to: new Date(dateTo) });
+    }
+    if (supplierIdsParam) {
+      setSupplierIds(supplierIdsParam.split(","));
     }
   }, [searchParams]);
 
@@ -175,6 +180,7 @@ export default function PurchasesPage() {
           onRefresh={handleRefresh}
           initialStatus={status}
           initialDateRange={dateRange}
+          initialSupplierIds={supplierIds}
         />
 
         <PurchaseStats
