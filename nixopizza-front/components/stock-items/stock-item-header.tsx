@@ -98,7 +98,7 @@ export function StockItemHeader({
             <SelectValue placeholder={t("selectStock")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Stocks</SelectItem>
+            <SelectItem value="all">{t("allStocks")}</SelectItem>
             {stocks.map((stock) => (
               <SelectItem key={stock._id} value={stock._id}>
                 {stock.name}
@@ -108,10 +108,10 @@ export function StockItemHeader({
         </Select>
         <Select value={expirationStatus} onValueChange={handleExpirationStatusChange}>
           <SelectTrigger className="flex-1 border-2 border-input focus:ring-2 focus:ring-primary/30">
-            <SelectValue placeholder="Expiration Status" />
+            <SelectValue placeholder={t("expirationStatus")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Items</SelectItem>
+            <SelectItem value="all">{t("allItems")}</SelectItem>
             <SelectItem value="fresh">{t("fresh")}</SelectItem>
             <SelectItem value="expiring-soon">{t("expiringSoon")}</SelectItem>
             <SelectItem value="expired">{t("expired")}</SelectItem>
