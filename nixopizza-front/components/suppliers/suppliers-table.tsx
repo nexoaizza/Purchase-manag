@@ -37,6 +37,7 @@ import { SupplierDetailsDialog } from "./supplier-details-dialog";
 import { deleteSupplier, get_all_suppliers } from "@/lib/apis/suppliers";
 import toast from "react-hot-toast";
 import { ISupplier } from "@/app/[locale]/dashboard/suppliers/page";
+import { ICategory } from "@/app/[locale]/dashboard/categories/page";
 import { Pagination } from "@/components/ui/pagination";
 import { useTranslations } from "next-intl";
 
@@ -48,6 +49,7 @@ export function SuppliersTable({
   setCurrentPage,
   limit,
   setLimit,
+  categories,
 }: {
   suppliers: ISupplier[];
   setSuppliers: React.Dispatch<React.SetStateAction<ISupplier[]>>;
@@ -56,6 +58,7 @@ export function SuppliersTable({
   setCurrentPage: any;
   limit: number;
   setLimit: any;
+  categories: ICategory[];
 }) {
   const t = useTranslations("suppliers")
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -131,8 +134,8 @@ export function SuppliersTable({
                 <TableRow>
                   <TableHead>{t("nameSort")}</TableHead>
                   <TableHead>{t("contactPersonSort")}</TableHead>
-                  <TableHead>{t("emailLabel")}</TableHead>
                   <TableHead>{t("phoneLabel")}</TableHead>
+                  <TableHead>{t("categories")}</TableHead>
                   <TableHead>{t("status")}</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
@@ -160,17 +163,25 @@ export function SuppliersTable({
                     </TableCell>
                     <TableCell>{supplier.contactPerson}</TableCell>
                     <TableCell>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-1 text-sm">
-                          <Mail className="h-3 w-3" />
-                          {supplier.email}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
                       <div className="flex items-center gap-1 text-sm">
                         <Phone className="h-3 w-3" />
                         {supplier.phone1}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {supplier.categoryIds && supplier.categoryIds.length > 0 ? (
+                          supplier.categoryIds.map((catId) => {
+                            const category = categories.find(c => c._id === catId);
+                            return category ? (
+                              <Badge key={catId} variant="outline" className="text-xs">
+                                {category.name}
+                              </Badge>
+                            ) : null;
+                          })
+                        ) : (
+                          <span className="text-sm text-muted-foreground">{t("noCategories")}</span>
+                        )}
                       </div>
                     </TableCell>
 

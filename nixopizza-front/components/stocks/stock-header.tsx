@@ -16,18 +16,15 @@ import { AddStockDialog } from "./add-stock-dialog";
 import { getStocks } from "@/lib/apis/stocks";
 
 export function StockHeader({
-  onSearchChange,
   onLocationChange,
   onItemNameChange,
   onStockCreated,
 }: {
-  onSearchChange: (search: string) => void;
   onLocationChange: (location: string) => void;
   onItemNameChange: (itemName: string) => void;
   onStockCreated: () => void;
 }) {
   const t = useTranslations("stocks");
-  const [searchQuery, setSearchQuery] = useState("");
   const [itemNameSearch, setItemNameSearch] = useState("");
   const [location, setLocation] = useState("");
   const [locations, setLocations] = useState<string[]>([]);
@@ -46,11 +43,6 @@ export function StockHeader({
       ).filter(Boolean) as string[];
       setLocations(uniqueLocations);
     }
-  };
-
-  const handleSearchChange = (value: string) => {
-    setSearchQuery(value);
-    onSearchChange(value);
   };
 
   const handleItemNameChange = (value: string) => {
@@ -86,15 +78,6 @@ export function StockHeader({
 
       {/* Search and Filters */}
       <div className="flex flex-col lg:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder={t("searchPlaceholder")}
-            value={searchQuery}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            className="pl-10 border-2 border-input focus-visible:ring-2 focus-visible:ring-primary/30"
-          />
-        </div>
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input

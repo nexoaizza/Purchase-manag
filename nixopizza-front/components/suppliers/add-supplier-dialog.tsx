@@ -94,11 +94,11 @@ export function AddSupplierDialog({
 
       const result = await create_supplier(supplierData);
       onAdding(result.supplier);
-      toast.success("Supplier Created Successfully");
+      toast.success(t("supplierCreatedSuccess"));
       resetForm();
       setOpen(false);
     } catch (err: any) {
-      toast.error(err?.message || "Failed to Add Supplier");
+      toast.error(err?.message || t("failedToAddSupplier"));
     } finally {
       setIsSubmitting(false);
     }
@@ -126,7 +126,7 @@ export function AddSupplierDialog({
     const file = e.target.files?.[0];
     if (file) {
       if (!file.type.startsWith("image/")) {
-        toast.error("Please select an image file");
+        toast.error(t("selectImageFile"));
         return;
       }
       setImage(file);
@@ -231,7 +231,7 @@ export function AddSupplierDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label>Phone 1 *</Label>
+              <Label>{t("phone1Required")}</Label>
               <Input
                 value={formData.phone1}
                 onChange={(e) => handleInputChange("phone1", e.target.value)}
@@ -242,14 +242,14 @@ export function AddSupplierDialog({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label>Phone 2 (Optional)</Label>
+              <Label>{t("phone2Optional")}</Label>
               <Input
                 value={formData.phone2}
                 onChange={(e) => handleInputChange("phone2", e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label>Phone 3 (Optional)</Label>
+              <Label>{t("phone3Optional")}</Label>
               <Input
                 value={formData.phone3}
                 onChange={(e) => handleInputChange("phone3", e.target.value)}
@@ -259,7 +259,7 @@ export function AddSupplierDialog({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label>Address *</Label>
+              <Label>{t("addressRequired")}</Label>
               <Input
                 value={formData.address}
                 onChange={(e) => handleInputChange("address", e.target.value)}
@@ -267,7 +267,7 @@ export function AddSupplierDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label>City (Optional)</Label>
+              <Label>{t("cityOptional")}</Label>
               <Input
                 value={formData.city}
                 onChange={(e) => handleInputChange("city", e.target.value)}
@@ -277,7 +277,7 @@ export function AddSupplierDialog({
 
           {/* Image */}
           <div className="space-y-2">
-            <Label>Supplier Image (Optional)</Label>
+            <Label>{t("supplierImageOptional")}</Label>
             <div className="flex items-center gap-4">
               {imagePreview ? (
                 <div className="relative w-24 h-24 rounded-xl overflow-hidden border">
@@ -308,7 +308,7 @@ export function AddSupplierDialog({
                   {imagePreview ? t("changeImage") : t("uploadImage")}
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  PNG, JPG up to 5MB
+                  {t("imageUploadInfo")}
                 </p>
                 <Input
                   id="image-upload"
@@ -323,12 +323,12 @@ export function AddSupplierDialog({
 
           {/* Categories */}
           <div className="space-y-2">
-            <Label>Categories (Optional)</Label>
+            <Label>{t("categories")}</Label>
             <CategorySelect
               categories={availableCategories}
               selectedCategory={null}
               onSelect={(c) => handleAddCategory(c as unknown as ICategory | null)}
-              placeholder="Select categories"
+              placeholder={t("selectCategoriesPlaceholder")}
               className="border rounded-lg"
               isLoading={false}
             />
@@ -360,7 +360,7 @@ export function AddSupplierDialog({
           {/* Status */}
           <div className="space-y-2">
             <Label htmlFor="status" className="text-sm font-medium">
-              {t("status")}
+              {t("statusLabel")}
             </Label>
             <Select
               value={formData.isActive ? "Active" : "Inactive"}
@@ -369,11 +369,11 @@ export function AddSupplierDialog({
               }
             >
               <SelectTrigger className="py-5 border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg">
-                <SelectValue placeholder={t("status")} />
+                <SelectValue placeholder={t("statusLabel")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Active">{t("activeStatus")}</SelectItem>
-                <SelectItem value="Inactive">{t("inactiveStatus")}</SelectItem>
+                <SelectItem value="Active">{t("activeLabel")}</SelectItem>
+                <SelectItem value="Inactive">{t("inactiveLabel")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -388,7 +388,6 @@ export function AddSupplierDialog({
               onChange={(e) => handleInputChange("notes", e.target.value)}
               placeholder={t("notesPlaceholder")}
               rows={3}
-              placeholder="Additional notes..."
             />
           </div>
 

@@ -3,6 +3,13 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Search } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { AddStuffDialog } from "./add-stuff-dialog";
@@ -11,10 +18,14 @@ import { IUser } from "@/store/user.store";
 export function StuffHeader({
   searchQuery,
   onSearchChange,
+  statusFilter,
+  onStatusChange,
   addNewStuff,
 }: {
   searchQuery: string;
   onSearchChange: (search: string) => void;
+  statusFilter: string;
+  onStatusChange: (status: string) => void;
   addNewStuff: (newStuff: IUser) => void;
 }) {
   const t = useTranslations("staff");
@@ -42,6 +53,16 @@ export function StuffHeader({
             className="pl-10 border-2 border-input focus-visible:ring-2 focus-visible:ring-primary/30"
           />
         </div>
+        <Select value={statusFilter} onValueChange={onStatusChange}>
+          <SelectTrigger className="w-[180px] border-2 border-input focus:ring-2 focus:ring-primary/30">
+            <SelectValue placeholder={t("status")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("allStaff")}</SelectItem>
+            <SelectItem value="active">{t("activeStatus")}</SelectItem>
+            <SelectItem value="inactive">{t("inactiveStatus")}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );

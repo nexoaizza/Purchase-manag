@@ -170,13 +170,13 @@ export function PurchasesHeader({
               <SelectValue placeholder={t("status")} />
             </SelectTrigger>
             <SelectContent>
-  <SelectItem value="all">All Orders</SelectItem>
-  <SelectItem value="not assigned">Not Assigned</SelectItem>
-  <SelectItem value="assigned">Assigned</SelectItem>
-  <SelectItem value="pending_review">Pending Review</SelectItem>
-  <SelectItem value="verified">Verified</SelectItem>
-  <SelectItem value="paid">Paid</SelectItem>
-  <SelectItem value="canceled">Canceled</SelectItem>
+  <SelectItem value="all">{t("allOrdersFilter")}</SelectItem>
+  <SelectItem value="not assigned">{t("notAssignedFilterOption")}</SelectItem>
+  <SelectItem value="assigned">{t("assignedFilterOption")}</SelectItem>
+  <SelectItem value="pending_review">{t("pendingReviewFilter")}</SelectItem>
+  <SelectItem value="verified">{t("verifiedFilter")}</SelectItem>
+  <SelectItem value="paid">{t("paidFilterOption")}</SelectItem>
+  <SelectItem value="canceled">{t("canceledFilter")}</SelectItem>
 </SelectContent>
           </Select>
 

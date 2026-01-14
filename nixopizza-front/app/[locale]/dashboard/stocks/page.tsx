@@ -9,7 +9,6 @@ import { getStocks, deleteStock, IStock } from "@/lib/apis/stocks";
 
 export default function StocksPage() {
   const [stocks, setStocks] = useState<IStock[]>([]);
-  const [search, setSearch] = useState("");
   const [itemName, setItemName] = useState("");
   const [location, setLocation] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -32,15 +31,7 @@ export default function StocksPage() {
     const { stocks: fetchedStocks, pages, message, success } = await getStocks(params);
     
     if (success) {
-      // Filter by search (description) on client side
-      let filteredStocks = fetchedStocks;
-      if (search) {
-        filteredStocks = filteredStocks.filter(
-          (stock: IStock) =>
-            stock.description.toLowerCase().includes(search.toLowerCase())
-        );
-      }
-      setStocks(filteredStocks);
+      setStocks(fetchedStocks);
       setTotalPages(pages);
     } else {
       toast.error(message);
@@ -49,7 +40,7 @@ export default function StocksPage() {
 
   useEffect(() => {
     fetchStocks();
-  }, [limit, currentPage, search, itemName, location]);
+  }, [limit, currentPage, itemName, location]);
 
   const handleEdit = (stock: IStock) => {
     setSelectedStock(stock);
@@ -78,7 +69,6 @@ export default function StocksPage() {
     <DashboardLayout>
       <div className="space-y-6">
         <StockHeader
-          onSearchChange={setSearch}
           onItemNameChange={setItemName}
           onLocationChange={setLocation}
           onStockCreated={handleStockCreated}

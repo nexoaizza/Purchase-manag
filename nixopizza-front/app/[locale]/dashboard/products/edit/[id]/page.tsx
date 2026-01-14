@@ -232,162 +232,6 @@ export default function EditProductPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Basic Info */}
-            <Card className="border-0 shadow-lg rounded-xl">
-              <CardHeader className="pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <Package className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="font-heading text-xl">
-                      Basic Information
-                    </CardTitle>
-                    <CardDescription>
-                      Essential product details and identification
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6 pt-2">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="text-sm font-medium">
-                      Product Name *
-                    </Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => handleInputChange("name", e.target.value)}
-                      placeholder="Enter product name"
-                      required
-                      className="py-5 border-2 border-input focus-visible:ring-2 focus-visible:ring-primary/30 rounded-lg"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="barcode" className="text-sm font-medium">
-                      Barcode
-                    </Label>
-                    <Input
-                      id="barcode"
-                      value={formData.barcode || ""}
-                      onChange={(e) =>
-                        handleInputChange("barcode", e.target.value)
-                      }
-                      placeholder="Enter barcode"
-                      className="py-5 border-2 border-input focus-visible:ring-2 focus-visible:ring-primary/30 rounded-lg"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="category" className="text-sm font-medium">
-                      Category *
-                    </Label>
-                    <CategorySelect
-                      categories={categories}
-                      selectedCategory={selectedCategory}
-                      onSelect={(c) => setSelectedCategory(c)}
-                      placeholder="Select a category"
-                      className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg"
-                      isLoading={false}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="unit" className="text-sm font-medium">
-                      Unit *
-                    </Label>
-                    <Select
-                      value={formData.unit}
-                      onValueChange={(value) => handleInputChange("unit", value)}
-                    >
-                      <SelectTrigger className="py-5 border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg">
-                        <SelectValue placeholder="Select unit" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="liter">Liter</SelectItem>
-                        <SelectItem value="kilogram">Kilogram</SelectItem>
-                        <SelectItem value="box">Box</SelectItem>
-                        <SelectItem value="piece">Piece</SelectItem>
-                        <SelectItem value="meter">Meter</SelectItem>
-                        <SelectItem value="pack">Pack</SelectItem>
-                        <SelectItem value="bottle">Bottle</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="description" className="text-sm font-medium">
-                    Description (Optional)
-                  </Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description || ""}
-                    onChange={(e) =>
-                      handleInputChange("description", e.target.value)
-                    }
-                    placeholder="Enter product description"
-                    rows={3}
-                    className="resize-y border-2 border-input focus-visible:ring-2 focus-visible:ring-primary/30 rounded-lg"
-                  />
-                </div>
-
-                {/* Image Upload */}
-                <div className="space-y-2">
-                  <Label htmlFor="image" className="text-sm font-medium">
-                    {t("productImage")}
-                  </Label>
-                  <div className="flex items-center gap-4">
-                    {previewImage ? (
-                      <div className="relative w-24 h-24 rounded-xl overflow-hidden border-2 border-input shadow-sm">
-                        <img
-                          src={previewImage}
-                          alt="Product preview"
-                          className="w-full h-full object-cover"
-                        />
-                        <button
-                          type="button"
-                          onClick={removeImage}
-                          className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 hover:opacity-80 shadow-sm"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-center w-24 h-24 border-2 border-dashed border-input rounded-xl bg-muted/20">
-                        <Upload className="h-8 w-8 text-muted-foreground" />
-                      </div>
-                    )}
-
-                    <div className="flex flex-col gap-2">
-                      <Label
-                        htmlFor="image-upload"
-                        className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md cursor-pointer hover:opacity-90 transition-opacity"
-                      >
-                        <Upload className="h-4 w-4" />
-                        {previewImage ? t("changeImage") : t("uploadImage")}
-                      </Label>
-                      <p className="text-xs text-muted-foreground">
-                        {t("imageFormat")}
-                      </p>
-                      <Input
-                        id="image-upload"
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) =>
-                          handleImageChange(e.target.files?.[0] || null)
-                        }
-                        className="hidden"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-          {/* Inventory */}
           <Card className="border-0 shadow-lg rounded-xl">
             <CardHeader className="pb-4">
               <div className="flex items-center gap-3">
@@ -396,71 +240,177 @@ export default function EditProductPage() {
                 </div>
                 <div>
                   <CardTitle className="font-heading text-xl">
-                    {t("inventoryManagement")}
+                    {t("basicInformation")}
                   </CardTitle>
                   <CardDescription>
-                    Adjust stock thresholds and current levels
+                    {t("basicInformationDescription")}
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-6 pt-2">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Image (optional) */}
+              <div className="space-y-2">
+                <Label>{t("productImageOptional")}</Label>
+                <div className="flex items-center gap-4">
+                  {previewImage ? (
+                    <div className="relative w-24 h-24 rounded-xl overflow-hidden border">
+                      <img
+                        src={previewImage}
+                        alt="Preview"
+                        className="object-cover w-full h-full"
+                      />
+                      <button
+                        type="button"
+                        onClick={removeImage}
+                        className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center w-24 h-24 border-2 border-dashed rounded-xl bg-muted/20">
+                      <Upload className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="flex flex-col gap-2">
+                    <Label
+                      htmlFor="product-image-upload"
+                      className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md cursor-pointer hover:opacity-90"
+                    >
+                      <Upload className="h-4 w-4" />
+                      {previewImage ? t("changeImage") : t("uploadImage")}
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      {t("imageFormat")}
+                    </p>
+                    <Input
+                      id="product-image-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        handleImageChange(e.target.files?.[0] || null)
+                      }
+                      className="hidden"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Basic info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="minQty" className="text-sm font-medium">
-                    Minimum Quantity *
-                  </Label>
+                  <Label>{t("nameRequired")}</Label>
                   <Input
-                    id="minQty"
-                    type="number"
-                    value={formData.minQty}
+                    value={formData.name}
                     onChange={(e) =>
-                      handleInputChange("minQty", Number.parseInt(e.target.value) || 0)
+                      handleInputChange("name", e.target.value)
                     }
-                    min={0}
-                    className="py-5 border-2 border-input focus-visible:ring-2 focus-visible:ring-primary/30 rounded-lg"
+                    required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="recommendedQty"
-                    className="text-sm font-medium"
-                  >
-                    Recommended Quantity
-                  </Label>
+                  <Label>{t("barcodeOptional")}</Label>
                   <Input
-                    id="recommendedQty"
+                    value={formData.barcode || ""}
+                    onChange={(e) =>
+                      handleInputChange("barcode", e.target.value)
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>{t("unitRequired")}</Label>
+                  <Select
+                    value={formData.unit}
+                    onValueChange={(v) => handleInputChange("unit", v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={t("selectUnitPlaceholder")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="piece">{t("piece")}</SelectItem>
+                      <SelectItem value="box">{t("box")}</SelectItem>
+                      <SelectItem value="pack">{t("pack")}</SelectItem>
+                      <SelectItem value="bottle">{t("bottle")}</SelectItem>
+                      <SelectItem value="kilogram">{t("kilogram")}</SelectItem>
+                      <SelectItem value="liter">{t("liter")}</SelectItem>
+                      <SelectItem value="meter">{t("meter")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>{t("categoryRequired")}</Label>
+                  <CategorySelect
+                    categories={categories}
+                    selectedCategory={selectedCategory}
+                    onSelect={(c : any) => setSelectedCategory(c as ICategory | null)}
+                    isLoading={false}
+                    placeholder={t("selectCategoryPlaceholder")}
+                    className="border rounded-md"
+                  />
+                </div>
+              </div>
+
+              {/* Stock */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>{t("minimumQtyRequired")}</Label>
+                  <Input
                     type="number"
+                    min={0}
+                    value={formData.minQty}
+                    onChange={(e) =>
+                      handleInputChange("minQty", parseInt(e.target.value) || 0)
+                    }
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t("recommendedQtyOptional")}</Label>
+                  <Input
+                    type="number"
+                    min={0}
                     value={formData.recommendedQty}
                     onChange={(e) =>
                       handleInputChange(
                         "recommendedQty",
-                        Number.parseInt(e.target.value) || 0
+                        parseInt(e.target.value) || 0
                       )
                     }
-                    min={0}
-                    className="py-5 border-2 border-input focus-visible:ring-2 focus-visible:ring-primary/30 rounded-lg"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="expectedLifeTime" className="text-sm font-medium">
-                    Expected Life Time (Days)
-                  </Label>
+                  <Label>{t("expectedLifeTimeDays")}</Label>
                   <Input
-                    id="expectedLifeTime"
                     type="number"
+                    min={0}
                     value={formData.expectedLifeTime || 0}
                     onChange={(e) =>
                       handleInputChange(
                         "expectedLifeTime",
-                        Number.parseInt(e.target.value) || 0
+                        parseInt(e.target.value) || 0
                       )
                     }
-                    min={0}
-                    className="py-5 border-2 border-input focus-visible:ring-2 focus-visible:ring-primary/30 rounded-lg"
                   />
                 </div>
               </div>
+
+              {/* Description */}
+              <div className="space-y-2">
+                <Label>{t("descriptionOptional")}</Label>
+                <Textarea
+                  rows={3}
+                  value={formData.description || ""}
+                  onChange={(e) =>
+                    handleInputChange("description", e.target.value)
+                  }
+                  placeholder={t("describeProduct")}
+                />
+              </div>
+
             </CardContent>
           </Card>
         </form>

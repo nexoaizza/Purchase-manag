@@ -15,6 +15,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Zap, Package, AlertTriangle } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 // Mock low stock items grouped by supplier
 const supplierGroups = [
@@ -40,6 +41,7 @@ const supplierGroups = [
 ]
 
 export function GeneratePurchaseListDialog() {
+  const t = useTranslations("purchases");
   const [open, setOpen] = useState(false)
   const [selectedItems, setSelectedItems] = useState<string[]>([])
 
@@ -89,17 +91,17 @@ export function GeneratePurchaseListDialog() {
       <DialogTrigger asChild>
         <Button className="gap-2">
           <Zap className="h-4 w-4" />
-          Generate Purchase Lists
+          {t("generatePurchaseLists")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-heading flex items-center gap-2">
             <Zap className="h-5 w-5" />
-            Generate Purchase Lists
+            {t("generatePurchaseLists")}
           </DialogTitle>
           <DialogDescription>
-            Select items below minimum stock to automatically generate purchase orders grouped by supplier.
+            {t("selectItemsLowStock")}
           </DialogDescription>
         </DialogHeader>
 
@@ -108,13 +110,13 @@ export function GeneratePurchaseListDialog() {
           <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
             <div className="flex items-center gap-4">
               <Button variant="outline" size="sm" onClick={handleSelectAll}>
-                {selectedItems.length === getTotalItems() ? "Deselect All" : "Select All"}
+                {selectedItems.length === getTotalItems() ? t("deselectAll") : t("selectAll")}
               </Button>
               <span className="text-sm text-muted-foreground">
-                {getSelectedCount()} of {getTotalItems()} items selected
+                {getSelectedCount()} {t("ofItems")}
               </span>
             </div>
-            <div className="text-sm font-medium">Total: ${getTotalValue().toFixed(2)}</div>
+            <div className="text-sm font-medium">{t("total")} ${getTotalValue().toFixed(2)}</div>
           </div>
 
           {/* Supplier Groups */}
@@ -159,14 +161,14 @@ export function GeneratePurchaseListDialog() {
                               <div>
                                 <div className="font-medium">{item.name}</div>
                                 <div className="text-sm text-muted-foreground">
-                                  Stock: {item.currentStock} / Min: {item.minStock}
+                                  {t("stockLabel")} {item.currentStock} / {t("minStock")}: {item.minStock}
                                 </div>
                               </div>
                             </div>
                             {item.currentStock === 0 && <AlertTriangle className="h-4 w-4 text-destructive" />}
                           </div>
                           <div className="text-right">
-                            <div className="font-medium">Order: {item.suggestedOrder}</div>
+                            <div className="font-medium">{t("orderQuantity")} {item.suggestedOrder}</div>
                             <div className="text-sm text-muted-foreground">
                               ${(item.suggestedOrder * item.price).toFixed(2)}
                             </div>
@@ -183,10 +185,10 @@ export function GeneratePurchaseListDialog() {
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button onClick={handleGenerate} disabled={selectedItems.length === 0}>
-            Generate {selectedItems.length > 0 ? `${selectedItems.length} ` : ""}Purchase Lists
+            {t("generateButton")} {selectedItems.length > 0 ? `${selectedItems.length} ` : ""}{t("itemsCountGenerate")}
           </Button>
         </DialogFooter>
       </DialogContent>

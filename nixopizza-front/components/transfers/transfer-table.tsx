@@ -93,16 +93,16 @@ export function TransferTable({
       });
 
       if (result.success) {
-        toast.success(t("transferUpdated"));
+        toast.success(t("statusUpdatedSuccess"));
         setIsStatusDialogOpen(false);
         if (onStatusChange) {
           onStatusChange();
         }
       } else {
-        toast.error(result.message || "Failed to update status");
+        toast.error(result.message || t("statusUpdateFailed"));
       }
     } catch (error) {
-      toast.error("An error occurred while updating status");
+      toast.error(t("statusUpdateError"));
     } finally {
       setIsUpdating(false);
     }
@@ -186,7 +186,7 @@ export function TransferTable({
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => handleStatusChangeClick(transfer)}>
                           <RefreshCw className="mr-2 h-4 w-4" />
-                          Change Status
+                          {t("changeStatus")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => onEdit(transfer)}>
                           <Edit className="mr-2 h-4 w-4" />
@@ -222,10 +222,10 @@ export function TransferTable({
       <Dialog open={isStatusDialogOpen} onOpenChange={setIsStatusDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Change Transfer Status</DialogTitle>
+            <DialogTitle>{t("changeTransferStatus")}</DialogTitle>
             <DialogDescription>
-              Update the status of the transfer from{" "}
-              <strong>{selectedTransfer?.takenFrom?.name}</strong> to{" "}
+              {t("updateStatusDescription")}{" "}
+              <strong>{selectedTransfer?.takenFrom?.name}</strong> {t("to")}{" "}
               <strong>{selectedTransfer?.takenTo?.name}</strong>
             </DialogDescription>
           </DialogHeader>
@@ -239,7 +239,7 @@ export function TransferTable({
                 onValueChange={(value: "pending" | "arrived") => setNewStatus(value)}
               >
                 <SelectTrigger id="status">
-                  <SelectValue placeholder="Select status" />
+                  <SelectValue placeholder={t("selectStatusPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="pending">

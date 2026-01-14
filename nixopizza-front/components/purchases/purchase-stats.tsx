@@ -21,7 +21,7 @@ interface ApiStats {
 }
 
 export function PurchaseStats({ filteredOrders, filtersActive }: PurchaseStatsProps) {
-  const t = useTranslations("purchaseStats");
+  const t = useTranslations("purchases");
   const [stats, setStats] = useState<ApiStats>({
     notAssignedOrders: 0,
     assignedOrders: 0,
@@ -98,14 +98,14 @@ export function PurchaseStats({ filteredOrders, filtersActive }: PurchaseStatsPr
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
-            {t("pendingTotal")}
+            {t("pendingNotAssigned")}
           </CardTitle>
           <Clock className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{pendingTotal}</div>
           <p className="text-xs text-muted-foreground">
-            {t("pendingTotalDesc")}
+            {t("awaitingBillSubmission")}
           </p>
         </CardContent>
       </Card>
@@ -118,19 +118,19 @@ export function PurchaseStats({ filteredOrders, filtersActive }: PurchaseStatsPr
         <CardContent>
           <div className="text-2xl font-bold text-blue-600">{pendingReview}</div>
           <p className="text-xs text-muted-foreground">
-            {t("pendingReviewDesc")}
+            {t("billWaitingVerification")}
           </p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{t("verified")}</CardTitle>
+          <CardTitle className="text-sm font-medium">{t("verifiedOrders")}</CardTitle>
           <CheckCircle className="h-4 w-4 text-green-600" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-green-600">{verified}</div>
-          <p className="text-xs text-muted-foreground">{t("verifiedDesc")}</p>
+          <p className="text-xs text-muted-foreground">{t("inventoryUpdated")}</p>
         </CardContent>
       </Card>
 
@@ -139,16 +139,16 @@ export function PurchaseStats({ filteredOrders, filtersActive }: PurchaseStatsPr
           <CardTitle className="text-sm font-medium">
             {filtersActive
               ? t("filteredTotalValue")
-              : t("totalPaidValue")}
+              : t("totalPaidValueMonth")}
           </CardTitle>
           <DollarSign className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{displayTotalValue} DA</div>
+          <div className="text-2xl font-bold">{displayTotalValue} {t("da")}</div>
           <p className="text-xs text-muted-foreground">
             {filtersActive
-              ? t("filteredTotalDesc")
-              : t("totalPaidDesc")}
+              ? t("sumFilteredOrders")
+              : t("paidOrdersMonth")}
           </p>
         </CardContent>
       </Card>

@@ -2,8 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { Plus, Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Plus } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -15,23 +14,23 @@ import { IStock } from "@/lib/apis/stocks";
 
 interface TransferHeaderProps {
   onAddClick: () => void;
-  search: string;
-  setSearch: (search: string) => void;
   statusFilter: string;
   setStatusFilter: (status: string) => void;
-  stockFilter: string;
-  setStockFilter: (stock: string) => void;
+  fromStockFilter: string;
+  setFromStockFilter: (stock: string) => void;
+  toStockFilter: string;
+  setToStockFilter: (stock: string) => void;
   stocks: IStock[];
 }
 
 export function TransferHeader({
   onAddClick,
-  search,
-  setSearch,
   statusFilter,
   setStatusFilter,
-  stockFilter,
-  setStockFilter,
+  fromStockFilter,
+  setFromStockFilter,
+  toStockFilter,
+  setToStockFilter,
   stocks,
 }: TransferHeaderProps) {
   const t = useTranslations("transfers");
@@ -52,17 +51,8 @@ export function TransferHeader({
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder={t("searchPlaceholder")}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
-        </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-[180px]">
+          <SelectTrigger className="flex-1">
             <SelectValue placeholder={t("filterByStatus")} />
           </SelectTrigger>
           <SelectContent>
@@ -71,12 +61,25 @@ export function TransferHeader({
             <SelectItem value="arrived">{t("arrived")}</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={stockFilter} onValueChange={setStockFilter}>
-          <SelectTrigger className="w-full sm:w-[200px]">
-            <SelectValue placeholder={t("filterByStock")} />
+        <Select value={fromStockFilter} onValueChange={setFromStockFilter}>
+          <SelectTrigger className="flex-1">
+            <SelectValue placeholder={t("filterByFromStock")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{t("allStocks")}</SelectItem>
+            <SelectItem value="all">{t("fromAll")}</SelectItem>
+            {stocks.map((stock) => (
+              <SelectItem key={stock._id} value={stock._id}>
+                {stock.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={toStockFilter} onValueChange={setToStockFilter}>
+          <SelectTrigger className="flex-1">
+            <SelectValue placeholder={t("filterByToStock")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("toAll")}</SelectItem>
             {stocks.map((stock) => (
               <SelectItem key={stock._id} value={stock._id}>
                 {stock.name}

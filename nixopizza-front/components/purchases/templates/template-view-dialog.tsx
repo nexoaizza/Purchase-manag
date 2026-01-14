@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { PurchaseTemplateDTO } from "@/lib/apis/purchase-templates";
 import { resolveImage } from "@/lib/resolveImage";
 import { X } from "lucide-react";
-
 import { useTranslations } from "next-intl";
 
 export default function TemplateViewDialog({
@@ -16,8 +15,7 @@ export default function TemplateViewDialog({
   onOpenChange: (v: boolean) => void;
   template: PurchaseTemplateDTO | null;
 }) {
-  const t = useTranslations("templates");
-
+  const t = useTranslations("purchases");
   if (!template) return null;
 
   const supplier = typeof template.supplierId === "object" ? template.supplierId : null;
@@ -56,7 +54,7 @@ export default function TemplateViewDialog({
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                {t("supplierInfo")}
+                {t("supplierInformationLabel")}
               </h4>
               <div className="flex items-center gap-3">
                 {supplier.image && (
@@ -80,7 +78,7 @@ export default function TemplateViewDialog({
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
               </svg>
-              {t("products")} ({template.items.length})
+              {t("productsLabel")} ({template.items.length})
             </h4>
             <div className="space-y-2">
               {template.items.map((item: any, idx: number) => {
@@ -101,12 +99,12 @@ export default function TemplateViewDialog({
                       <p className="font-medium">{product?.name || t("unknownProduct")}</p>
                       {product?.barcode && (
                         <p className="text-sm text-muted-foreground">
-                          {t("barcode")}: {product.barcode}
+                          {t("barcodeLabel")}: {product.barcode}
                         </p>
                       )}
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-muted-foreground">{t("quantity")}</p>
+                      <p className="text-sm text-muted-foreground">{t("quantityLabel")}</p>
                       <p className="text-lg font-semibold">{item.quantity}</p>
                     </div>
                   </div>
@@ -118,7 +116,7 @@ export default function TemplateViewDialog({
 
         <div className="flex justify-end pt-4 border-t">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t("close")}
+            {t("closeButton")}
           </Button>
         </div>
       </DialogContent>

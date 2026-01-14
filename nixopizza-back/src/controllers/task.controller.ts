@@ -62,7 +62,7 @@ export const getTasks = async (req: Request, res: Response) => {
 
     const skip = (Number(page) - 1) * Number(limit);
 
-    const tasks = await Task.find()
+    const tasks = await Task.find(query)
       .populate("staffId", "fullname avatar email")
       .sort({ [sortField]: sortOrder })
       .skip(skip)

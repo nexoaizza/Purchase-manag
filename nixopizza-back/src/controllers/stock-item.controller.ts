@@ -290,26 +290,36 @@ export const getExpiredStockItems = async (req: Request, res: Response): Promise
       return;
     }
 
-    const skip = (Number(page) - 1) * Number(limit);
     const now = new Date();
 
-    const stockItems = await StockItem.find({
-      expireAt: { $lte: now },
-    })
+    // Get all stock items with product populated
+    const allStockItems = await StockItem.find()
       .populate("product")
       .populate("stock")
-      .sort({ expireAt: 1 })
-      .skip(skip)
-      .limit(Number(limit));
+      .sort({ createdAt: 1 });
 
-    const total = await StockItem.countDocuments({
-      expireAt: { $lte: now },
+    // Filter items that are expired based on expectedLifeTime
+    const expiredItems = allStockItems.filter((item: any) => {
+      if (!item.product || !item.product.expectedLifeTime || item.product.expectedLifeTime <= 0) {
+        return false; // Skip items without expectedLifeTime
+      }
+      
+      const createdAt = new Date(item.createdAt);
+      const expectedLifeTimeDays = item.product.expectedLifeTime;
+      const expirationDate = new Date(createdAt);
+      expirationDate.setDate(expirationDate.getDate() + expectedLifeTimeDays);
+      
+      return now > expirationDate; // Expired if current date is past expiration
     });
 
+    // Apply pagination
+    const skip = (Number(page) - 1) * Number(limit);
+    const paginatedItems = expiredItems.slice(skip, skip + Number(limit));
+
     res.status(200).json({
-      total,
-      pages: Math.ceil(total / Number(limit)),
-      stockItems,
+      total: expiredItems.length,
+      pages: Math.ceil(expiredItems.length / Number(limit)),
+      stockItems: paginatedItems,
     });
   } catch (error: any) {
     console.error("Get expired stock items error:", error);
@@ -320,35 +330,49 @@ export const getExpiredStockItems = async (req: Request, res: Response): Promise
 // GET EXPIRING SOON ITEMS
 export const getExpiringSoonStockItems = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { days = 7, page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 10 } = req.query;
 
     if (Number(page) < 1 || Number(limit) < 1) {
       res.status(400).json({ message: "Page and limit must be greater than 0" });
       return;
     }
 
-    const skip = (Number(page) - 1) * Number(limit);
     const now = new Date();
-    const futureDate = new Date();
-    futureDate.setDate(futureDate.getDate() + Number(days));
 
-    const stockItems = await StockItem.find({
-      expireAt: { $gt: now, $lte: futureDate },
-    })
+    // Get all stock items with product populated
+    const allStockItems = await StockItem.find()
       .populate("product")
       .populate("stock")
-      .sort({ expireAt: 1 })
-      .skip(skip)
-      .limit(Number(limit));
+      .sort({ createdAt: 1 });
 
-    const total = await StockItem.countDocuments({
-      expireAt: { $gt: now, $lte: futureDate },
+    // Filter items that are expiring soon (>70% of lifetime passed but not yet expired)
+    const expiringSoonItems = allStockItems.filter((item: any) => {
+      if (!item.product || !item.product.expectedLifeTime || item.product.expectedLifeTime <= 0) {
+        return false; // Skip items without expectedLifeTime
+      }
+      
+      const createdAt = new Date(item.createdAt);
+      const expectedLifeTimeDays = item.product.expectedLifeTime;
+      const expirationDate = new Date(createdAt);
+      expirationDate.setDate(expirationDate.getDate() + expectedLifeTimeDays);
+      
+      // Calculate how much time has passed
+      const timeElapsedMs = now.getTime() - createdAt.getTime();
+      const totalLifetimeMs = expectedLifeTimeDays * 24 * 60 * 60 * 1000;
+      const percentagePassed = timeElapsedMs / totalLifetimeMs;
+      
+      // Expiring soon if >70% passed and not yet expired
+      return percentagePassed > 0.7 && now <= expirationDate;
     });
 
+    // Apply pagination
+    const skip = (Number(page) - 1) * Number(limit);
+    const paginatedItems = expiringSoonItems.slice(skip, skip + Number(limit));
+
     res.status(200).json({
-      total,
-      pages: Math.ceil(total / Number(limit)),
-      stockItems,
+      total: expiringSoonItems.length,
+      pages: Math.ceil(expiringSoonItems.length / Number(limit)),
+      stockItems: paginatedItems,
     });
   } catch (error: any) {
     console.error("Get expiring soon stock items error:", error);

@@ -10,6 +10,7 @@ import { ISupplier } from "@/app/[locale]/dashboard/suppliers/page";
 import { getProducts } from "@/lib/apis/products";
 import toast from "react-hot-toast";
 import { createTemplate, updateTemplate, PurchaseTemplateDTO } from "@/lib/apis/purchase-templates";
+import { useTranslations } from "next-intl";
 
 type Product = {
   _id: string;
@@ -22,8 +23,6 @@ type Product = {
 
 type Item = { productId: string; quantity: number; product?: Product | null };
 
-import { useTranslations } from "next-intl";
-
 export default function TemplateEditorDialog({
   open,
   onOpenChange,
@@ -35,7 +34,7 @@ export default function TemplateEditorDialog({
   onSaved: (tpl: PurchaseTemplateDTO) => void;
   initial?: PurchaseTemplateDTO | null;
 }) {
-  const t = useTranslations("templates");
+  const t = useTranslations("purchases");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [items, setItems] = useState<Item[]>([{ productId: "", quantity: 1, product: null }]);
@@ -85,28 +84,28 @@ export default function TemplateEditorDialog({
   const handleSupplierChange = (newSupplier: ISupplier | null) => {
     const hasProducts = items.some((it) => it.productId && it.productId.trim() !== "");
     if (hasProducts && supplier && newSupplier?._id !== supplier._id) {
-      toast.error(t("supplierChangeWarning"));
+      toast.error(t("removeProductsBeforeSupplierChange"));
       return;
     }
     setSupplier(newSupplier);
   };
 
   const onSubmit = async () => {
-    if (!name.trim()) return toast.error(t("nameRequired"));
-    if (!supplier) return toast.error(t("supplierRequired"));
+    if (!name.trim()) return toast.error(t("templateNameRequired"));
+    if (!supplier) return toast.error(t("selectSupplierRequired"));
     if (!items.length || items.some((i) => !i.productId || i.quantity < 0)) {
-      return toast.error(t("itemsRequired"));
+      return toast.error(t("addItemsError"));
     }
     setLoading(true);
     try {
       const payload = { name: name.trim(), description: description.trim(), supplierId: supplier._id, items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })) };
       const res = initial?._id ? await updateTemplate(initial._id, payload) : await createTemplate(payload);
       if (res.success && res.template) {
-        toast.success(initial?._id ? t("updateSuccess") : t("createSuccess"));
+        toast.success(initial?._id ? t("templateUpdated") : t("templateCreated"));
         onSaved(res.template);
         onOpenChange(false);
       } else {
-        toast.error(res.message || t("saveError"));
+        toast.error(res.message || t("failedSaveTemplate"));
       }
     } finally {
       setLoading(false);
@@ -118,25 +117,25 @@ export default function TemplateEditorDialog({
       <DialogContent className="sm:max-w-[720px]">
         <DialogHeader>
           <DialogTitle>{initial ? t("editTemplate") : t("createTemplate")}</DialogTitle>
-          <DialogDescription>{t("editorSubtitle")}</DialogDescription>
+          <DialogDescription>{t("templateEditorDescription")}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>{t("name")}</Label>
+              <Label>{t("nameLabel")}</Label>
               <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("namePlaceholder")} />
             </div>
             <div className="space-y-2">
-              <Label>{t("description")}</Label>
+              <Label>{t("descriptionLabel")}</Label>
               <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t("descriptionPlaceholder")} />
             </div>
           </div>
           <div className="space-y-2">
-            <Label>{t("supplier")}</Label>
+            <Label>{t("supplierLabel")}</Label>
             <SupplierSelect selectedSupplier={supplier} onSupplierChange={handleSupplierChange} placeholder={t("selectSupplier")} />
           </div>
           <div className="space-y-2">
-            <Label>{t("items")}</Label>
+            <Label>{t("itemsLabel")}</Label>
             <div className="space-y-3">
               {items.map((it, idx) => (
                 <div key={idx} className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
@@ -154,7 +153,7 @@ export default function TemplateEditorDialog({
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <Label className="text-xs">{t("quantity")}</Label>
+                    <Label className="text-xs">{t("quantityLabel")}</Label>
                     <Input
                       type="number"
                       min={0}
@@ -165,9 +164,9 @@ export default function TemplateEditorDialog({
                     />
                   </div>
                   <div className="flex gap-2">
-                    <Button type="button" variant="outline" onClick={() => removeRow(idx)} disabled={items.length <= 1}>{t("remove")}</Button>
+                    <Button type="button" variant="outline" onClick={() => removeRow(idx)} disabled={items.length <= 1}>{t("removeButton")}</Button>
                     {idx === items.length - 1 && (
-                      <Button type="button" variant="secondary" onClick={addRow}>{t("add")}</Button>
+                      <Button type="button" variant="secondary" onClick={addRow}>{t("addButton")}</Button>
                     )}
                   </div>
                 </div>
@@ -176,7 +175,7 @@ export default function TemplateEditorDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>{t("cancel")}</Button>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>{t("cancelButton")}</Button>
           <Button type="button" onClick={onSubmit} disabled={loading}>{initial ? t("saveChanges") : t("createTemplate")}</Button>
         </DialogFooter>
       </DialogContent>

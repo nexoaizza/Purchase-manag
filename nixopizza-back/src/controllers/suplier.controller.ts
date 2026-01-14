@@ -16,10 +16,51 @@ const normalizeEmail = (value: any): string | undefined => {
 /**
  * GET /api/suppliers
  */
-export const getSuppliers = async (_req: Request, res: Response): Promise<void> => {
+export const getSuppliers = async (req: Request, res: Response): Promise<void> => {
   try {
-    const suppliers = await Supplier.find().sort({ createdAt: -1 });
-    res.status(200).json({ suppliers });
+    const { name, status, categoryIds, page = 1, limit = 10 } = req.query;
+
+    // Build filter query
+    const filter: any = {};
+
+    // Filter by name (case-insensitive search)
+    if (name && typeof name === 'string') {
+      filter.name = { $regex: name, $options: 'i' };
+    }
+
+    // Filter by status (active/inactive)
+    if (status && status !== 'all') {
+      filter.isActive = status === 'active';
+    }
+
+    // Filter by categories
+    if (categoryIds && typeof categoryIds === 'string') {
+      const categoryIdArray = categoryIds.split(',').filter(Boolean);
+      if (categoryIdArray.length > 0) {
+        filter.categoryIds = { $in: categoryIdArray };
+      }
+    }
+
+    // Calculate pagination
+    const pageNum = parseInt(page as string, 10) || 1;
+    const limitNum = parseInt(limit as string, 10) || 10;
+    const skip = (pageNum - 1) * limitNum;
+
+    // Get total count and suppliers
+    const totalSuppliers = await Supplier.countDocuments(filter);
+    const suppliers = await Supplier.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum);
+
+    const totalPages = Math.ceil(totalSuppliers / limitNum);
+
+    res.status(200).json({ 
+      suppliers, 
+      pages: totalPages,
+      total: totalSuppliers,
+      currentPage: pageNum
+    });
   } catch (e: any) {
     res.status(500).json({ message: "Internal server error", error: e.message });
   }

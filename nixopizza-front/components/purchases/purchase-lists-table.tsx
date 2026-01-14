@@ -85,6 +85,27 @@ export function PurchaseListsTable({
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "not assigned":
+        return t("statusNotAssigned");
+      case "assigned":
+        return t("statusAssigned");
+      case "pending_review":
+        return t("statusPendingReview");
+      case "verified":
+        return t("statusVerified");
+      case "paid":
+        return t("statusPaid");
+      case "pending":
+        return t("statusPending");
+      case "canceled":
+        return t("statusCanceled");
+      default:
+        return status;
+    }
+  };
+
   const handleOrderUpdated = (updatedOrder: IOrder) => {
     setPurchaseOrders(prevOrders =>
       prevOrders.map(ord => (ord._id === updatedOrder._id ? updatedOrder : ord))
@@ -93,7 +114,7 @@ export function PurchaseListsTable({
 
   const handleCancelOrder = async (order: IOrder) => {
     if (!["not assigned", "assigned", "pending_review"].includes(order.status)) {
-      toast.error("You can only cancel before verification.");
+      toast.error(t("canOnlyCancelBeforeVerification"));
       return;
     }
     setIsCancelLoading(true);
@@ -103,13 +124,13 @@ export function PurchaseListsTable({
         canceledDate: new Date().toISOString(),
       });
       if (success && updated) {
-        toast.success("Order canceled");
+        toast.success(t("canceledSuccessfully"));
         handleOrderUpdated(updated);
       } else {
-        toast.error(message || "Failed to cancel order");
+        toast.error(message || t("failedToCancelOrder"));
       }
     } catch {
-      toast.error("Error canceling order");
+      toast.error(t("errorCancelingOrder"));
     } finally {
       setIsCancelLoading(false);
     }
@@ -142,7 +163,7 @@ export function PurchaseListsTable({
               className="gap-2"
             >
               <UserPlus className="h-3 w-3" />
-              Assign
+              {t("assignButton")}
             </Button>
             <Button
               size="sm"
@@ -152,7 +173,7 @@ export function PurchaseListsTable({
               onClick={() => handleCancelOrder(order)}
             >
               <XCircle className="h-3 w-3" />
-              {isCancelLoading ? "Canceling..." : "Cancel"}
+              {isCancelLoading ? t("cancelingButton") : t("cancelButton")}
             </Button>
           </div>
         );
@@ -168,7 +189,7 @@ export function PurchaseListsTable({
               }}
             >
               <CheckCircle className="h-3 w-3" />
-              Submit Bill
+              {t("submitBillButton")}
             </Button>
             <Button
               size="sm"
@@ -178,7 +199,7 @@ export function PurchaseListsTable({
               onClick={() => handleCancelOrder(order)}
             >
               <XCircle className="h-3 w-3" />
-              {isCancelLoading ? "Canceling..." : "Cancel"}
+              {isCancelLoading ? t("cancelingButton") : t("cancelButton")}
             </Button>
           </div>
         );
@@ -194,7 +215,7 @@ export function PurchaseListsTable({
               }}
             >
               <CheckCircle className="h-3 w-3" />
-              Verify
+              {t("verifyButton")}
             </Button>
             <Button
               size="sm"
@@ -204,11 +225,11 @@ export function PurchaseListsTable({
               onClick={() => handleCancelOrder(order)}
             >
               <XCircle className="h-3 w-3" />
-              {isCancelLoading ? "Canceling..." : "Cancel"}
+              {isCancelLoading ? t("cancelingButton") : t("cancelButton")}
             </Button>
           </div>
         ) : (
-          <Badge variant="outline">Waiting Verification</Badge>
+          <Badge variant="outline">{t("waitingVerification")}</Badge>
         );
       case "verified":
         return (
@@ -221,20 +242,20 @@ export function PurchaseListsTable({
             }}
           >
             <DollarSign className="h-3 w-3" />
-            Mark Paid
+            {t("markPaidButton")}
           </Button>
         );
       case "paid":
         return (
           <Badge variant="outline" className="gap-1">
             <CheckCircle className="h-3 w-3" />
-            Paid
+            {t("paidBadge")}
           </Badge>
         );
       case "canceled":
         return (
           <Badge variant="destructive" className="gap-1">
-            Canceled
+            {t("canceledBadge")}
           </Badge>
         );
       default:
@@ -274,14 +295,14 @@ export function PurchaseListsTable({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Order ID</TableHead>
-                  <TableHead>Supplier</TableHead>
-                  <TableHead>Staff</TableHead>
-                  <TableHead>Items</TableHead>
-                  <TableHead>Total Value</TableHead>
-                  <TableHead>Last Update</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Action</TableHead>
+                  <TableHead>{t("orderIdHeader")}</TableHead>
+                  <TableHead>{t("supplierHeader")}</TableHead>
+                  <TableHead>{t("staffHeader")}</TableHead>
+                  <TableHead>{t("itemsHeader")}</TableHead>
+                  <TableHead>{t("totalValueHeader")}</TableHead>
+                  <TableHead>{t("lastUpdateHeader")}</TableHead>
+                  <TableHead>{t("statusHeader")}</TableHead>
+                  <TableHead>{t("actionHeader")}</TableHead>
                   <TableHead></TableHead>
                   <TableHead></TableHead>
                 </TableRow>
@@ -360,7 +381,7 @@ export function PurchaseListsTable({
                     </TableCell>
                     <TableCell>
                       <Badge variant={getStatusColor(order.status) as any}>
-                        {order.status}
+                        {getStatusLabel(order.status)}
                       </Badge>
                     </TableCell>
                     <TableCell>{getStatusAction(order)}</TableCell>
@@ -373,7 +394,7 @@ export function PurchaseListsTable({
                             setSelectedOrder(order);
                             setIsReceiptDialogOpen(true);
                           }}
-                          title="Preview Receipt"
+                          title={t("previewReceipt")}
                         >
                           <Receipt className="h-4 w-4" />
                         </Button>

@@ -50,9 +50,9 @@ export function WasteStockItemDialog({
     if (wasteQuantity && stockItem) {
       const quantity = Number(wasteQuantity);
       if (quantity <= 0) {
-        setQuantityError("Quantity must be greater than 0");
+        setQuantityError(t("quantityGreaterThanZero"));
       } else if (quantity > stockItem.quantity) {
-        setQuantityError(`Quantity cannot exceed ${stockItem.quantity}`);
+        setQuantityError(`${t("quantityCannotExceed")} ${stockItem.quantity}`);
       } else {
         setQuantityError("");
       }
@@ -65,13 +65,13 @@ export function WasteStockItemDialog({
     e.preventDefault();
 
     if (!stockItem || !reason.trim() || !wasteQuantity) {
-      toast.error("Please fill in all required fields");
+      toast.error(t("fillAllFields"));
       return;
     }
 
     const quantity = Number(wasteQuantity);
     if (quantity <= 0 || quantity > stockItem.quantity) {
-      toast.error(`Waste quantity must be between 1 and ${stockItem.quantity}`);
+      toast.error(`${t("wasteQuantityError")} ${stockItem.quantity}`);
       return;
     }
 
@@ -99,12 +99,12 @@ export function WasteStockItemDialog({
       const { success: deleteSuccess, message: deleteMessage } = await deleteStockItem(stockItem._id);
 
       if (!deleteSuccess) {
-        toast.error(deleteMessage || "Failed to remove stock item");
+        toast.error(deleteMessage || t("fillAllFields"));
         setLoading(false);
         return;
       }
 
-      toast.success("Stock item marked as waste successfully");
+      toast.success(t("markAsWaste"));
       onStockItemWasted();
       onOpenChange(false);
     } catch (error) {
@@ -129,7 +129,7 @@ export function WasteStockItemDialog({
             {t("wasteStockItem")}
           </DialogTitle>
           <DialogDescription>
-            Record this stock item as waste. This action will remove it from inventory.
+            {t("wasteDescription")}
           </DialogDescription>
         </DialogHeader>
 
@@ -189,7 +189,7 @@ export function WasteStockItemDialog({
                 id="reason"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder="e.g., Expired, Damaged, Spoiled..."
+                placeholder={t("wasteReasonPlaceholder")}
                 rows={3}
                 required
               />
@@ -199,11 +199,10 @@ export function WasteStockItemDialog({
             <div className="rounded-lg bg-destructive/10 p-4 space-y-2">
               <div className="flex items-center gap-2 text-sm font-medium text-destructive">
                 <AlertTriangle className="h-4 w-4" />
-                Warning
+                {t("warningTitle")}
               </div>
               <p className="text-sm text-muted-foreground">
-                This will permanently remove the stock item from your inventory and record it as waste.
-                This action cannot be undone.
+                {t("wasteWarningMessage")}
               </p>
             </div>
           </div>

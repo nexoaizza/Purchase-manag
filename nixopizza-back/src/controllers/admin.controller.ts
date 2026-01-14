@@ -14,7 +14,7 @@ function buildBlobKey(originalName: string) {
 /** GET /api/admin/staffs */
 export const getAllStaff = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, page = 1, limit = 10 } = req.query;
+    const { name, status, page = 1, limit = 10 } = req.query;
     if (Number(page) < 1 || Number(limit) < 1) {
       res.status(400).json({ message: "Page and limit must be greater than 0" });
       return;
@@ -22,6 +22,9 @@ export const getAllStaff = async (req: Request, res: Response): Promise<void> =>
     const query: any = {};
     if (name) {
       query.fullname = { $regex: name.toString(), $options: "i" };
+    }
+    if (status && status !== 'all') {
+      query.isActive = status === 'active';
     }
     const skip = (Number(page) - 1) * Number(limit);
     const limitNum = Number(limit);

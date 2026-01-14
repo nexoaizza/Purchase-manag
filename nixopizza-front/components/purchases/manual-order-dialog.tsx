@@ -65,7 +65,6 @@ export function ManualOrderDialog({
   ]);
   const [notes, setNotes] = useState("");
   const [expectedDate, setExpectedDate] = useState<string>("");
-  const [expectedTime, setExpectedTime] = useState<string>("");
   const [billFile, setBillFile] = useState<File | null>(null);
   const [billPreview, setBillPreview] = useState<string | null>(null);
   const [openLoadTpl, setOpenLoadTpl] = useState(false);
@@ -194,11 +193,11 @@ export function ManualOrderDialog({
     e.preventDefault();
 
     if (!selectedSupplier) {
-      setError("Please select a supplier");
+      setError(t("selectSupplierError"));
       return;
     }
     if (orderItems.length === 0) {
-      setError("Please add at least one order item");
+      setError(t("addItemError"));
       return;
     }
     // Validate quantities and product selections before submit
@@ -212,12 +211,12 @@ export function ManualOrderDialog({
       )
     ) {
       setError(
-        "Please enter valid quantities (> 0) and select products for all items"
+        t("validQuantityError")
       );
       return;
     }
     if (orderItems.some((item) => !item.productId)) {
-      setError("Please select products for all order items");
+      setError(t("selectProductsError"));
       return;
     }
 
@@ -230,13 +229,9 @@ export function ManualOrderDialog({
       dataToSend.append("notes", notes);
 
       if (expectedDate) {
-        let finalExpectedDate = expectedDate;
-        if (expectedTime) {
-          finalExpectedDate = `${expectedDate}T${expectedTime}`;
-        }
         dataToSend.append(
           "expectedDate",
-          new Date(finalExpectedDate).toISOString()
+          new Date(expectedDate).toISOString()
         );
       }
 
@@ -257,15 +252,15 @@ export function ManualOrderDialog({
       const { success, message, order } = await createOrder(dataToSend);
       if (success) {
         addNewOrder(order);
-        toast.success("Order created successfully");
+        toast.success(t("orderCreatedSuccess"));
         resetForm();
         setOpen(false);
       } else {
-        setError(message || "Failed to create order. Please try again.");
+        setError(message || t("unexpectedError"));
       }
     } catch (err) {
       console.error("Error creating order:", err);
-      setError("An unexpected error occurred. Please try again.");
+      setError(t("unexpectedError"));
     } finally {
       setIsSubmitting(false);
     }
@@ -280,7 +275,6 @@ export function ManualOrderDialog({
     setFilteredProducts([]);
     setNotes("");
     setExpectedDate("");
-    setExpectedTime("");
     setBillFile(null);
     setBillPreview(null);
     setError(null);
@@ -296,17 +290,17 @@ export function ManualOrderDialog({
       <DialogTrigger asChild>
         <Button variant="default" className="gap-2 rounded-full">
           <Plus className="h-4 w-4" />
-          Manual Order
+          {t("manualOrder")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-heading flex items-center gap-2 text-xl">
             <Package className="h-5 w-5" />
-            Create Manual Order
+            {t("createManualOrder")}
           </DialogTitle>
           <DialogDescription>
-            Create a custom purchase order by selecting supplier and products.
+            {t("createCustomOrder")}
           </DialogDescription>
         </DialogHeader>
 
@@ -320,7 +314,7 @@ export function ManualOrderDialog({
         {isLoadingProducts && (
           <div className="bg-blue-50 text-blue-700 px-4 py-3 rounded-lg flex items-center gap-2 border border-blue-200">
             <Loader2 className="h-4 w-4 animate-spin" />
-            <span className="text-sm">Loading products...</span>
+            <span className="text-sm">{t("loadingProducts")}</span>
           </div>
         )}
 
@@ -328,26 +322,24 @@ export function ManualOrderDialog({
           {/* Supplier Selection */}
             <div className="space-y-2">
               <Label htmlFor="supplier" className="text-sm font-medium">
-                Supplier *
+                {t("supplierRequired")}
               </Label>
               <SupplierSelect
                 selectedSupplier={selectedSupplier}
                 onSupplierChange={handleSupplierChange}
-                placeholder="Select a supplier"
+                placeholder={t("selectSupplier")}
                 className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg"
               />
               {selectedSupplier && (
                 <div className="text-sm text-muted-foreground mt-2">
-                  Contact: {selectedSupplier.phone1} • {selectedSupplier.email}
+                  {t("contactInfo")}: {selectedSupplier.phone1} • {selectedSupplier.email}
                 </div>
               )}
               {selectedSupplier && filteredProducts.length === 0 && (
                 <div className="bg-yellow-50 text-yellow-700 px-4 py-3 rounded-lg flex items-center gap-2 border border-yellow-200 mt-2">
                   <AlertCircle className="h-4 w-4" />
                   <span className="text-sm">
-                    No products available for this supplier's categories. Please
-                    select another supplier or add products to matching
-                    categories.
+                    {t("noProductsAvailable")}
                   </span>
                 </div>
               )}
@@ -358,7 +350,7 @@ export function ManualOrderDialog({
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <CardTitle className="font-heading text-lg">
-                  Order Items
+                  {t("orderItemsTitle")}
                 </CardTitle>
                 <Button
                   type="button"
@@ -373,19 +365,19 @@ export function ManualOrderDialog({
                   className="gap-2 rounded-full border-2 border-input"
                 >
                   <Plus className="h-4 w-4" />
-                  Add Item
+                  {t("addItemButtonText")}
                 </Button>
                 <Button
                   type="button"
                   variant="secondary"
                   size="sm"
                   onClick={() => {
-                    if (!selectedSupplier) return toast.error("Select a supplier first");
+                    if (!selectedSupplier) return toast.error(t("selectSupplierFirst"));
                     setOpenLoadTpl(true);
                   }}
                   className="gap-2 rounded-full border-2 border-input"
                 >
-                  Load Template
+                  {t("loadTemplateButton")}
                 </Button>
               </div>
             </CardHeader>
@@ -398,7 +390,7 @@ export function ManualOrderDialog({
                       className="flex flex-col sm:flex-row items-start sm:items-end gap-4 p-4 border rounded-xl bg-card"
                     >
                       <div className="flex-1 space-y-2">
-                        <Label className="text-sm font-medium">Product *</Label>
+                        <Label className="text-sm font-medium">{t("productRequired")}</Label>
                         <ProductSelect
                           products={filteredProducts}
                           selectedProduct={selectedProducts[index] || null}
@@ -408,9 +400,9 @@ export function ManualOrderDialog({
                           placeholder={
                             selectedSupplier
                               ? filteredProducts.length > 0
-                                ? "Select product"
-                                : "No products available"
-                              : "Select supplier first"
+                                ? t("selectProductPlaceholder")
+                                : t("noProductsAvailablePlaceholder")
+                              : t("selectSupplierFirstPlaceholder")
                           }
                           className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg"
                           disabled={
@@ -420,7 +412,7 @@ export function ManualOrderDialog({
                       </div>
                       <div className="w-full sm:w-24 space-y-2">
                         <Label className="text-sm font-medium">
-                          Quantity *
+                          {t("quantityRequired")}
                         </Label>
                         <Input
                           type="number"
@@ -437,7 +429,7 @@ export function ManualOrderDialog({
 
                       {/* OPTIONAL: Re-enable Unit Price so totalAmount is meaningful */}
                       {/* <div className="w-full sm:w-28 space-y-2">
-                        <Label className="text-sm font-medium">Unit Price *</Label>
+                        <Label className="text-sm font-medium">{t("unitPriceRequired")}</Label>
                         <Input
                           type="number"
                           step="0.01"
@@ -456,7 +448,7 @@ export function ManualOrderDialog({
 
                       <div className="w-full sm:w-28 space-y-2">
                         <Label className="text-sm font-medium">
-                          Expiry Date *
+                          {t("expiryDateRequired")}
                         </Label>
                         <Input
                           type="date"
@@ -497,42 +489,28 @@ export function ManualOrderDialog({
           {/* Bill Upload (currently commented out in original) */}
           {/* You can re-enable if needed; now uses billPreview object URL directly */}
 
-          {/* Expected Date & Time */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="expectedDate" className="text-sm font-medium">
-                {t("expectedDateLabel")} ({t("optional")})
-              </Label>
-              <Input
-                id="expectedDate"
-                type="date"
-                value={expectedDate}
-                onChange={(e) => setExpectedDate(e.target.value)}
-                className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="expectedTime" className="text-sm font-medium">
-                {t("expectedTimeLabel")} ({t("optional")})
-              </Label>
-              <Input
-                id="expectedTime"
-                type="time"
-                value={expectedTime}
-                onChange={(e) => setExpectedTime(e.target.value)}
-                className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg"
-              />
-            </div>
+          {/* Expected Date */}
+          <div className="space-y-2">
+            <Label htmlFor="expectedDate" className="text-sm font-medium">
+              {t("expectedDeliveryOptional")}
+            </Label>
+            <Input
+              id="expectedDate"
+              type="date"
+              value={expectedDate}
+              onChange={(e) => setExpectedDate(e.target.value)}
+              className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg"
+            />
           </div>
 
           {/* Notes */}
           <div className="space-y-2">
             <Label htmlFor="notes" className="text-sm font-medium">
-              Notes (Optional)
+              {t("notesOptional")}
             </Label>
             <Textarea
               id="notes"
-              placeholder="Add any special instructions or notes for this order..."
+              placeholder={t("notesPlaceholder")}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
@@ -548,7 +526,7 @@ export function ManualOrderDialog({
               disabled={isSubmitting}
               className="rounded-full px-6"
             >
-              Cancel
+              {t("cancelButton")}
             </Button>
             <Button
               type="submit"
@@ -565,10 +543,10 @@ export function ManualOrderDialog({
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Creating...
+                  {t("creatingOrder")}
                 </>
               ) : (
-                "Create Order"
+                t("createOrderButton")
               )}
             </Button>
           </DialogFooter>
@@ -590,12 +568,12 @@ export function ManualOrderDialog({
                 unitCost: 0,
                 expirationDate: new Date(),
               }));
-            if (!mapped.length) { toast.error("No items from template match this supplier"); return; }
+            if (!mapped.length) { toast.error(t("noTemplateItems")); return; }
             setOrderItems(mapped);
             setSelectedProducts(
               mapped.map((m: IOrderItem) => filteredProducts.find((p: IProduct) => p._id === m.productId) || null)
             );
-            toast.success(`Loaded ${mapped.length} items from template`);
+            toast.success(`${t("loadedTemplate")} ${mapped.length} ${t("templateLoadedCount")}`);
           }}
         />
       </DialogContent>

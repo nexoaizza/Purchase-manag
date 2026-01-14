@@ -84,41 +84,41 @@ export function PurchaseOrderDialog({
 
   const handleVerify = async () => {
     if (order.status !== "pending_review") {
-      toast.error("Order must be pending_review");
+      toast.error(t("orderMustBePendingReview"));
       return;
     }
     setVerifyLoading(true);
     const { success, order: updated, message } = await verifyOrder(order._id);
     if (success && updated) {
-      toast.success("Order verified");
+      toast.success(t("orderVerified"));
       applyUpdate(updated);
       onOpenChange(false);
     } else {
-      toast.error(message || "Failed to verify");
+      toast.error(message || t("failedToVerify"));
     }
     setVerifyLoading(false);
   };
 
   const handleMarkPaid = async () => {
     if (order.status !== "verified") {
-      toast.error("Order must be verified");
+      toast.error(t("orderMustBeVerified"));
       return;
     }
     setPaidLoading(true);
     const { success, order: updated, message } = await markOrderPaid(order._id);
     if (success && updated) {
-      toast.success("Order marked paid");
+      toast.success(t("orderMarkedPaid"));
       applyUpdate(updated);
       onOpenChange(false);
     } else {
-      toast.error(message || "Failed to mark paid");
+      toast.error(message || t("failedToMarkPaid"));
     }
     setPaidLoading(false);
   };
 
   const handleCancel = async () => {
     if (!["not assigned", "assigned", "pending_review"].includes(order.status)) {
-      toast.error("Cannot cancel after verification.");
+      toast.error(t("cannotCancelAfterVerification"));
       return;
     }
     setCancelLoading(true);
@@ -127,11 +127,11 @@ export function PurchaseOrderDialog({
       canceledDate: new Date().toISOString(),
     });
     if (success && updated) {
-      toast.success("Order canceled");
+      toast.success(t("canceledSuccessfully"));
       applyUpdate(updated);
       onOpenChange(false);
     } else {
-      toast.error(message || "Failed to cancel");
+      toast.error(message || t("failedToCancel"));
     }
     setCancelLoading(false);
   };
@@ -146,10 +146,10 @@ export function PurchaseOrderDialog({
           <DialogHeader>
             <DialogTitle className="font-heading flex items-center gap-2">
               <Package className="h-5 w-5" />
-              Purchase Order Details
+              {t("purchaseOrderDetails")}
             </DialogTitle>
             <DialogDescription>
-              Order {order.orderNumber} - {order.supplierId?.name}
+              {t("orderId")} {order.orderNumber} - {order.supplierId?.name}
             </DialogDescription>
           </DialogHeader>
 
@@ -243,7 +243,7 @@ export function PurchaseOrderDialog({
                         order?.supplierId?.phone3}
                     </div>
                     <div className="text-muted-foreground">
-                      Contact: {order.supplierId?.contactPerson || "N/A"}
+                      {t("contact")}: {order.supplierId?.contactPerson || "N/A"}
                     </div>
                   </div>
                 </div>
@@ -302,7 +302,7 @@ export function PurchaseOrderDialog({
               <CardHeader>
                 <CardTitle className="font-heading flex items-center gap-2">
                   <Receipt className="h-5 w-5" />
-                  Bill (Bon)
+                  {t("billBon")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -321,9 +321,9 @@ export function PurchaseOrderDialog({
                         )}
                       </div>
                       <div>
-                        <div className="font-medium">Bill Uploaded</div>
+                        <div className="font-medium">{t("billUploaded")}</div>
                         <div className="text-sm text-muted-foreground">
-                          Click to view or download
+                          {t("downloadReceipt")}
                         </div>
                       </div>
                     </div>
@@ -335,12 +335,12 @@ export function PurchaseOrderDialog({
                       }
                     >
                       <Download className="h-4 w-4" />
-                      View Bill
+                      {t("viewBill")}
                     </Button>
                   </div>
                 ) : (
                   <div className="text-sm text-muted-foreground">
-                    No bill uploaded yet.
+                    {t("noBillUploaded")}
                   </div>
                 )}
               </CardContent>
@@ -350,7 +350,7 @@ export function PurchaseOrderDialog({
             <Card>
               <CardHeader>
                 <CardTitle className="font-heading flex items-center gap-2">
-                  Status History
+                  {t("statusHistory")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -383,7 +383,7 @@ export function PurchaseOrderDialog({
                   </ol>
                 ) : (
                   <p className="text-sm text-muted-foreground">
-                    No status transitions recorded.
+                    {t("noStatusHistory")}
                   </p>
                 )}
               </CardContent>
@@ -401,7 +401,7 @@ export function PurchaseOrderDialog({
                   onClick={handleCancel}
                 >
                   <XCircle className="h-4 w-4" />
-                  {cancelLoading ? "Canceling..." : "Cancel"}
+                  {cancelLoading ? t("cancelingOrder") : t("cancel")}
                 </Button>
               )}
 
@@ -411,7 +411,7 @@ export function PurchaseOrderDialog({
                   onClick={() => setSubmitDialogOpen(true)}
                 >
                   <CheckCircle className="h-4 w-4" />
-                  Submit Bill (Review)
+                  {t("submitBillReview")}
                 </Button>
               )}
 
@@ -424,12 +424,12 @@ export function PurchaseOrderDialog({
                   {verifyLoading ? (
                     <>
                       <ShieldCheck className="h-4 w-4 animate-spin" />
-                      Verifying...
+                      {t("verifyingOrder")}
                     </>
                   ) : (
                     <>
                       <ShieldCheck className="h-4 w-4" />
-                      Verify Order
+                      {t("verifyOrder")}
                     </>
                   )}
                 </Button>
@@ -444,12 +444,12 @@ export function PurchaseOrderDialog({
                   {paidLoading ? (
                     <>
                       <DollarSign className="h-4 w-4 animate-spin" />
-                      Marking...
+                      {t("markingPaid")}
                     </>
                   ) : (
                     <>
                       <DollarSign className="h-4 w-4" />
-                      Mark Paid
+                      {t("markPaidButton")}
                     </>
                   )}
                 </Button>
@@ -465,7 +465,7 @@ export function PurchaseOrderDialog({
               {order.status === "canceled" && (
                 <Button variant="outline" disabled className="gap-2">
                   <XCircle className="h-4 w-4" />
-                  Order Canceled
+                  {t("orderCanceled")}
                 </Button>
               )}
             </div>

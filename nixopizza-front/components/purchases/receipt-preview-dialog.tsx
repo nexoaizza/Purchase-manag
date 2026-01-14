@@ -255,7 +255,7 @@ export function ReceiptPreviewDialog({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto print:max-w-none print:max-h-none print:m-0 print:p-0">
         <DialogHeader className="print:hidden">
           <DialogTitle className="font-heading text-xl">
-            {t("purchaseOrders")}
+            {t("purchaseOrder")}
           </DialogTitle>
           <DialogDescription className="sr-only">
             Preview of purchase order receipt for download or printing
@@ -269,7 +269,7 @@ export function ReceiptPreviewDialog({
           {/* Header */}
           <div className="text-center space-y-2 print:space-y-1">
             <h1 className="text-2xl font-bold font-heading print:text-xl">
-              {t("purchaseOrders")}
+              {t("purchaseOrder")}
             </h1>
             <p className="text-muted-foreground print:text-sm">
               {t("orderId")} #{order?.orderNumber}
@@ -281,21 +281,21 @@ export function ReceiptPreviewDialog({
             <div className="space-y-2">
               <div className="flex items-center gap-2 font-heading font-semibold print:text-sm">
                 <Package className="h-4 w-4" />
-                <h3>{t("orderSummary")}</h3>
+                <h3>{t("orderInformation")}</h3>
               </div>
               <div className="text-sm space-y-1 print:text-xs">
                 <p className="flex">
-                  <span className="font-medium w-24">{t("orderId")}:</span>
-                  <span>{order?.orderNumber}</span>
+                  <span className="font-medium w-24">{t("orderIdLabel")}:</span>
+                  <span>{order.orderNumber}</span>
                 </p>
                 <p className="flex">
-                  <span className="font-medium w-24">Date:</span>
+                  <span className="font-medium w-24">{t("dateLabel")}:</span>
                   <span>
-                    {new Date(order?.createdAt).toLocaleDateString("en-GB")}
+                    {new Date(order.createdAt).toLocaleDateString("en-GB")}
                   </span>
                 </p>
                 <p className="flex">
-                  <span className="font-medium w-24">Status:</span>
+                  <span className="font-medium w-24">{t("statusLabelInfo")}:</span>
                   <span
                     className={`font-semibold ${
                       order.status === "paid"
@@ -407,9 +407,9 @@ export function ReceiptPreviewDialog({
 
           {/* Footer */}
           <div className="text-center text-sm text-muted-foreground pt-4 border-t print:border-t print:border-gray-200 print:pt-2">
-            <p className="print:text-xs">{t("thankYou")}</p>
+            <p className="print:text-xs">{t("thankYouBusiness")}</p>
             <p className="print:text-xs">
-              Generated on {new Date().toLocaleDateString()}
+              {t("generatedOn")} {new Date().toLocaleDateString()}
             </p>
           </div>
         </div>
@@ -432,7 +432,7 @@ export function ReceiptPreviewDialog({
                 disabled={loading}
               >
                 <Download className="h-4 w-4" />
-                {loading ? t("generating") : t("downloadPDF")}
+                {loading ? t("generatingPDF") : t("downloadPDF")}
               </Button>
             )}
           </PDFDownloadLink>

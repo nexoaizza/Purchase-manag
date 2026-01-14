@@ -12,6 +12,8 @@ export interface IStockItem {
     name: string;
     imageUrl: string;
     unit: string;
+    expectedLifeTime?: number;
+    createdAt: Date;
   };
   price: number;
   quantity: number;

@@ -15,12 +15,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, Upload } from "lucide-react";
 import toast from "react-hot-toast";
 import { createStuff } from "@/lib/apis/stuff";
+import { useTranslations } from "next-intl";
 
 interface AddStuffDialogProps {
   addNewStuff: (s: any) => void;
 }
 
 export function AddStuffDialog({ addNewStuff }: AddStuffDialogProps) {
+  const t = useTranslations("staff");
   const [open, setOpen] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
@@ -44,11 +46,11 @@ export function AddStuffDialog({ addNewStuff }: AddStuffDialogProps) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      toast.error("Please select a valid image");
+      toast.error(t("selectValidImage"));
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image exceeds 5MB");
+      toast.error(t("imageExceeds5MB"));
       return;
     }
     setFormData((prev) => ({ ...prev, avatar: file }));
@@ -75,7 +77,7 @@ export function AddStuffDialog({ addNewStuff }: AddStuffDialogProps) {
 
   const handleCreateStuff = async () => {
     if (!formData.fullname || !formData.email || !formData.password) {
-      toast.error("Fullname, email & password are required");
+      toast.error(t("fullnameEmailPasswordRequired"));
       return;
     }
     const payload = new FormData();
@@ -93,7 +95,7 @@ export function AddStuffDialog({ addNewStuff }: AddStuffDialogProps) {
     const data = await createStuff(payload);
     if (data.success) {
       addNewStuff(data.staff);
-      toast.success("Staff member added!");
+      toast.success(t("staffMemberAdded"));
       setOpen(false);
       resetForm();
     } else {
@@ -112,21 +114,21 @@ export function AddStuffDialog({ addNewStuff }: AddStuffDialogProps) {
       <DialogTrigger asChild>
         <Button className="gap-2">
           <Plus className="h-4 w-4" />
-          Add Staff
+          {t("addStaffButton")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-heading">Add New Staff Member</DialogTitle>
+          <DialogTitle className="font-heading">{t("addStaffTitle")}</DialogTitle>
           <DialogDescription>
-            Fill in the details below to add a new team member.
+            {t("addStaffDescriptionText")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
           {/* Avatar Upload */}
           <div className="space-y-2">
-            <Label>Profile Picture</Label>
+            <Label>{t("profilePicture")}</Label>
             <label
               htmlFor="staff-avatar"
               className="flex flex-col items-center justify-center gap-3 p-6 border-2 border-dashed border-muted-foreground/25 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
@@ -142,7 +144,7 @@ export function AddStuffDialog({ addNewStuff }: AddStuffDialogProps) {
                   <div className="p-3 bg-primary/10 rounded-full">
                     <Upload className="h-6 w-6 text-primary" />
                   </div>
-                  <p className="text-xs text-muted-foreground">Click to upload</p>
+                  <p className="text-xs text-muted-foreground">{t("clickToUploadText")}</p>
                 </>
               )}
             </label>
@@ -157,7 +159,7 @@ export function AddStuffDialog({ addNewStuff }: AddStuffDialogProps) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Full Name *</Label>
+              <Label>{t("fullNameRequired")}</Label>
               <Input
                 value={formData.fullname}
                 onChange={(e) => handleInputChange("fullname", e.target.value)}
@@ -165,7 +167,7 @@ export function AddStuffDialog({ addNewStuff }: AddStuffDialogProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label>Email *</Label>
+              <Label>{t("emailRequired")}</Label>
               <Input
                 type="email"
                 value={formData.email}
@@ -174,7 +176,7 @@ export function AddStuffDialog({ addNewStuff }: AddStuffDialogProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label>Password *</Label>
+              <Label>{t("passwordRequired")}</Label>
               <Input
                 type="password"
                 value={formData.password}
@@ -183,35 +185,35 @@ export function AddStuffDialog({ addNewStuff }: AddStuffDialogProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label>Phone 1</Label>
+              <Label>{t("phone1")}</Label>
               <Input
                 value={formData.phone1}
                 onChange={(e) => handleInputChange("phone1", e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label>Phone 2</Label>
+              <Label>{t("phone2")}</Label>
               <Input
                 value={formData.phone2}
                 onChange={(e) => handleInputChange("phone2", e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label>Phone 3</Label>
+              <Label>{t("phone3")}</Label>
               <Input
                 value={formData.phone3}
                 onChange={(e) => handleInputChange("phone3", e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label>Address</Label>
+              <Label>{t("addressField")}</Label>
               <Input
                 value={formData.address}
                 onChange={(e) => handleInputChange("address", e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label>Status</Label>
+              <Label>{t("statusField")}</Label>
               <Input
                 value={formData.status}
                 onChange={(e) => handleInputChange("status", e.target.value)}
@@ -220,21 +222,21 @@ export function AddStuffDialog({ addNewStuff }: AddStuffDialogProps) {
           </div>
 
           <div className="space-y-2">
-            <Label>Notes</Label>
+            <Label>{t("notesField")}</Label>
             <Textarea
               rows={3}
               value={formData.notes}
               onChange={(e) => handleInputChange("notes", e.target.value)}
-              placeholder="Optional notes"
+              placeholder={t("optionalNotesPlaceholder")}
             />
           </div>
 
           <div className="flex justify-end gap-3">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Cancel
+              {t("cancel")}
             </Button>
             <Button type="button" onClick={handleCreateStuff}>
-              Save
+              {t("saveButton")}
             </Button>
           </div>
         </div>
