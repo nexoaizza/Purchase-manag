@@ -67,9 +67,9 @@ export default function LoadTemplateDialog({
               <SelectValue placeholder={loading ? t("loadingTemplates") : t("chooseTemplate")} />
             </SelectTrigger>
             <SelectContent>
-              {(templates || []).map((t) => (
-                <SelectItem key={t._id} value={t._id}>
-                  {t.name} • {t.items.length} {t("templateItems")}
+              {(templates || []).map((template) => (
+                <SelectItem key={template._id} value={template._id}>
+                  {template.name} • {template.items.length} {t("templateItems")}
                 </SelectItem>
               ))}
             </SelectContent>
