@@ -5,22 +5,22 @@ import { pushNotification } from "../utils/PushNotification";
 const generateTaskNumber = () => {
   const date = new Date().toISOString().split("T")[0].replace(/-/g, "");
   const rand = Math.floor(1000 + Math.random() * 9000); // 4-digit
-  return `ORD-${date}-${rand}`;
+  return `TSK-${date}-${rand}`;
 };
 
 export const createTask = async (req: Request, res: Response) => {
   try {
-    const { staffId, items, deadline } = req.body;
+    const { staffId, description, deadline } = req.body;
 
-    if (!staffId || !items || !deadline || items.length === 0) {
-      res.status(400).json({ message: "All fields are required" });
+    if (!staffId) {
+      res.status(400).json({ message: "Staff ID is required" });
       return;
     }
 
     const newTask = await Task.create({
       taskNumber: generateTaskNumber(),
       staffId,
-      items,
+      description,
       deadline,
     });
 

@@ -255,7 +255,20 @@
         "cancelTask": "Annuler la tâche",
         "showing": "Affichage",
         "of": "de",
-        "tasks": "tâches"
+        "tasks": "tâches",
+        "createTask": "Créer une tâche",
+        "createTaskDescription": "Assigner une tâche à un membre du personnel",
+        "staffMember": "Membre du personnel",
+        "selectStaffMember": "Sélectionner un membre du personnel",
+        "description": "Description",
+        "taskDescriptionPlaceholder": "Entrez la description de la tâche...",
+        "noDescription": "Aucune description",
+        "cancel": "Annuler",
+        "creating": "Création...",
+        "taskCreated": "Tâche créée avec succès",
+        "failedCreateTask": "Échec de la création de la tâche",
+        "selectStaffError": "Veuillez sélectionner un membre du personnel",
+        "unexpectedError": "Une erreur inattendue s'est produite. Veuillez réessayer."
     },
     "products": {
         "title": "Produits",
@@ -915,7 +928,6 @@
         "typeInfo": "Info",
         "dayAgo": "jour",
         "daysAgo": "jours",
-
         "categoryInventory": "inventaire",
         "categoryOrders": "commandes",
         "categorySupliers": "fournisseurs",
@@ -1227,13 +1239,13 @@
         "barcode": "Code-barres",
         "close": "Fermer"
     },
-        "toPay": {
-            "title": "Fournisseurs à payer",
-            "subtitle": "Voir les fournisseurs avec des commandes vérifiées de cette semaine",
-            "noSuppliers": "Aucun fournisseur trouvé",
-            "noSuppliersMessage": "Aucun fournisseur n'a de commandes vérifiées cette semaine",
-            "ordersCount": "Commandes",
-            "totalAmount": "Montant total",
-            "viewOrders": "Voir les commandes"
-        }
+    "toPay": {
+        "title": "Fournisseurs à payer",
+        "subtitle": "Voir les fournisseurs avec des commandes vérifiées de cette semaine",
+        "noSuppliers": "Aucun fournisseur trouvé",
+        "noSuppliersMessage": "Aucun fournisseur n'a de commandes vérifiées cette semaine",
+        "ordersCount": "Commandes",
+        "totalAmount": "Montant total",
+        "viewOrders": "Voir les commandes"
+    }
 }

@@ -253,7 +253,20 @@
         "cancelTask": "Cancel Task",
         "showing": "Showing",
         "of": "of",
-        "tasks": "tasks"
+        "tasks": "tasks",
+        "createTask": "Create Task",
+        "createTaskDescription": "Assign a task to a staff member",
+        "staffMember": "Staff Member",
+        "selectStaffMember": "Select staff member",
+        "description": "Description",
+        "taskDescriptionPlaceholder": "Enter task description...",
+        "noDescription": "No description",
+        "cancel": "Cancel",
+        "creating": "Creating...",
+        "taskCreated": "Task created successfully",
+        "failedCreateTask": "Failed to create task",
+        "selectStaffError": "Please select a staff member",
+        "unexpectedError": "An unexpected error occurred. Please try again."
     },
     "products": {
         "title": "Products",
@@ -1221,7 +1234,6 @@
         "updateSuccess": "Template updated",
         "createSuccess": "Template created",
         "saveError": "Failed to save template",
-        
         "supplierChangeWarning": "Please remove all selected products before changing the supplier",
         "templateDetails": "Template Details",
         "supplierInfo": "Supplier Information",

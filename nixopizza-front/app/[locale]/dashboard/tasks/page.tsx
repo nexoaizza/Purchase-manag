@@ -18,7 +18,8 @@ export interface ITask {
     email: string;
     avatar: string;
   };
-  items: {
+  description?: string;
+  items?: {
     productId: {
       _id: string;
       name: string;
@@ -27,7 +28,7 @@ export interface ITask {
     quantity: number;
   }[];
   status: "pending" | "completed" | "canceled";
-  deadline: Date;
+  deadline?: Date;
   notes?: string;
   createdAt: Date;
   updatedAt: Date;

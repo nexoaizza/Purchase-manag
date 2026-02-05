@@ -135,7 +135,7 @@ export function TasksTable({
                 <TableRow>
                   <TableHead>{t("taskId")}</TableHead>
                   <TableHead>{t("assignedToHeader")}</TableHead>
-                  <TableHead>{t("items")}</TableHead>
+                  <TableHead>{t("description")}</TableHead>
                   <TableHead>{t("deadlineHeader")}</TableHead>
                   <TableHead>{t("statusHeader")}</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
@@ -170,18 +170,25 @@ export function TasksTable({
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-1">
-                        <span className="font-medium">{task.items.length}</span>
-                        <span className="text-muted-foreground text-sm ml-1">
-                          {t("items")}
-                        </span>
+                      <div className="max-w-xs truncate text-muted-foreground">
+                        {task.description || (
+                          <span className="italic text-muted-foreground/60">
+                            {t("noDescription") || "No description"}
+                          </span>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         <span>
-                          {new Date(task.deadline).toLocaleDateString("en-GB")}
+                          {task.deadline ? (
+                            new Date(task.deadline).toLocaleDateString("en-GB")
+                          ) : (
+                            <span className="text-muted-foreground/60 italic text-sm">
+                              {t("noDeadline") || "No deadline"}
+                            </span>
+                          )}
                         </span>
                       </div>
                     </TableCell>
