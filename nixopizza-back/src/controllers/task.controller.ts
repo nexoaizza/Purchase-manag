@@ -155,9 +155,37 @@ export const updateTaskStatus = async (req: Request, res: Response) => {
     task.status = status;
     await task.save();
 
-    res.status(200).json({ message: "Task status updated", task });
+    const populatedTask = await Task.findById(task._id).populate(
+      "staffId",
+      "fullname avatar email"
+    );
+
+    res
+      .status(200)
+      .json({ message: "Task status updated", task: populatedTask });
   } catch (error: any) {
     console.error("Error : ", error);
+    res
+      .status(500)
+      .json({ message: "Internal server error", err: error.message });
+  }
+};
+
+// ✅ Delete Task
+export const deleteTask = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { taskId } = req.params;
+
+    const task = await Task.findByIdAndDelete(taskId);
+
+    if (!task) {
+      res.status(404).json({ message: "Task not found" });
+      return;
+    }
+
+    res.status(200).json({ message: "Task deleted successfully" });
+  } catch (error: any) {
+    console.error("Error deleting task: ", error);
     res
       .status(500)
       .json({ message: "Internal server error", err: error.message });

@@ -266,9 +266,20 @@
         "cancel": "Annuler",
         "creating": "Création...",
         "taskCreated": "Tâche créée avec succès",
+        "taskCompleted": "Tâche terminée avec succès",
+        "taskCanceled": "Tâche annulée avec succès",
+        "confirmCancel": "Êtes-vous sûr de vouloir annuler cette tâche ?",
         "failedCreateTask": "Échec de la création de la tâche",
         "selectStaffError": "Veuillez sélectionner un membre du personnel",
-        "unexpectedError": "Une erreur inattendue s'est produite. Veuillez réessayer."
+        "unexpectedError": "Une erreur inattendue s'est produite. Veuillez réessayer.",
+        "taskDetails": "Détails de la tâche",
+        "viewDetailsDescription": "Informations complètes sur cette instance de tâche.",
+        "taskItems": "Éléments de la tâche",
+        "lastUpdated": "Dernière mise à jour",
+        "noDeadline": "Pas de date limite",
+        "deleteTask": "Supprimer la tâche",
+        "taskDeleted": "Tâche supprimée avec succès",
+        "confirmDeleteTask": "Êtes-vous sûr de vouloir supprimer cette tâche ? Cette action est irréversible."
     },
     "products": {
         "title": "Produits",

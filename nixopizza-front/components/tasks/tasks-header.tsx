@@ -19,19 +19,22 @@ interface TasksHeaderProps {
   onSearchChange: (search: string) => void;
   onStatusChange: (status: string) => void;
   onSortChange: (sort: { sortBy: string; order: string }) => void;
+  isCreateDialogOpen: boolean;
+  setIsCreateDialogOpen: (open: boolean) => void;
 }
 
 export function TasksHeader({
   onSearchChange,
   onStatusChange,
   onSortChange,
+  isCreateDialogOpen,
+  setIsCreateDialogOpen,
 }: TasksHeaderProps) {
   const t = useTranslations("tasks");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("createdAt");
   const [order, setOrder] = useState("desc");
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   // Handle search change
   const handleSearchChange = (value: string) => {

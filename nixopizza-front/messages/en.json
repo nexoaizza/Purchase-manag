@@ -264,9 +264,20 @@
         "cancel": "Cancel",
         "creating": "Creating...",
         "taskCreated": "Task created successfully",
+        "taskCompleted": "Task completed successfully",
+        "taskCanceled": "Task canceled successfully",
+        "confirmCancel": "Are you sure you want to cancel this task?",
         "failedCreateTask": "Failed to create task",
         "selectStaffError": "Please select a staff member",
-        "unexpectedError": "An unexpected error occurred. Please try again."
+        "unexpectedError": "An unexpected error occurred. Please try again.",
+        "taskDetails": "Task Details",
+        "viewDetailsDescription": "Full information about this task instance.",
+        "taskItems": "Task Items",
+        "lastUpdated": "Last updated",
+        "noDeadline": "No deadline",
+        "deleteTask": "Delete Task",
+        "taskDeleted": "Task deleted successfully",
+        "confirmDeleteTask": "Are you sure you want to delete this task? This action cannot be undone."
     },
     "products": {
         "title": "Products",

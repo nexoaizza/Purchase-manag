@@ -266,9 +266,20 @@
         "cancel": "إلغاء",
         "creating": "جاري الإنشاء...",
         "taskCreated": "تم إنشاء المهمة بنجاح",
+        "taskCompleted": "تم إكمال المهمة بنجاح",
+        "taskCanceled": "تم إلغاء المهمة بنجاح",
+        "confirmCancel": "هل أنت متأكد أنك تريد إلغاء هذه المهمة؟",
         "failedCreateTask": "فشل إنشاء المهمة",
         "selectStaffError": "يرجى اختيار عضو الموظفين",
-        "unexpectedError": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى."
+        "unexpectedError": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
+        "taskDetails": "تفاصيل المهمة",
+        "viewDetailsDescription": "معلومات كاملة حول مثيل هذه المهمة.",
+        "taskItems": "عناصر المهمة",
+        "lastUpdated": "آخر تحديث",
+        "noDeadline": "لا يوجد موعد نهائي",
+        "deleteTask": "حذف المهمة",
+        "taskDeleted": "تم حذف المهمة بنجاح",
+        "confirmDeleteTask": "هل أنت متأكد أنك تريد حذف هذه المهمة؟ لا يمكن التراجع عن هذا الإجراء."
     },
     "products": {
         "title": "المنتجات",

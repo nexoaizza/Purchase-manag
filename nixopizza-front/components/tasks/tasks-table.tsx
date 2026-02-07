@@ -32,6 +32,11 @@ import {
 } from "lucide-react";
 import { Pagination } from "@/components/ui/pagination";
 import { ITask } from "@/app/[locale]/dashboard/tasks/page";
+import { updateTaskStatus, deleteTask } from "@/lib/apis/task";
+import toast from "react-hot-toast";
+import { useAuth } from "@/hooks/useAuth";
+
+import { TaskDetailDialog } from "./task-detail-dialog";
 
 interface TasksTableProps {
   tasks: ITask[];
@@ -42,6 +47,7 @@ interface TasksTableProps {
   limit: number;
   setLimit: any;
   onUpdateTask: (task: ITask) => void;
+  onAssignTask: () => void;
 }
 
 export function TasksTable({
@@ -53,8 +59,10 @@ export function TasksTable({
   limit,
   setLimit,
   onUpdateTask,
+  onAssignTask,
 }: TasksTableProps) {
   const t = useTranslations("tasks");
+  const { user } = useAuth();
   const [selectedTask, setSelectedTask] = useState<ITask | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
@@ -89,14 +97,49 @@ export function TasksTable({
     setIsViewDialogOpen(true);
   };
 
-  const handleMarkAsCompleted = (taskId: string) => {
-    console.log("Marking task as completed:", taskId);
-    // Implement mark as completed logic
+  const handleMarkAsCompleted = async (taskId: string) => {
+    try {
+      const { success, task, message } = await updateTaskStatus(taskId, "completed");
+      if (success) {
+        toast.success(t("taskCompleted") || "Task completed successfully");
+        onUpdateTask(task);
+      } else {
+        toast.error(message || "Failed to complete task");
+      }
+    } catch (error) {
+      toast.error("An error occurred");
+    }
   };
 
-  const handleCancelTask = (taskId: string) => {
-    console.log("Canceling task:", taskId);
-    // Implement cancel task logic
+  const handleCancelTask = async (taskId: string) => {
+    if (!confirm(t("confirmCancel") || "Are you sure you want to cancel this task?")) return;
+    try {
+      const { success, task, message } = await updateTaskStatus(taskId, "canceled");
+      if (success) {
+        toast.success(t("taskCanceled") || "Task canceled successfully");
+        onUpdateTask(task);
+      } else {
+        toast.error(message || "Failed to cancel task");
+      }
+    } catch (error) {
+      toast.error("An error occurred");
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    if (!confirm(t("confirmDeleteTask") || "Are you sure you want to delete this task?")) return;
+    try {
+      const { success, message } = await deleteTask(taskId);
+      if (success) {
+        toast.success(t("taskDeleted") || "Task deleted successfully");
+        // Remove from local state
+        setTasks((prev: ITask[]) => prev.filter((t) => t._id !== taskId));
+      } else {
+        toast.error(message || "Failed to delete task");
+      }
+    } catch (error) {
+      toast.error("An error occurred");
+    }
   };
 
   if (tasks.length === 0) {
@@ -113,7 +156,7 @@ export function TasksTable({
           <p className="text-muted-foreground mb-4">
             {t("noTasksYet")}
           </p>
-          <Button>
+          <Button onClick={onAssignTask}>
             <Plus className="h-4 w-4 mr-2" />
             {t("assignTask")}
           </Button>
@@ -213,20 +256,33 @@ export function TasksTable({
                           </DropdownMenuItem>
                           {task.status === "pending" && (
                             <>
-                              <DropdownMenuItem
-                                onClick={() => handleMarkAsCompleted(task._id)}
-                              >
-                                <CheckCircle className="h-4 w-4 mr-2" />
-                                {t("markAsCompleted")}
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleCancelTask(task._id)}
-                                className="text-destructive"
-                              >
-                                <XCircle className="h-4 w-4 mr-2" />
-                                {t("cancelTask")}
-                              </DropdownMenuItem>
+                              {(user?.role === "admin" || user?._id === task.staffId._id) && (
+                                <DropdownMenuItem
+                                  onClick={() => handleMarkAsCompleted(task._id)}
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  {t("markAsCompleted")}
+                                </DropdownMenuItem>
+                              )}
+                              {user?.role === "admin" && (
+                                <DropdownMenuItem
+                                  onClick={() => handleCancelTask(task._id)}
+                                  className="text-destructive"
+                                >
+                                  <XCircle className="h-4 w-4 mr-2" />
+                                  {t("cancelTask")}
+                                </DropdownMenuItem>
+                              )}
                             </>
+                          )}
+                          {user?.role === "admin" && (
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteTask(task._id)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              {t("deleteTask")}
+                            </DropdownMenuItem>
                           )}
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -253,13 +309,11 @@ export function TasksTable({
         </CardContent>
       </Card>
 
-      {/* Task Detail Dialog - You can implement this separately */}
-      {/* <TaskDetailDialog
+      <TaskDetailDialog
         task={selectedTask}
         open={isViewDialogOpen}
         onOpenChange={setIsViewDialogOpen}
-        onUpdateTask={onUpdateTask}
-      /> */}
+      />
     </>
   );
 }
