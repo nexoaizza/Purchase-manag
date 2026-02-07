@@ -27,3 +27,28 @@ export const getTasks = async (params?: any) => {
     return { success: false, message };
   }
 };
+// ✅ Update task status
+export const updateTaskStatus = async (taskId: string, status: string) => {
+  try {
+    const {
+      data: { task },
+    } = await axiosAPI.put(`/tasks/${taskId}`, { status });
+    return { success: true, task };
+  } catch (error: any) {
+    console.error("Task status update error:", error);
+    const message = error.response?.data?.message || "Failed to update task status";
+    return { success: false, message };
+  }
+};
+
+// ✅ Delete task
+export const deleteTask = async (taskId: string) => {
+  try {
+    const { data } = await axiosAPI.delete(`/tasks/${taskId}`);
+    return { success: true, message: data.message };
+  } catch (error: any) {
+    console.error("Delete task error:", error);
+    const message = error.response?.data?.message || "Failed to delete task";
+    return { success: false, message };
+  }
+};

@@ -5,22 +5,22 @@ import { pushNotification } from "../utils/PushNotification";
 const generateTaskNumber = () => {
   const date = new Date().toISOString().split("T")[0].replace(/-/g, "");
   const rand = Math.floor(1000 + Math.random() * 9000); // 4-digit
-  return `ORD-${date}-${rand}`;
+  return `TSK-${date}-${rand}`;
 };
 
 export const createTask = async (req: Request, res: Response) => {
   try {
-    const { staffId, items, deadline } = req.body;
+    const { staffId, description, deadline } = req.body;
 
-    if (!staffId || !items || !deadline || items.length === 0) {
-      res.status(400).json({ message: "All fields are required" });
+    if (!staffId) {
+      res.status(400).json({ message: "Staff ID is required" });
       return;
     }
 
     const newTask = await Task.create({
       taskNumber: generateTaskNumber(),
       staffId,
-      items,
+      description,
       deadline,
     });
 
@@ -155,9 +155,37 @@ export const updateTaskStatus = async (req: Request, res: Response) => {
     task.status = status;
     await task.save();
 
-    res.status(200).json({ message: "Task status updated", task });
+    const populatedTask = await Task.findById(task._id).populate(
+      "staffId",
+      "fullname avatar email"
+    );
+
+    res
+      .status(200)
+      .json({ message: "Task status updated", task: populatedTask });
   } catch (error: any) {
     console.error("Error : ", error);
+    res
+      .status(500)
+      .json({ message: "Internal server error", err: error.message });
+  }
+};
+
+// ✅ Delete Task
+export const deleteTask = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { taskId } = req.params;
+
+    const task = await Task.findByIdAndDelete(taskId);
+
+    if (!task) {
+      res.status(404).json({ message: "Task not found" });
+      return;
+    }
+
+    res.status(200).json({ message: "Task deleted successfully" });
+  } catch (error: any) {
+    console.error("Error deleting task: ", error);
     res
       .status(500)
       .json({ message: "Internal server error", err: error.message });

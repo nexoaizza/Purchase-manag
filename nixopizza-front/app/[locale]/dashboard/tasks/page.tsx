@@ -18,7 +18,8 @@ export interface ITask {
     email: string;
     avatar: string;
   };
-  items: {
+  description?: string;
+  items?: {
     productId: {
       _id: string;
       name: string;
@@ -27,7 +28,7 @@ export interface ITask {
     quantity: number;
   }[];
   status: "pending" | "completed" | "canceled";
-  deadline: Date;
+  deadline?: Date;
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -83,6 +84,8 @@ export default function TasksPage() {
     );
   };
 
+  const [isCreateTaskDialogOpen, setIsCreateTaskDialogOpen] = useState(false);
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -90,6 +93,8 @@ export default function TasksPage() {
           onSearchChange={setSearch}
           onStatusChange={setStatus}
           onSortChange={setSort}
+          isCreateDialogOpen={isCreateTaskDialogOpen}
+          setIsCreateDialogOpen={setIsCreateTaskDialogOpen}
         />
         <TasksTable
           tasks={tasks}
@@ -100,6 +105,7 @@ export default function TasksPage() {
           limit={limit}
           setLimit={setLimit}
           onUpdateTask={handleUpdateTask}
+          onAssignTask={() => setIsCreateTaskDialogOpen(true)}
         />
       </div>
     </DashboardLayout>

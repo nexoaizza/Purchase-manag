@@ -15,7 +15,7 @@
         "categories": "الفئات",
         "products": "المنتجات",
         "stocks": "المخازن",
-        "stockItems": "عناصر المخزون",        
+        "stockItems": "عناصر المخزون",
         "transfers": "التحويلات",
         "waste": "إدارة الهدر",
         "suppliers": "الموردون",
@@ -255,7 +255,31 @@
         "cancelTask": "إلغاء المهمة",
         "showing": "عرض",
         "of": "من",
-        "tasks": "مهام"
+        "tasks": "مهام",
+        "createTask": "إنشاء مهمة",
+        "createTaskDescription": "تعيين مهمة لعضو الموظفين",
+        "staffMember": "عضو الموظفين",
+        "selectStaffMember": "اختر عضو الموظفين",
+        "description": "الوصف",
+        "taskDescriptionPlaceholder": "أدخل وصف المهمة...",
+        "noDescription": "لا يوجد وصف",
+        "cancel": "إلغاء",
+        "creating": "جاري الإنشاء...",
+        "taskCreated": "تم إنشاء المهمة بنجاح",
+        "taskCompleted": "تم إكمال المهمة بنجاح",
+        "taskCanceled": "تم إلغاء المهمة بنجاح",
+        "confirmCancel": "هل أنت متأكد أنك تريد إلغاء هذه المهمة؟",
+        "failedCreateTask": "فشل إنشاء المهمة",
+        "selectStaffError": "يرجى اختيار عضو الموظفين",
+        "unexpectedError": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
+        "taskDetails": "تفاصيل المهمة",
+        "viewDetailsDescription": "معلومات كاملة حول مثيل هذه المهمة.",
+        "taskItems": "عناصر المهمة",
+        "lastUpdated": "آخر تحديث",
+        "noDeadline": "لا يوجد موعد نهائي",
+        "deleteTask": "حذف المهمة",
+        "taskDeleted": "تم حذف المهمة بنجاح",
+        "confirmDeleteTask": "هل أنت متأكد أنك تريد حذف هذه المهمة؟ لا يمكن التراجع عن هذا الإجراء."
     },
     "products": {
         "title": "المنتجات",
@@ -1226,13 +1250,13 @@
         "barcode": "الباركود",
         "close": "إغلاق"
     },
-        "toPay": {
-            "title": "الموردون المستحق دفعهم",
-            "subtitle": "عرض الموردين الذين لديهم طلبات تم التحقق منها من هذا الأسبوع",
-            "noSuppliers": "لم يتم العثور على موردين",
-            "noSuppliersMessage": "لا يوجد موردون لديهم طلبات تم التحقق منها هذا الأسبوع",
-            "ordersCount": "الطلبات",
-            "totalAmount": "المبلغ الإجمالي",
-            "viewOrders": "عرض الطلبات"
-        }
+    "toPay": {
+        "title": "الموردون المستحق دفعهم",
+        "subtitle": "عرض الموردين الذين لديهم طلبات تم التحقق منها من هذا الأسبوع",
+        "noSuppliers": "لم يتم العثور على موردين",
+        "noSuppliersMessage": "لا يوجد موردون لديهم طلبات تم التحقق منها هذا الأسبوع",
+        "ordersCount": "الطلبات",
+        "totalAmount": "المبلغ الإجمالي",
+        "viewOrders": "عرض الطلبات"
+    }
 }

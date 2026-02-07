@@ -11,20 +11,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Filter, ArrowUpDown } from "lucide-react";
+import { Search, Filter, ArrowUpDown, Plus } from "lucide-react";
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { CreateTaskDialog } from "./create-task-dialog";
 
 interface TasksHeaderProps {
   onSearchChange: (search: string) => void;
   onStatusChange: (status: string) => void;
   onSortChange: (sort: { sortBy: string; order: string }) => void;
+  isCreateDialogOpen: boolean;
+  setIsCreateDialogOpen: (open: boolean) => void;
 }
 
 export function TasksHeader({
   onSearchChange,
   onStatusChange,
   onSortChange,
+  isCreateDialogOpen,
+  setIsCreateDialogOpen,
 }: TasksHeaderProps) {
   const t = useTranslations("tasks");
   const [searchQuery, setSearchQuery] = useState("");
@@ -64,6 +68,13 @@ export function TasksHeader({
             {t("subtitle")}
           </p>
         </div>
+        <Button
+          onClick={() => setIsCreateDialogOpen(true)}
+          className="rounded-full px-6 gap-2"
+        >
+          <Plus className="h-4 w-4" />
+          {t("createTask") || "Create Task"}
+        </Button>
       </div>
 
       {/* Search and Filters */}
@@ -114,6 +125,11 @@ export function TasksHeader({
           </Button>
         </div>
       </div>
+
+      <CreateTaskDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+      />
     </div>
   );
 }
