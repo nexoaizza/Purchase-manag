@@ -11,6 +11,7 @@ import {
   getOrderStats,
   getOrderAnalytics,
   getOrder,
+  deleteOrder,
 } from "../controllers/order.controller";
 
 const orderRouter = Router();
@@ -25,5 +26,6 @@ orderRouter.get("/stats", getOrderStats);
 orderRouter.get("/analytics", getOrderAnalytics);
 orderRouter.get("/:orderId", getOrder);
 orderRouter.get("/", getOrdersByFilter);
+orderRouter.delete("/:orderId", deleteOrder);
 
 export default orderRouter;

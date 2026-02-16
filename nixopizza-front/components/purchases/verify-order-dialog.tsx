@@ -158,7 +158,7 @@ export function VerifyOrderDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[820px]">
+      <DialogContent className="sm:max-w-[820px] max-h-110/12 overflow-auto">
         <DialogHeader>
           <DialogTitle className="font-heading flex items-center gap-2">
             <ShieldCheck className="h-5 w-5" />

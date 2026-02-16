@@ -90,3 +90,13 @@ export const getOrdersStats = async () => {
     return { success: false, message: error.response?.data?.message || "Failed to fetch order stats" };
   }
 };
+
+// Delete order
+export const deleteOrder = async (orderId: string) => {
+  try {
+    const { data } = await axiosAPI.delete(`/orders/${orderId}`);
+    return { success: true, message: data.message };
+  } catch (error: any) {
+    return { success: false, message: error.response?.data?.message || "Failed to delete order" };
+  }
+};

@@ -842,3 +842,17 @@ export const getOrderAnalytics = async (
       .json({ message: "Internal Server Error", error: error.message });
   }
 };
+
+export const deleteOrder = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const orderId = req.params.orderId;
+    const order = await Order.deleteOne({ _id: orderId });
+    if (!order) {
+      res.status(404).json({ message: "Order not found" });
+      return;
+    }
+    res.status(200).json({ message: "Order deleted successfully" });
+  } catch (error: any) {
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};

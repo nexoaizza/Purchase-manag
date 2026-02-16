@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import StockItem from "../models/stock-item.model";
 import Stock from "../models/stock.model";
+import Product from "../models/product.model";
 
 // CREATE
 export const createStockItem = async (req: Request, res: Response): Promise<void> => {
@@ -19,7 +20,7 @@ export const createStockItem = async (req: Request, res: Response): Promise<void
       return;
     }
 
-    const newStockItem : any = await StockItem.create({
+    const newStockItem: any = await StockItem.create({
       stock,
       product,
       price: Number(price),
@@ -68,8 +69,8 @@ export const createMultipleStockItems = async (req: Request, res: Response): Pro
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
       if (!item.product || item.price === undefined || item.quantity === undefined) {
-        res.status(400).json({ 
-          message: `Item at index ${i} is missing required fields: product, price, quantity` 
+        res.status(400).json({
+          message: `Item at index ${i} is missing required fields: product, price, quantity`
         });
         return;
       }
@@ -105,8 +106,8 @@ export const createMultipleStockItems = async (req: Request, res: Response): Pro
       .populate("product")
       .populate("stock");
 
-    res.status(201).json({ 
-      message: `${createdItems.length} stock items created successfully`, 
+    res.status(201).json({
+      message: `${createdItems.length} stock items created successfully`,
       stockItems: populatedItems,
       count: createdItems.length
     });
@@ -147,20 +148,21 @@ export const updateStockItem = async (req: Request, res: Response): Promise<void
 // GET ALL with pagination and filtering
 export const getAllStockItems = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { 
-      location, 
-      product, 
+    const {
+      location,
+      product,
       stock,
-      minQuantity, 
+      minQuantity,
       maxQuantity,
       createdAtFrom,
       createdAtTo,
       expireAtFrom,
       expireAtTo,
-      sortBy, 
-      order, 
-      page = 1, 
-      limit = 10 
+      sortBy,
+      order,
+      category,
+      page = 1,
+      limit = 10
     } = req.query;
 
     if (Number(page) < 1 || Number(limit) < 1) {
@@ -173,6 +175,24 @@ export const getAllStockItems = async (req: Request, res: Response): Promise<voi
     // Filter by product
     if (product) {
       query.product = product;
+    }
+
+    // Filter by category
+    if (category) {
+      const categoryProducts = await Product.find({ categoryId: category }).select("_id");
+      const categoryProductIds = categoryProducts.map(p => p._id);
+
+      if (query.product) {
+        // If a specific product is also requested, ensure it belongs to the selected category
+        const isProductInCategory = categoryProductIds.some(id => id.toString() === query.product.toString());
+        if (!isProductInCategory) {
+          res.status(200).json({ total: 0, pages: 0, stockItems: [] });
+          return;
+        }
+        // query.product remains the specific product ID
+      } else {
+        query.product = { $in: categoryProductIds };
+      }
     }
 
     // Filter by stock
@@ -201,32 +221,59 @@ export const getAllStockItems = async (req: Request, res: Response): Promise<voi
       if (expireAtTo) query.expireAt.$lte = new Date(expireAtTo as string);
     }
 
-    const sortField = sortBy?.toString() || "createdAt";
-    const sortOrder = order === "asc" ? 1 : -1;
     const skip = (Number(page) - 1) * Number(limit);
 
-    let stockItems = await StockItem.find(query)
-      .populate("product")
-      .populate("stock")
-      .sort({ [sortField]: sortOrder })
-      .skip(skip)
-      .limit(Number(limit));
-
-    // Filter by location (after populating stock)
-    if (location) {
-      stockItems = stockItems.filter((item: any) => {
-        if (item.stock && item.stock.location) {
-          return item.stock.location.toLowerCase().includes((location as string).toLowerCase());
+    // Build aggregation pipeline for better performance
+    const pipeline: any[] = [
+      { $match: query },
+      {
+        $lookup: {
+          from: "products",
+          localField: "product",
+          foreignField: "_id",
+          as: "product"
         }
-        return false;
+      },
+      { $unwind: { path: "$product", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "stocks",
+          localField: "stock",
+          foreignField: "_id",
+          as: "stock"
+        }
+      },
+      { $unwind: { path: "$stock", preserveNullAndEmptyArrays: true } }
+    ];
+
+    // Filter by location if provided
+    if (location) {
+      pipeline.push({
+        $match: {
+          "stock.location": { $regex: location as string, $options: "i" }
+        }
       });
     }
 
-    const total = await StockItem.countDocuments(query);
+    // Sort by product name alphabetically (A-Z)
+    pipeline.push({
+      $sort: { "product.name": 1 }
+    });
+
+    // Get total count before pagination
+    const countPipeline = [...pipeline, { $count: "total" }];
+    const countResult = await StockItem.aggregate(countPipeline);
+    const total = countResult.length > 0 ? countResult[0].total : 0;
+
+    // Apply pagination
+    pipeline.push({ $skip: skip });
+    pipeline.push({ $limit: Number(limit) });
+
+    const stockItems = await StockItem.aggregate(pipeline);
 
     res.status(200).json({
-      total: location ? stockItems.length : total,
-      pages: Math.ceil((location ? stockItems.length : total) / Number(limit)),
+      total,
+      pages: Math.ceil(total / Number(limit)),
       stockItems,
     });
   } catch (error: any) {
@@ -258,7 +305,7 @@ export const getStockItem = async (req: Request, res: Response): Promise<void> =
 export const deleteStockItem = async (req: Request, res: Response): Promise<void> => {
   try {
     const stockItem = await StockItem.findById(req.params.stockItemId);
-    
+
     if (!stockItem) {
       res.status(404).json({ message: "Stock item not found" });
       return;
@@ -303,12 +350,12 @@ export const getExpiredStockItems = async (req: Request, res: Response): Promise
       if (!item.product || !item.product.expectedLifeTime || item.product.expectedLifeTime <= 0) {
         return false; // Skip items without expectedLifeTime
       }
-      
+
       const createdAt = new Date(item.createdAt);
       const expectedLifeTimeDays = item.product.expectedLifeTime;
       const expirationDate = new Date(createdAt);
       expirationDate.setDate(expirationDate.getDate() + expectedLifeTimeDays);
-      
+
       return now > expirationDate; // Expired if current date is past expiration
     });
 
@@ -350,17 +397,17 @@ export const getExpiringSoonStockItems = async (req: Request, res: Response): Pr
       if (!item.product || !item.product.expectedLifeTime || item.product.expectedLifeTime <= 0) {
         return false; // Skip items without expectedLifeTime
       }
-      
+
       const createdAt = new Date(item.createdAt);
       const expectedLifeTimeDays = item.product.expectedLifeTime;
       const expirationDate = new Date(createdAt);
       expirationDate.setDate(expirationDate.getDate() + expectedLifeTimeDays);
-      
+
       // Calculate how much time has passed
       const timeElapsedMs = now.getTime() - createdAt.getTime();
       const totalLifetimeMs = expectedLifeTimeDays * 24 * 60 * 60 * 1000;
       const percentagePassed = timeElapsedMs / totalLifetimeMs;
-      
+
       // Expiring soon if >70% passed and not yet expired
       return percentagePassed > 0.7 && now <= expirationDate;
     });

@@ -17,7 +17,7 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
       recommendedQty,
       expectedLifeTime,
     } = req.body;
-
+    console.log(req.body)
     if (!name || !unit || !categoryId || minQty === undefined) {
       res.status(400).json({ message: "Missing required fields" });
       return;
@@ -35,7 +35,6 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
       const uploaded = await uploadBufferToBlob(key, req.file.buffer, req.file.mimetype);
       imageUrl = uploaded.url;
     }
-
     try {
       const newProduct = await Product.create({
         name,
