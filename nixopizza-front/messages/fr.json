@@ -1077,6 +1077,19 @@
             "phonePlaceholder": "+33 1 23 45 67 89",
             "role": "Rôle"
         },
+        "changePassword": {
+            "title": "Changer le Mot de Passe",
+            "description": "Mettez à jour le mot de passe de votre compte. Vous aurez besoin de votre mot de passe actuel.",
+            "currentPassword": "Mot de Passe Actuel",
+            "currentPasswordPlaceholder": "Entrez le mot de passe actuel",
+            "newPassword": "Nouveau Mot de Passe",
+            "newPasswordPlaceholder": "Entrez le nouveau mot de passe",
+            "confirmPassword": "Confirmer le Nouveau Mot de Passe",
+            "confirmPasswordPlaceholder": "Confirmez le nouveau mot de passe",
+            "updatePassword": "Mettre à Jour le Mot de Passe",
+            "passwordsDoNotMatch": "Le nouveau mot de passe et la confirmation ne correspondent pas",
+            "fillAllFields": "Veuillez remplir le mot de passe actuel, le nouveau et la confirmation"
+        },
         "language": {
             "title": "Paramètres de Langue",
             "description": "Choisissez votre langue préférée pour l'application",

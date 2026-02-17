@@ -1077,6 +1077,19 @@
             "phonePlaceholder": "+213 123 456 789",
             "role": "الدور"
         },
+        "changePassword": {
+            "title": "تغيير كلمة المرور",
+            "description": "تحديث كلمة مرور حسابك. ستحتاج إلى كلمة المرور الحالية.",
+            "currentPassword": "كلمة المرور الحالية",
+            "currentPasswordPlaceholder": "أدخل كلمة المرور الحالية",
+            "newPassword": "كلمة المرور الجديدة",
+            "newPasswordPlaceholder": "أدخل كلمة المرور الجديدة",
+            "confirmPassword": "تأكيد كلمة المرور الجديدة",
+            "confirmPasswordPlaceholder": "أكد كلمة المرور الجديدة",
+            "updatePassword": "تحديث كلمة المرور",
+            "passwordsDoNotMatch": "كلمة المرور الجديدة والتأكيد غير متطابقتين",
+            "fillAllFields": "يرجى ملء كلمة المرور الحالية والجديدة والتأكيد"
+        },
         "language": {
             "title": "إعدادات اللغة",
             "description": "اختر لغتك المفضلة للتطبيق",
