@@ -6,7 +6,7 @@
         "Password": "Password",
         "Sign In": "Sign In",
         "Forgot your password?": "Forgot your password?",
-        "Signing in...": "Signing in...",
+        "signingIn": "Signing in...",
         "Enter your password": "Enter your password",
         "Enter your email": "Enter your email"
     },
@@ -1128,6 +1128,9 @@
         "creating": "Creating...",
         "update": "Update Transfer",
         "updating": "Updating...",
+        "category": "Category",
+        "selectCategory": "Select category (optional)",
+        "allCategories": "All Categories",
         "searchPlaceholder": "Search by stock name...",
         "filterByStatus": "Filter by status",
         "filterByStock": "Filter by stock",

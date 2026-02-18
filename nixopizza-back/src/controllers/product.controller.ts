@@ -3,6 +3,7 @@ import Product from "../models/product.model";
 import { deleteImage } from "../utils/Delete";
 import crypto from "crypto";
 import { uploadBufferToBlob } from "../utils/blob";
+import { Types } from "mongoose";
 
 // CREATE
 export const createProduct = async (req: Request, res: Response): Promise<void> => {
@@ -96,7 +97,19 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
     if (recommendedQty !== undefined) product.recommendedQty = Number(recommendedQty);
     if (expectedLifeTime !== undefined) product.expectedLifeTime = expectedLifeTime ? Number(expectedLifeTime) : undefined;
 
-    if (req.file) {
+    // Handle image removal
+    if (req.body.removeImage === "true") {
+      if (product.imageUrl && product.imageUrl.startsWith("/uploads/")) {
+        try {
+          deleteImage(product.imageUrl);
+        } catch (e) {
+          console.warn("Failed to delete legacy product image:", e);
+        }
+      }
+      product.imageUrl = undefined;
+    }
+    // Handle new image upload
+    else if (req.file) {
       if (product.imageUrl && product.imageUrl.startsWith("/uploads/")) {
         try {
           deleteImage(product.imageUrl);
@@ -131,7 +144,7 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
 // GET ALL
 export const getAllProducts = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, categoryId, sortBy, order, page = 1, limit = 10 } = req.query;
+    const { name, categoryId, categoryIds, sortBy, order, page = 1, limit = 10 } = req.query;
 
     if (Number(page) < 1 || Number(limit) < 1) {
       res.status(400).json({ message: "Page and limit must be greater than 0" });
@@ -146,7 +159,22 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
         { barcode: { $regex: name, $options: "i" } },
       ];
     }
-    if (categoryId) query.categoryId = categoryId;
+    
+    // Filter by multiple category IDs
+    if (categoryIds && typeof categoryIds === 'string') {
+      const categoryIdArray = categoryIds
+        .split(',')
+        .map(id => id.trim())
+        .filter(id => id && Types.ObjectId.isValid(id));
+      
+      if (categoryIdArray.length > 0) {
+        query.categoryId = { $in: categoryIdArray };
+      }
+    }
+    // Filter by single category ID (backward compatibility)
+    else if (categoryId && typeof categoryId === 'string' && Types.ObjectId.isValid(categoryId)) {
+      query.categoryId = categoryId;
+    }
 
     const sortField = sortBy?.toString() || "createdAt";
     const sortOrder = order === "asc" ? 1 : -1;

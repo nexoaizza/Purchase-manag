@@ -6,7 +6,7 @@
         "Password": "كلمة المرور",
         "Sign In": "تسجيل الدخول",
         "Forgot your password?": "هل نسيت كلمة المرور؟",
-        "Signing in...": "جاري تسجيل الدخول...",
+        "signingIn": "جاري تسجيل الدخول...",
         "Enter your password": "أدخل كلمة المرور الخاصة بك",
         "Enter your email": "أدخل بريدك الإلكتروني"
     },
@@ -1124,6 +1124,9 @@
         "creating": "جاري الإنشاء...",
         "update": "تحديث النقل",
         "updating": "جاري التحديث...",
+        "category": "الفئة",
+        "selectCategory": "اختر فئة (اختياري)",
+        "allCategories": "جميع الفئات",
         "searchPlaceholder": "البحث باسم المستودع...",
         "filterByStatus": "تصفية حسب الحالة",
         "filterByStock": "تصفية حسب المستودع",

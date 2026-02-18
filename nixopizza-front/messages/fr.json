@@ -6,7 +6,7 @@
         "Password": "Mot de passe",
         "Sign In": "Se connecter",
         "Forgot your password?": "Mot de passe oublié?",
-        "Signing in...": "Connexion en cours...",
+        "signingIn": "Connexion en cours...",
         "Enter your password": "Entrez votre mot de passe",
         "Enter your email": "Entrez votre email"
     },
@@ -1124,6 +1124,9 @@
         "creating": "Création en cours...",
         "update": "Mettre à Jour le Transfert",
         "updating": "Mise à jour...",
+        "category": "Catégorie",
+        "selectCategory": "Sélectionner une catégorie (optionnel)",
+        "allCategories": "Toutes les Catégories",
         "searchPlaceholder": "Rechercher par nom d'entrepôt...",
         "filterByStatus": "Filtrer par statut",
         "filterByStock": "Filtrer par entrepôt",

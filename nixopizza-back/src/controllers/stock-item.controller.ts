@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import StockItem from "../models/stock-item.model";
 import Stock from "../models/stock.model";
 import Product from "../models/product.model";
+import mongoose from "mongoose";
 
 // CREATE
 export const createStockItem = async (req: Request, res: Response): Promise<void> => {
@@ -174,7 +175,7 @@ export const getAllStockItems = async (req: Request, res: Response): Promise<voi
 
     // Filter by product
     if (product) {
-      query.product = product;
+      query.product = new mongoose.Types.ObjectId(product as string);
     }
 
     // Filter by category
@@ -197,7 +198,7 @@ export const getAllStockItems = async (req: Request, res: Response): Promise<voi
 
     // Filter by stock
     if (stock) {
-      query.stock = stock;
+      query.stock = new mongoose.Types.ObjectId(stock as string);
     }
 
     // Filter by quantity range
@@ -270,7 +271,6 @@ export const getAllStockItems = async (req: Request, res: Response): Promise<voi
     pipeline.push({ $limit: Number(limit) });
 
     const stockItems = await StockItem.aggregate(pipeline);
-
     res.status(200).json({
       total,
       pages: Math.ceil(total / Number(limit)),
