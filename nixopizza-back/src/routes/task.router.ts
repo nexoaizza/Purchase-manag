@@ -1,21 +1,21 @@
 import { Router } from "express";
 import { authenticate, requireAdmin } from "../middlewares/Auth";
 import {
-  createTask,
-  getTaskById,
-  getTasks,
-  updateTaskStatus,
-  deleteTask,
+  createOrder,
+  getOrderById,
+  getOrders,
+  updateOrderStatus,
+  deleteOrder,
 } from "../controllers/task.controller";
 
-const taskRouter = Router();
+const staffOrderRouter = Router();
 
-taskRouter.use(authenticate);
+staffOrderRouter.use(authenticate);
 
-taskRouter.post("/", requireAdmin, createTask);
-taskRouter.get("/", getTasks);
-taskRouter.get("/:taskId", getTaskById);
-taskRouter.put("/:taskId", updateTaskStatus);
-taskRouter.delete("/:taskId", requireAdmin, deleteTask);
+staffOrderRouter.post("/", requireAdmin, createOrder);
+staffOrderRouter.get("/", getOrders);
+staffOrderRouter.get("/:orderId", getOrderById);
+staffOrderRouter.put("/:orderId", updateOrderStatus);
+staffOrderRouter.delete("/:orderId", requireAdmin, deleteOrder);
 
-export default taskRouter;
+export default staffOrderRouter;

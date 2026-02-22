@@ -1,14 +1,14 @@
 import { Request, Response } from "express";
-import Task from "../models/task.model";
+import StaffOrder from "../models/task.model";
 import { pushNotification } from "../utils/PushNotification";
 
-const generateTaskNumber = () => {
+const generateOrderNumber = () => {
   const date = new Date().toISOString().split("T")[0].replace(/-/g, "");
   const rand = Math.floor(1000 + Math.random() * 9000); // 4-digit
-  return `TSK-${date}-${rand}`;
+  return `ORD-${date}-${rand}`;
 };
 
-export const createTask = async (req: Request, res: Response) => {
+export const createOrder = async (req: Request, res: Response) => {
   try {
     const { staffId, description, deadline } = req.body;
 
@@ -17,8 +17,8 @@ export const createTask = async (req: Request, res: Response) => {
       return;
     }
 
-    const newTask = await Task.create({
-      taskNumber: generateTaskNumber(),
+    const newOrder = await StaffOrder.create({
+      orderNumber: generateOrderNumber(),
       staffId,
       description,
       deadline,
@@ -26,7 +26,7 @@ export const createTask = async (req: Request, res: Response) => {
 
     res
       .status(200)
-      .json({ message: "Task created Successfully", task: newTask });
+      .json({ message: "Order created Successfully", order: newOrder });
   } catch (error: any) {
     console.error("Error : ", error);
     res
@@ -35,13 +35,13 @@ export const createTask = async (req: Request, res: Response) => {
   }
 };
 
-export const getTasks = async (req: Request, res: Response) => {
+export const getOrders = async (req: Request, res: Response) => {
   try {
     const {
       status,
       sortBy,
       order,
-      taskNumber,
+      orderNumber,
       page = 1,
       limit = 10,
     } = req.query;
@@ -55,24 +55,24 @@ export const getTasks = async (req: Request, res: Response) => {
     const query: any = req.user?.isAdmin ? {} : { staffId: req.user?.userId };
 
     if (status) query.status = status;
-    if (taskNumber) query.taskNumber = { $regex: taskNumber, $options: "i" };
+    if (orderNumber) query.orderNumber = { $regex: orderNumber, $options: "i" };
 
     const sortField = sortBy?.toString() || "createdAt";
     const sortOrder = order === "asc" ? 1 : -1;
 
     const skip = (Number(page) - 1) * Number(limit);
 
-    const tasks = await Task.find(query)
+    const orders = await StaffOrder.find(query)
       .populate("staffId", "fullname avatar email")
       .sort({ [sortField]: sortOrder })
       .skip(skip)
       .limit(Number(limit));
 
-    const total = await Task.countDocuments(query);
+    const total = await StaffOrder.countDocuments(query);
     res.status(200).json({
       total,
       pages: Math.ceil(total / Number(limit)),
-      tasks,
+      orders,
     });
   } catch (error: any) {
     console.error("Error : ", error);
@@ -82,28 +82,28 @@ export const getTasks = async (req: Request, res: Response) => {
   }
 };
 
-export const getTaskById = async (req: Request, res: Response) => {
+export const getOrderById = async (req: Request, res: Response) => {
   try {
-    const { taskId } = req.params;
+    const { orderId } = req.params;
 
-    const task = await Task.findById(taskId).populate(
+    const order = await StaffOrder.findById(orderId).populate(
       "staffId",
       "fullname avatar email"
     );
 
-    if (!task) {
-      res.status(404).json({ message: "Task not found" });
+    if (!order) {
+      res.status(404).json({ message: "Order not found" });
       return;
     }
     if (
-      (task.staffId as any)._id?.toString() !== req.user?.userId &&
+      (order.staffId as any)._id?.toString() !== req.user?.userId &&
       !req.user?.isAdmin
     ) {
       res.status(403).json({ message: "Access denied" });
       return;
     }
 
-    res.status(200).json({ task });
+    res.status(200).json({ order });
   } catch (error: any) {
     console.error("Error : ", error);
     res
@@ -112,9 +112,9 @@ export const getTaskById = async (req: Request, res: Response) => {
   }
 };
 
-export const updateTaskStatus = async (req: Request, res: Response) => {
+export const updateOrderStatus = async (req: Request, res: Response) => {
   try {
-    const { taskId } = req.params;
+    const { orderId } = req.params;
     const { status } = req.body;
 
     if (!["pending", "completed", "canceled"].includes(status)) {
@@ -122,15 +122,15 @@ export const updateTaskStatus = async (req: Request, res: Response) => {
       return;
     }
 
-    const task = await Task.findById(taskId);
+    const order = await StaffOrder.findById(orderId);
 
-    if (!task) {
-      res.status(404).json({ message: "Task not found" });
+    if (!order) {
+      res.status(404).json({ message: "Order not found" });
       return;
     }
 
     if (
-      (task.staffId as any)._id?.toString() !== req.user?.userId &&
+      (order.staffId as any)._id?.toString() !== req.user?.userId &&
       !req.user?.isAdmin
     ) {
       res.status(403).json({ message: "Access denied" });
@@ -138,31 +138,31 @@ export const updateTaskStatus = async (req: Request, res: Response) => {
     }
 
     if (status === "canceled" && req.user?.isAdmin === false) {
-      res.status(403).json({ message: "Only admins can cancel tasks" });
+      res.status(403).json({ message: "Only admins can cancel orders" });
       return;
     }
     if (
       status === "completed" &&
-      (task.staffId as any)._id?.toString() === req.user?.userId
+      (order.staffId as any)._id?.toString() === req.user?.userId
     ) {
       await pushNotification(
-        ` Task Completed: ${task.taskNumber} `,
-        `The task ${task.taskNumber} has been marked as completed.`,
-        "complited_task",
-        `${process.env}/api/tasks/${task._id}`
+        ` Order Completed: ${order.orderNumber} `,
+        `The order ${order.orderNumber} has been marked as completed.`,
+        "completed_order",
+        `${process.env}/api/staff-orders/${order._id}`
       );
     }
-    task.status = status;
-    await task.save();
+    order.status = status;
+    await order.save();
 
-    const populatedTask = await Task.findById(task._id).populate(
+    const populatedOrder = await StaffOrder.findById(order._id).populate(
       "staffId",
       "fullname avatar email"
     );
 
     res
       .status(200)
-      .json({ message: "Task status updated", task: populatedTask });
+      .json({ message: "Order status updated", order: populatedOrder });
   } catch (error: any) {
     console.error("Error : ", error);
     res
@@ -171,21 +171,21 @@ export const updateTaskStatus = async (req: Request, res: Response) => {
   }
 };
 
-// ✅ Delete Task
-export const deleteTask = async (req: Request, res: Response): Promise<void> => {
+// ✅ Delete Order
+export const deleteOrder = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { taskId } = req.params;
+    const { orderId } = req.params;
 
-    const task = await Task.findByIdAndDelete(taskId);
+    const order = await StaffOrder.findByIdAndDelete(orderId);
 
-    if (!task) {
-      res.status(404).json({ message: "Task not found" });
+    if (!order) {
+      res.status(404).json({ message: "Order not found" });
       return;
     }
 
-    res.status(200).json({ message: "Task deleted successfully" });
+    res.status(200).json({ message: "Order deleted successfully" });
   } catch (error: any) {
-    console.error("Error deleting task: ", error);
+    console.error("Error deleting order: ", error);
     res
       .status(500)
       .json({ message: "Internal server error", err: error.message });
