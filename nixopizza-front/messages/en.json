@@ -509,7 +509,8 @@
         "to": "to",
         "afterTransfer": "After transfer",
         "newQuantity": "new quantity",
-        "remainingInSource": "remaining in source"
+        "remainingInSource": "remaining in source",
+        "selectCategory": "Select a category"
     },
     "purchases": {
         "title": "Purchase Lists",

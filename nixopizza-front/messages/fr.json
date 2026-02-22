@@ -505,7 +505,8 @@
         "wasteWarningMessage": "Cela supprimera définitivement l'article de stock de votre inventaire et l'enregistrera comme déchet. Cette action ne peut pas être annulée.",
         "summaryTitle": "Résumé:",
         "used": "Utilisé",
-        "remaining": "Restant"
+        "remaining": "Restant",
+        "selectCategory":"Sélectionner une catégorie"
     },
     "purchases": {
         "title": "Listes d'achat",
@@ -1118,7 +1119,7 @@
         "selectSourceStock": "Sélectionner l'entrepôt source",
         "selectDestinationStock": "Sélectionner l'entrepôt de destination",
         "selectItems": "Sélectionner les Articles",
-        "selectItemsPlaceholder": "Sélectionner les articles à transférer",
+        "selectItemsPlaceholder": "Sélectionner les articles",
         "quantity": "Quantité",
         "quantityPlaceholder": "Entrez la quantité",
         "status": "Statut",
@@ -1138,7 +1139,7 @@
         "update": "Mettre à Jour le Transfert",
         "updating": "Mise à jour...",
         "category": "Catégorie",
-        "selectCategory": "Sélectionner une catégorie (optionnel)",
+        "selectCategory": "Sélectionner une catégorie",
         "allCategories": "Toutes les Catégories",
         "searchPlaceholder": "Rechercher par nom d'entrepôt...",
         "filterByStatus": "Filtrer par statut",
