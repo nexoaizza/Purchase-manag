@@ -1,17 +1,17 @@
-// app/dashboard/orders/page.tsx
+// app/dashboard/tasks/page.tsx
 "use client";
 
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
-import { OrdersHeader } from "@/components/orders/orders-header";
-import { OrdersTable } from "@/components/orders/orders-table";
-import { getOrders } from "@/lib/apis/order";
+import { TasksHeader } from "@/components/tasks/tasks-header";
+import { TasksTable } from "@/components/tasks/tasks-table";
+import { getTasks } from "@/lib/apis/task";
 import { useEffect, useState } from "react";
 
 import toast from "react-hot-toast";
 
-export interface IStaffOrder {
+export interface ITask {
   _id: string;
-  orderNumber: string;
+  taskNumber: string;
   staffId: {
     _id: string;
     fullname: string;
@@ -34,8 +34,8 @@ export interface IStaffOrder {
   updatedAt: Date;
 }
 
-export default function OrdersPage() {
-  const [orders, setOrders] = useState<IStaffOrder[]>([]);
+export default function TasksPage() {
+  const [tasks, setTasks] = useState<ITask[]>([]);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [sort, setSort] = useState({ sortBy: "createdAt", order: "desc" });
@@ -44,67 +44,68 @@ export default function OrdersPage() {
   const [limit, setLimit] = useState(10);
 
   useEffect(() => {
-    const fetchOrders = async () => {
+    const fetchTasks = async () => {
       try {
         const params: any = {
-          orderNumber: search,
+          taskNumber: search,
           page: currentPage,
           limit,
           sortBy: sort.sortBy,
           order: sort.order,
         };
 
+        // Only add status if it's not "all"
         if (status !== "all") {
           params.status = status;
         }
 
-        const { orders, success, message, pages } = await getOrders(params);
+        const { tasks, success, message, pages } = await getTasks(params);
 
         if (success) {
-          setOrders(orders || []);
+          setTasks(tasks || []);
           setTotalPages(pages || 1);
         } else {
-          toast.error(message || "Failed to fetch orders");
+          toast.error(message || "Failed to fetch tasks");
         }
       } catch (error: any) {
-        toast.error("Failed to fetch orders");
-        console.error("Error fetching orders:", error);
+        toast.error("Failed to fetch tasks");
+        console.error("Error fetching tasks:", error);
       }
     };
 
-    fetchOrders();
+    fetchTasks();
   }, [search, status, sort, currentPage, limit]);
 
-  const handleUpdateOrder = (updatedOrder: IStaffOrder) => {
-    setOrders((prevOrders) =>
-      prevOrders.map((order) =>
-        order._id === updatedOrder._id ? updatedOrder : order
+  const handleUpdateTask = (updatedTask: ITask) => {
+    setTasks((prevTasks) =>
+      prevTasks.map((task) =>
+        task._id === updatedTask._id ? updatedTask : task
       )
     );
   };
 
-  const [isCreateOrderDialogOpen, setIsCreateOrderDialogOpen] = useState(false);
+  const [isCreateTaskDialogOpen, setIsCreateTaskDialogOpen] = useState(false);
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <OrdersHeader
+        <TasksHeader
           onSearchChange={setSearch}
           onStatusChange={setStatus}
           onSortChange={setSort}
-          isCreateDialogOpen={isCreateOrderDialogOpen}
-          setIsCreateDialogOpen={setIsCreateOrderDialogOpen}
+          isCreateDialogOpen={isCreateTaskDialogOpen}
+          setIsCreateDialogOpen={setIsCreateTaskDialogOpen}
         />
-        <OrdersTable
-          orders={orders}
-          setOrders={setOrders}
+        <TasksTable
+          tasks={tasks}
+          setTasks={setTasks}
           totalPages={totalPages}
           currentPage={currentPage}
           setCurrentPage={setCurrentPage}
           limit={limit}
           setLimit={setLimit}
-          onUpdateOrder={handleUpdateOrder}
-          onAssignOrder={() => setIsCreateOrderDialogOpen(true)}
+          onUpdateTask={handleUpdateTask}
+          onAssignTask={() => setIsCreateTaskDialogOpen(true)}
         />
       </div>
     </DashboardLayout>
