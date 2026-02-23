@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getStuff } from "@/lib/apis/stuff";
-import { createOrder } from "@/lib/apis/order";
+import { createTask } from "@/lib/apis/task";
 import { ClipboardList, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { resolveImage } from "@/lib/resolveImage";
@@ -34,18 +34,18 @@ interface Staff {
   avatar: string;
 }
 
-interface CreateOrderDialogProps {
+interface CreateTaskDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onOrderCreated?: () => void;
+  onTaskCreated?: () => void;
 }
 
-export function CreateOrderDialog({
+export function CreateTaskDialog({
   open,
   onOpenChange,
-  onOrderCreated,
-}: CreateOrderDialogProps) {
-  const t = useTranslations("orders");
+  onTaskCreated,
+}: CreateTaskDialogProps) {
+  const t = useTranslations("tasks");
   const [staffList, setStaffList] = useState<Staff[]>([]);
   const [selectedStaffId, setSelectedStaffId] = useState<string>("");
   const [description, setDescription] = useState<string>("");
@@ -56,13 +56,14 @@ export function CreateOrderDialog({
   useEffect(() => {
     const fetchData = async () => {
       if (!open) return;
-
+      
       try {
         setIsFetchingData(true);
-
+        
+        // Fetch staff
         const staffParams = { page: 1, limit: 1000 } as unknown as { name?: string };
         const staffResponse = await getStuff(staffParams);
-
+        
         if (staffResponse.success && staffResponse.staffs) {
           setStaffList(staffResponse.staffs);
         }
@@ -77,40 +78,44 @@ export function CreateOrderDialog({
     fetchData();
   }, [open]);
 
-  const handleCreateOrder = async () => {
+  const handleCreateTask = async () => {
+    // Validation
     if (!selectedStaffId) {
       toast.error(t("selectStaffError") || "Please select a staff member");
       return;
     }
 
+
     setIsLoading(true);
     try {
-      const orderData = {
+      const taskData = {
         staffId: selectedStaffId,
         description: description || undefined,
         deadline: deadline ? new Date(deadline).toISOString() : undefined,
       };
 
-      const { success, order, message } = await createOrder(orderData);
+      const { success, task, message } = await createTask(taskData);
 
-      if (success && order) {
-        toast.success(t("orderCreated") || "Order created successfully");
-        onOrderCreated?.();
+      if (success && task) {
+        toast.success(t("taskCreated") || "Task created successfully");
+        onTaskCreated?.();
         onOpenChange(false);
-
+        
+        // Reset form
         setSelectedStaffId("");
         setDescription("");
         setDeadline("");
-
+        
+        // Refresh page after successful creation
         setTimeout(() => {
           window.location.reload();
         }, 800);
       } else {
-        toast.error(message || t("failedCreateOrder") || "Failed to create order");
+        toast.error(message || t("failedCreateTask") || "Failed to create task");
       }
     } catch (error) {
-      console.error("Error creating order:", error);
-      toast.error(t("failedCreateOrder") || "Failed to create order");
+      console.error("Error creating task:", error);
+      toast.error(t("failedCreateTask") || "Failed to create task");
     } finally {
       setIsLoading(false);
     }
@@ -122,10 +127,10 @@ export function CreateOrderDialog({
         <DialogHeader>
           <DialogTitle className="font-heading flex items-center gap-2">
             <ClipboardList className="h-5 w-5" />
-            {t("createOrder") || "Create New Order"}
+            {t("createTask") || "Create New Task"}
           </DialogTitle>
           <DialogDescription>
-            {t("createOrderDescription") || "Assign an order to a staff member"}
+            {t("createTaskDescription") || "Assign a task to a staff member"}
           </DialogDescription>
         </DialogHeader>
 
@@ -173,7 +178,7 @@ export function CreateOrderDialog({
               </Label>
               <Textarea
                 id="description"
-                placeholder={t("orderDescriptionPlaceholder") || "Enter order description..."}
+                placeholder={t("taskDescriptionPlaceholder") || "Enter task description..."}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg min-h-[80px]"
@@ -209,7 +214,7 @@ export function CreateOrderDialog({
           </Button>
           <Button
             type="button"
-            onClick={handleCreateOrder}
+            onClick={handleCreateTask}
             disabled={isLoading || isFetchingData || !selectedStaffId}
             className="rounded-full px-6"
           >
@@ -219,7 +224,7 @@ export function CreateOrderDialog({
                 {t("creating") || "Creating..."}
               </>
             ) : (
-              t("createOrder") || "Create Order"
+              t("createTask") || "Create Task"
             )}
           </Button>
         </DialogFooter>

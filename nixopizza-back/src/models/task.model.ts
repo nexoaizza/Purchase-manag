@@ -1,7 +1,7 @@
 import { Schema, model, Document } from "mongoose";
 
-export interface IStaffOrder extends Document {
-  orderNumber: string;
+export interface ITask extends Document {
+  taskNumber: string;
   staffId: Schema.Types.ObjectId;
   description?: string;
   status: "pending" | "completed" | "canceled";
@@ -10,9 +10,9 @@ export interface IStaffOrder extends Document {
   updatedAt: Date;
 }
 
-const StaffOrderSchema = new Schema<IStaffOrder>(
+const TaskSchema = new Schema<ITask>(
   {
-    orderNumber: { type: String, required: true, unique: true },
+    taskNumber: { type: String, required: true, unique: true },
     staffId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     description: { type: String, required: false },
     deadline: {
@@ -28,6 +28,6 @@ const StaffOrderSchema = new Schema<IStaffOrder>(
   { timestamps: true }
 );
 
-const StaffOrder = model<IStaffOrder>("StaffOrder", StaffOrderSchema);
+const Task = model<ITask>("Task", TaskSchema);
 
-export default StaffOrder;
+export default Task;
