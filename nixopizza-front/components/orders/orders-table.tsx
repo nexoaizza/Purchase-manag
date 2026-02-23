@@ -1,4 +1,4 @@
-// components/tasks/tasks-table.tsx
+// components/orders/orders-table.tsx
 "use client";
 
 import { useState } from "react";
@@ -22,7 +22,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   MoreHorizontal,
-  Edit,
   Trash2,
   CheckCircle,
   XCircle,
@@ -31,39 +30,39 @@ import {
   Plus,
 } from "lucide-react";
 import { Pagination } from "@/components/ui/pagination";
-import { ITask } from "@/app/[locale]/dashboard/tasks/page";
-import { updateTaskStatus, deleteTask } from "@/lib/apis/task";
+import { IStaffOrder } from "@/app/[locale]/dashboard/orders/page";
+import { updateOrderStatus, deleteOrder } from "@/lib/apis/order";
 import toast from "react-hot-toast";
 import { useAuth } from "@/hooks/useAuth";
 
-import { TaskDetailDialog } from "./task-detail-dialog";
+import { OrderDetailDialog } from "./order-detail-dialog";
 
-interface TasksTableProps {
-  tasks: ITask[];
-  setTasks: any;
+interface OrdersTableProps {
+  orders: IStaffOrder[];
+  setOrders: any;
   totalPages: number;
   currentPage: number;
   setCurrentPage: any;
   limit: number;
   setLimit: any;
-  onUpdateTask: (task: ITask) => void;
-  onAssignTask: () => void;
+  onUpdateOrder: (order: IStaffOrder) => void;
+  onAssignOrder: () => void;
 }
 
-export function TasksTable({
-  tasks,
-  setTasks,
+export function OrdersTable({
+  orders,
+  setOrders,
   totalPages,
   currentPage,
   setCurrentPage,
   limit,
   setLimit,
-  onUpdateTask,
-  onAssignTask,
-}: TasksTableProps) {
-  const t = useTranslations("tasks");
+  onUpdateOrder,
+  onAssignOrder,
+}: OrdersTableProps) {
+  const t = useTranslations("orders");
   const { user } = useAuth();
-  const [selectedTask, setSelectedTask] = useState<ITask | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<IStaffOrder | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
   const getStatusColor = (status: string) => {
@@ -92,73 +91,72 @@ export function TasksTable({
     }
   };
 
-  const handleViewTask = (task: ITask) => {
-    setSelectedTask(task);
+  const handleViewOrder = (order: IStaffOrder) => {
+    setSelectedOrder(order);
     setIsViewDialogOpen(true);
   };
 
-  const handleMarkAsCompleted = async (taskId: string) => {
+  const handleMarkAsCompleted = async (orderId: string) => {
     try {
-      const { success, task, message } = await updateTaskStatus(taskId, "completed");
+      const { success, order, message } = await updateOrderStatus(orderId, "completed");
       if (success) {
-        toast.success(t("taskCompleted") || "Task completed successfully");
-        onUpdateTask(task);
+        toast.success(t("orderCompleted") || "Order completed successfully");
+        onUpdateOrder(order);
       } else {
-        toast.error(message || "Failed to complete task");
+        toast.error(message || "Failed to complete order");
       }
     } catch (error) {
       toast.error("An error occurred");
     }
   };
 
-  const handleCancelTask = async (taskId: string) => {
-    if (!confirm(t("confirmCancel") || "Are you sure you want to cancel this task?")) return;
+  const handleCancelOrder = async (orderId: string) => {
+    if (!confirm(t("confirmCancel") || "Are you sure you want to cancel this order?")) return;
     try {
-      const { success, task, message } = await updateTaskStatus(taskId, "canceled");
+      const { success, order, message } = await updateOrderStatus(orderId, "canceled");
       if (success) {
-        toast.success(t("taskCanceled") || "Task canceled successfully");
-        onUpdateTask(task);
+        toast.success(t("orderCanceled") || "Order canceled successfully");
+        onUpdateOrder(order);
       } else {
-        toast.error(message || "Failed to cancel task");
+        toast.error(message || "Failed to cancel order");
       }
     } catch (error) {
       toast.error("An error occurred");
     }
   };
 
-  const handleDeleteTask = async (taskId: string) => {
-    if (!confirm(t("confirmDeleteTask") || "Are you sure you want to delete this task?")) return;
+  const handleDeleteOrder = async (orderId: string) => {
+    if (!confirm(t("confirmDeleteOrder") || "Are you sure you want to delete this order?")) return;
     try {
-      const { success, message } = await deleteTask(taskId);
+      const { success, message } = await deleteOrder(orderId);
       if (success) {
-        toast.success(t("taskDeleted") || "Task deleted successfully");
-        // Remove from local state
-        setTasks((prev: ITask[]) => prev.filter((t) => t._id !== taskId));
+        toast.success(t("orderDeleted") || "Order deleted successfully");
+        setOrders((prev: IStaffOrder[]) => prev.filter((o) => o._id !== orderId));
       } else {
-        toast.error(message || "Failed to delete task");
+        toast.error(message || "Failed to delete order");
       }
     } catch (error) {
       toast.error("An error occurred");
     }
   };
 
-  if (tasks.length === 0) {
+  if (orders.length === 0) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="font-heading">{t("taskDirectory")}</CardTitle>
+          <CardTitle className="font-heading">{t("orderDirectory")}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center py-12 text-center">
           <div className="mb-4 p-3 bg-muted rounded-full">
             <Calendar className="h-10 w-10 text-muted-foreground" />
           </div>
-          <h3 className="text-xl font-semibold mb-1">{t("noTasksFound")}</h3>
+          <h3 className="text-xl font-semibold mb-1">{t("noOrdersFound")}</h3>
           <p className="text-muted-foreground mb-4">
-            {t("noTasksYet")}
+            {t("noOrdersYet")}
           </p>
-          <Button onClick={onAssignTask}>
+          <Button onClick={onAssignOrder}>
             <Plus className="h-4 w-4 mr-2" />
-            {t("assignTask")}
+            {t("assignOrder")}
           </Button>
         </CardContent>
       </Card>
@@ -169,14 +167,14 @@ export function TasksTable({
     <>
       <Card>
         <CardHeader>
-          <CardTitle className="font-heading">{t("taskDirectory")}</CardTitle>
+          <CardTitle className="font-heading">{t("orderDirectory")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t("taskId")}</TableHead>
+                  <TableHead>{t("orderId")}</TableHead>
                   <TableHead>{t("assignedToHeader")}</TableHead>
                   <TableHead>{t("description")}</TableHead>
                   <TableHead>{t("deadlineHeader")}</TableHead>
@@ -185,11 +183,11 @@ export function TasksTable({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {tasks.map((task) => (
-                  <TableRow key={task._id}>
+                {orders.map((order) => (
+                  <TableRow key={order._id}>
                     <TableCell>
                       <div className="font-mono font-medium">
-                        {task.taskNumber}
+                        {order.orderNumber}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -197,24 +195,24 @@ export function TasksTable({
                         <img
                           src={
                             process.env.NEXT_PUBLIC_BASE_URL +
-                            task.staffId.avatar
+                            order.staffId.avatar
                           }
-                          alt={task.staffId.fullname}
+                          alt={order.staffId.fullname}
                           className="w-8 h-8 rounded-full object-cover"
                         />
                         <div>
                           <div className="font-medium">
-                            {task.staffId.fullname}
+                            {order.staffId.fullname}
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            {task.staffId.email}
+                            {order.staffId.email}
                           </div>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="max-w-xs truncate text-muted-foreground">
-                        {task.description || (
+                        {order.description || (
                           <span className="italic text-muted-foreground/60">
                             {t("noDescription") || "No description"}
                           </span>
@@ -225,8 +223,8 @@ export function TasksTable({
                       <div className="flex items-center gap-1">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         <span>
-                          {task.deadline ? (
-                            new Date(task.deadline).toLocaleDateString("en-GB")
+                          {order.deadline ? (
+                            new Date(order.deadline).toLocaleDateString("en-GB")
                           ) : (
                             <span className="text-muted-foreground/60 italic text-sm">
                               {t("noDeadline") || "No deadline"}
@@ -236,8 +234,8 @@ export function TasksTable({
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={getStatusColor(task.status) as any}>
-                        {getStatusLabel(task.status)}
+                      <Badge variant={getStatusColor(order.status) as any}>
+                        {getStatusLabel(order.status)}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -249,16 +247,16 @@ export function TasksTable({
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
-                            onClick={() => handleViewTask(task)}
+                            onClick={() => handleViewOrder(order)}
                           >
                             <Eye className="h-4 w-4 mr-2" />
                             {t("viewDetails")}
                           </DropdownMenuItem>
-                          {task.status === "pending" && (
+                          {order.status === "pending" && (
                             <>
-                              {(user?.role === "admin" || user?._id === task.staffId._id) && (
+                              {(user?.role === "admin" || user?._id === order.staffId._id) && (
                                 <DropdownMenuItem
-                                  onClick={() => handleMarkAsCompleted(task._id)}
+                                  onClick={() => handleMarkAsCompleted(order._id)}
                                 >
                                   <CheckCircle className="h-4 w-4 mr-2" />
                                   {t("markAsCompleted")}
@@ -266,22 +264,22 @@ export function TasksTable({
                               )}
                               {user?.role === "admin" && (
                                 <DropdownMenuItem
-                                  onClick={() => handleCancelTask(task._id)}
+                                  onClick={() => handleCancelOrder(order._id)}
                                   className="text-destructive"
                                 >
                                   <XCircle className="h-4 w-4 mr-2" />
-                                  {t("cancelTask")}
+                                  {t("cancelOrder")}
                                 </DropdownMenuItem>
                               )}
                             </>
                           )}
                           {user?.role === "admin" && (
                             <DropdownMenuItem
-                              onClick={() => handleDeleteTask(task._id)}
+                              onClick={() => handleDeleteOrder(order._id)}
                               className="text-destructive"
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
-                              {t("deleteTask")}
+                              {t("deleteOrder")}
                             </DropdownMenuItem>
                           )}
                         </DropdownMenuContent>
@@ -296,7 +294,7 @@ export function TasksTable({
           {/* Pagination */}
           <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-sm text-muted-foreground">
-              {t("showing")} {tasks.length} {t("of")} {totalPages * limit} {t("tasks")}
+              {t("showing")} {orders.length} {t("of")} {totalPages * limit} {t("orders")}
             </div>
             <Pagination
               currentPage={currentPage}
@@ -309,8 +307,8 @@ export function TasksTable({
         </CardContent>
       </Card>
 
-      <TaskDetailDialog
-        task={selectedTask}
+      <OrderDetailDialog
+        order={selectedOrder}
         open={isViewDialogOpen}
         onOpenChange={setIsViewDialogOpen}
       />

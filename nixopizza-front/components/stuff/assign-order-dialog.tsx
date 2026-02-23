@@ -1,4 +1,4 @@
-// components/stuff/assign-task-dialog.tsx
+// components/stuff/assign-order-dialog.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -14,7 +14,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -23,38 +22,35 @@ import {
   Trash2,
   AlertCircle,
   Loader2,
-  Box,
-  X,
 } from "lucide-react";
 import { ProductSelect } from "@/components/ui/product-select";
 import { getProducts } from "@/lib/apis/products";
 import { IProduct } from "@/app/[locale]/dashboard/products/page";
-import { ISupplier } from "@/app/[locale]/dashboard/suppliers/page";
 import toast from "react-hot-toast";
 import { IUser } from "@/store/user.store";
-import { createTask } from "@/lib/apis/task";
+import { createOrder } from "@/lib/apis/order";
 
 // Types for real data
-interface ITaskItem {
+interface IOrderItem {
   productId: string;
   quantity: number;
 }
 
-interface AssignTaskDialogProps {
+interface AssignOrderDialogProps {
   stuff: IUser | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function AssignTaskDialog({
+export function AssignOrderDialog({
   stuff,
   open,
   onOpenChange,
-}: AssignTaskDialogProps) {
+}: AssignOrderDialogProps) {
   const t = useTranslations("staff");
-  const [taskName, setTaskName] = useState("");
+  const [orderName, setOrderName] = useState("");
   const [deadline, setDeadline] = useState("");
-  const [taskItems, setTaskItems] = useState<ITaskItem[]>([
+  const [orderItems, setOrderItems] = useState<IOrderItem[]>([
     { productId: "", quantity: 1 },
   ]);
   const [notes, setNotes] = useState("");
@@ -64,11 +60,9 @@ export function AssignTaskDialog({
   );
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
 
-  // Data fetching states
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch products when component mounts
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -95,51 +89,48 @@ export function AssignTaskDialog({
     fetchProducts();
   }, []);
 
-  const addTaskItem = () => {
-    setTaskItems([...taskItems, { productId: "", quantity: 1 }]);
+  const addOrderItem = () => {
+    setOrderItems([...orderItems, { productId: "", quantity: 1 }]);
     setSelectedProducts([...selectedProducts, null]);
   };
 
-  const removeTaskItem = (index: number) => {
-    if (taskItems.length <= 1) return;
-    setTaskItems(taskItems.filter((_, i) => i !== index));
+  const removeOrderItem = (index: number) => {
+    if (orderItems.length <= 1) return;
+    setOrderItems(orderItems.filter((_, i) => i !== index));
     setSelectedProducts(selectedProducts.filter((_, i) => i !== index));
   };
 
-  const updateTaskItem = (
+  const updateOrderItem = (
     index: number,
-    field: keyof ITaskItem,
+    field: keyof IOrderItem,
     value: string | number
   ) => {
-    const updated = [...taskItems];
+    const updated = [...orderItems];
     updated[index] = { ...updated[index], [field]: value };
-    setTaskItems(updated);
+    setOrderItems(updated);
   };
 
   const handleProductSelect = (index: number, product: IProduct | null) => {
-    // Update selected products array
     const updatedSelectedProducts = [...selectedProducts];
     updatedSelectedProducts[index] = product;
     setSelectedProducts(updatedSelectedProducts);
 
-    // Update task item with product ID
     if (product) {
-      updateTaskItem(index, "productId", product._id);
+      updateOrderItem(index, "productId", product._id);
     } else {
-      updateTaskItem(index, "productId", "");
+      updateOrderItem(index, "productId", "");
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation
     if (!stuff) {
       setError(t("noStaffSelected"));
       return;
     }
 
-    if (!taskName.trim()) {
+    if (!orderName.trim()) {
       setError(t("taskNameRequired"));
       return;
     }
@@ -149,13 +140,12 @@ export function AssignTaskDialog({
       return;
     }
 
-    if (taskItems.length === 0) {
+    if (orderItems.length === 0) {
       setError(t("addAtLeastOneItem"));
       return;
     }
 
-    // Check if all items have products selected
-    const hasEmptyProducts = taskItems.some((item) => !item.productId);
+    const hasEmptyProducts = orderItems.some((item) => !item.productId);
     if (hasEmptyProducts) {
       setError(t("selectProductsForAll"));
       return;
@@ -165,20 +155,19 @@ export function AssignTaskDialog({
     setError(null);
 
     try {
-      // Prepare items for API call
-      const items = taskItems.map((item) => ({
+      const items = orderItems.map((item) => ({
         productId: item.productId,
         quantity: item.quantity,
       }));
 
-      const taskData = {
+      const orderData = {
         staffId: stuff._id,
         items,
         deadline,
         notes,
       };
 
-      const { success, message, task } = await createTask(taskData);
+      const { success, message, order } = await createOrder(orderData);
 
       if (success) {
         toast.success(t("taskAssignedSuccess"));
@@ -186,20 +175,20 @@ export function AssignTaskDialog({
         onOpenChange(false);
       } else {
         setError(message || t("failedToAssignTask"));
-        console.error("Error creating task:", message);
+        console.error("Error creating order:", message);
       }
     } catch (error) {
       setError(t("unexpectedError"));
-      console.error("Error creating task:", error);
+      console.error("Error creating order:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const resetForm = () => {
-    setTaskName("");
+    setOrderName("");
     setDeadline("");
-    setTaskItems([{ productId: "", quantity: 1 }]);
+    setOrderItems([{ productId: "", quantity: 1 }]);
     setSelectedProducts([null]);
     setNotes("");
     setError(null);
@@ -240,15 +229,15 @@ export function AssignTaskDialog({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Task Name */}
+          {/* Order Name */}
           <div className="space-y-2">
-            <Label htmlFor="taskName" className="text-sm font-medium">
+            <Label htmlFor="orderName" className="text-sm font-medium">
               {t("taskName")} *
             </Label>
             <Input
-              id="taskName"
-              value={taskName}
-              onChange={(e) => setTaskName(e.target.value)}
+              id="orderName"
+              value={orderName}
+              onChange={(e) => setOrderName(e.target.value)}
               placeholder={t("taskNamePlaceholder")}
               required
               className="py-5 border-2 border-input focus-visible:ring-2 focus-visible:ring-primary/30 rounded-lg"
@@ -270,7 +259,7 @@ export function AssignTaskDialog({
             />
           </div>
 
-          {/* Task Items */}
+          {/* Order Items */}
           <Card className="border-0 shadow-sm rounded-xl">
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
@@ -281,7 +270,7 @@ export function AssignTaskDialog({
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={addTaskItem}
+                  onClick={addOrderItem}
                   disabled={isLoadingProducts}
                   className="gap-2 rounded-full border-2 border-input px-4"
                 >
@@ -291,9 +280,9 @@ export function AssignTaskDialog({
               </div>
             </CardHeader>
             <CardContent>
-              {taskItems.length > 0 && (
+              {orderItems.length > 0 && (
                 <div className="space-y-4">
-                  {taskItems.map((item, index) => {
+                  {orderItems.map((item, index) => {
                     return (
                       <div
                         key={index}
@@ -306,7 +295,7 @@ export function AssignTaskDialog({
                           <ProductSelect
                             products={products}
                             selectedProduct={selectedProducts[index] || null}
-                            onProductChange={(product) =>
+                            onSelect={(product: any) =>
                               handleProductSelect(index, product)
                             }
                             placeholder={t("selectProduct")}
@@ -322,7 +311,7 @@ export function AssignTaskDialog({
                             min="0"
                             value={item.quantity}
                             onChange={(e) =>
-                              updateTaskItem(
+                              updateOrderItem(
                                 index,
                                 "quantity",
                                 parseInt(e.target.value) || 0
@@ -335,8 +324,8 @@ export function AssignTaskDialog({
                           type="button"
                           variant="outline"
                           size="icon"
-                          onClick={() => removeTaskItem(index)}
-                          disabled={taskItems.length <= 1}
+                          onClick={() => removeOrderItem(index)}
+                          disabled={orderItems.length <= 1}
                           className="text-destructive hover:text-destructive border-2 border-input w-10 h-10 rounded-full mt-4 sm:mt-0"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -378,12 +367,12 @@ export function AssignTaskDialog({
               type="submit"
               disabled={
                 !stuff ||
-                !taskName.trim() ||
+                !orderName.trim() ||
                 !deadline ||
-                taskItems.length === 0 ||
+                orderItems.length === 0 ||
                 isSubmitting ||
                 isLoadingProducts ||
-                taskItems.some((item) => !item.productId)
+                orderItems.some((item) => !item.productId)
               }
               className="rounded-full px-6 bg-primary hover:bg-primary/90"
             >

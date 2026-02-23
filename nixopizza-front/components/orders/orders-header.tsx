@@ -1,4 +1,4 @@
-// components/tasks/tasks-header.tsx
+// components/orders/orders-header.tsx
 "use client";
 
 import { useTranslations } from "next-intl";
@@ -11,11 +11,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Filter, ArrowUpDown, Plus } from "lucide-react";
+import { Search, ArrowUpDown, Plus } from "lucide-react";
 import { useState } from "react";
-import { CreateTaskDialog } from "./create-task-dialog";
+import { CreateOrderDialog } from "./create-order-dialog";
 
-interface TasksHeaderProps {
+interface OrdersHeaderProps {
   onSearchChange: (search: string) => void;
   onStatusChange: (status: string) => void;
   onSortChange: (sort: { sortBy: string; order: string }) => void;
@@ -23,35 +23,31 @@ interface TasksHeaderProps {
   setIsCreateDialogOpen: (open: boolean) => void;
 }
 
-export function TasksHeader({
+export function OrdersHeader({
   onSearchChange,
   onStatusChange,
   onSortChange,
   isCreateDialogOpen,
   setIsCreateDialogOpen,
-}: TasksHeaderProps) {
-  const t = useTranslations("tasks");
+}: OrdersHeaderProps) {
+  const t = useTranslations("orders");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("createdAt");
   const [order, setOrder] = useState("desc");
 
-  // Handle search change
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
     onSearchChange(value);
   };
 
-  // Handle status change
   const handleStatusChange = (value: string) => {
     setStatusFilter(value);
     onStatusChange(value);
   };
 
-  // Handle sort change
   const handleSortChange = (field: string) => {
     setSortBy(field);
-    // Toggle order if same field is selected
     const newOrder = sortBy === field && order === "asc" ? "desc" : "asc";
     setOrder(newOrder);
     onSortChange({ sortBy: field, order: newOrder });
@@ -73,7 +69,7 @@ export function TasksHeader({
           className="rounded-full px-6 gap-2"
         >
           <Plus className="h-4 w-4" />
-          {t("createTask") || "Create Task"}
+          {t("createOrder") || "Create Order"}
         </Button>
       </div>
 
@@ -94,7 +90,7 @@ export function TasksHeader({
               <SelectValue placeholder={t("statusLabel")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("allTasks")}</SelectItem>
+              <SelectItem value="all">{t("allOrders")}</SelectItem>
               <SelectItem value="pending">{t("pending")}</SelectItem>
               <SelectItem value="completed">{t("completed")}</SelectItem>
               <SelectItem value="canceled">{t("canceled")}</SelectItem>
@@ -107,7 +103,7 @@ export function TasksHeader({
             <SelectContent>
               <SelectItem value="createdAt">{t("dateCreated")}</SelectItem>
               <SelectItem value="deadline">{t("deadline")}</SelectItem>
-              <SelectItem value="taskNumber">{t("taskNumber")}</SelectItem>
+              <SelectItem value="orderNumber">{t("orderNumber")}</SelectItem>
               <SelectItem value="staffId.fullname">{t("assignedTo")}</SelectItem>
             </SelectContent>
           </Select>
@@ -126,7 +122,7 @@ export function TasksHeader({
         </div>
       </div>
 
-      <CreateTaskDialog
+      <CreateOrderDialog
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
       />
