@@ -9,26 +9,26 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, ClipboardList, User, Info, CheckCircle, XCircle, Clock } from "lucide-react";
-import { IStaffOrder } from "@/app/[locale]/dashboard/orders/page";
+import { ITask } from "@/app/[locale]/dashboard/tasks/page";
 import { useTranslations } from "next-intl";
 import { resolveImage } from "@/lib/resolveImage";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
-interface OrderDetailDialogProps {
-  order: IStaffOrder | null;
+interface TaskDetailDialogProps {
+  task: ITask | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function OrderDetailDialog({
-  order,
+export function TaskDetailDialog({
+  task,
   open,
   onOpenChange,
-}: OrderDetailDialogProps) {
-  const t = useTranslations("orders");
+}: TaskDetailDialogProps) {
+  const t = useTranslations("tasks");
 
-  if (!order) return null;
+  if (!task) return null;
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -75,20 +75,20 @@ export function OrderDetailDialog({
         <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-6 border-b border-primary/10">
           <DialogHeader>
             <div className="flex items-center justify-between">
-              <Badge variant={getStatusColor(order.status) as any} className="mb-2 px-3 py-1 rounded-full flex items-center gap-1.5 border-none shadow-sm">
-                {getStatusIcon(order.status)}
-                <span className="font-bold tracking-tight uppercase text-[10px]">{getStatusLabel(order.status)}</span>
+              <Badge variant={getStatusColor(task.status) as any} className="mb-2 px-3 py-1 rounded-full flex items-center gap-1.5 border-none shadow-sm">
+                {getStatusIcon(task.status)}
+                <span className="font-bold tracking-tight uppercase text-[10px]">{getStatusLabel(task.status)}</span>
               </Badge>
               <div className="text-xs font-mono text-muted-foreground bg-background/50 px-2 py-1 rounded-md">
-                {order.orderNumber}
+                {task.taskNumber}
               </div>
             </div>
             <DialogTitle className="text-2xl font-heading font-extrabold tracking-tight text-foreground flex items-center gap-2">
               <ClipboardList className="h-6 w-6 text-primary" />
-              {t("orderDetails") || "Order Details"}
+              {t("taskDetails") || "Task Details"}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground/80 mt-1">
-              {t("viewDetailsDescription") || "Full information about this order instance."}
+              {t("viewDetailsDescription") || "Full information about this task instance."}
             </DialogDescription>
           </DialogHeader>
         </div>
@@ -102,14 +102,14 @@ export function OrderDetailDialog({
             </h4>
             <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 border border-muted transition-all hover:bg-muted/50">
               <img
-                src={resolveImage(order.staffId.avatar)}
-                alt={order.staffId.fullname}
+                src={resolveImage(task.staffId.avatar)}
+                alt={task.staffId.fullname}
                 className="w-12 h-12 rounded-full object-cover shadow-md ring-2 ring-primary/10"
               />
               <div className="space-y-0.5">
-                <div className="font-bold text-foreground">{order.staffId.fullname}</div>
+                <div className="font-bold text-foreground">{task.staffId.fullname}</div>
                 <div className="text-sm text-muted-foreground select-all">
-                  {order.staffId.email}
+                  {task.staffId.email}
                 </div>
               </div>
             </div>
@@ -122,10 +122,10 @@ export function OrderDetailDialog({
               {t("description") || "Description"}
             </h4>
             <div className="p-4 rounded-xl bg-muted/20 border border-muted/50 min-h-[60px]">
-              {order.description ? (
-                <p className="text-foreground leading-relaxed whitespace-pre-wrap">{order.description}</p>
+              {task.description ? (
+                <p className="text-foreground leading-relaxed whitespace-pre-wrap">{task.description}</p>
               ) : (
-                <p className="text-muted-foreground italic text-sm">{t("noDescription") || "No description provided for this order."}</p>
+                <p className="text-muted-foreground italic text-sm">{t("noDescription") || "No description provided for this task."}</p>
               )}
             </div>
           </div>
@@ -139,7 +139,7 @@ export function OrderDetailDialog({
               </h4>
               <div className="flex items-center gap-2 text-sm font-medium text-foreground bg-muted/20 p-3 rounded-lg border border-muted/30">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                {format(new Date(order.createdAt), "dd/MM/yyyy HH:mm")}
+                {format(new Date(task.createdAt), "dd/MM/yyyy HH:mm")}
               </div>
             </div>
             <div className="space-y-3">
@@ -149,28 +149,28 @@ export function OrderDetailDialog({
               </h4>
               <div className={cn(
                 "flex items-center gap-2 text-sm font-medium p-3 rounded-lg border",
-                order.deadline ? "text-foreground bg-muted/20 border-muted/30" : "text-muted-foreground italic bg-muted/10 border-dashed border-muted"
+                task.deadline ? "text-foreground bg-muted/20 border-muted/30" : "text-muted-foreground italic bg-muted/10 border-dashed border-muted"
               )}>
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                {order.deadline ? format(new Date(order.deadline), "dd/MM/yyyy HH:mm") : (t("noDeadline") || "None")}
+                {task.deadline ? format(new Date(task.deadline), "dd/MM/yyyy HH:mm") : (t("noDeadline") || "None")}
               </div>
             </div>
           </div>
 
           {/* Items Section - Only if they exist */}
-          {order.items && order.items.length > 0 && (
+          {task.items && task.items.length > 0 && (
             <div className="space-y-3">
               <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                 <ClipboardList className="h-3 w-3" />
-                {t("orderItems") || "Order Items"}
+                {t("taskItems") || "Task Items"}
               </h4>
               <div className="border border-muted rounded-xl overflow-hidden divide-y divide-muted bg-muted/5">
-                {order.items.map((item, index) => (
+                {task.items.map((item, index) => (
                   <div key={index} className="flex font-medium items-center justify-between p-3 hover:bg-muted/10 transition-colors">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-md bg-muted overflow-hidden">
-                        <img
-                          src={resolveImage(item.productId.imageUrl)}
+                        <img 
+                          src={resolveImage(item.productId.imageUrl)} 
                           alt={item.productId.name}
                           className="w-full h-full object-cover"
                         />
@@ -189,7 +189,7 @@ export function OrderDetailDialog({
           {/* Last Updated */}
           <div className="pt-4 border-t border-muted/50 flex justify-end">
              <div className="text-[10px] text-muted-foreground italic">
-                {t("lastUpdated") || "Last updated"}: {format(new Date(order.updatedAt), "dd/MM/yyyy HH:mm")}
+                {t("lastUpdated") || "Last updated"}: {format(new Date(task.updatedAt), "dd/MM/yyyy HH:mm")}
              </div>
           </div>
         </div>
