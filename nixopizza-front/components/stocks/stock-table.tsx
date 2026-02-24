@@ -92,7 +92,7 @@ export function StockTable({
                       <div>
                         <div className="font-medium">{stock.name}</div>
                         <div className="text-sm text-muted-foreground">
-                          {new Date(stock.createdAt!).toLocaleDateString()}
+                          {new Date(stock.createdAt!).toLocaleDateString("fr-FR")}
                         </div>
                       </div>
                     </div>
