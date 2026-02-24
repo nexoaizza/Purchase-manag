@@ -173,7 +173,7 @@ export function TransferTable({
                   <TableCell>{getStatusBadge(transfer.status)}</TableCell>
                   <TableCell>
                     {transfer.createdAt
-                      ? format(new Date(transfer.createdAt), "MMM dd, yyyy")
+                      ? format(new Date(transfer.createdAt), "dd/MM/yyyy")
                       : "N/A"}
                   </TableCell>
                   <TableCell className="text-right">
