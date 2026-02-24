@@ -190,7 +190,7 @@ export function StockItemTable({
                     <TableCell>
                       <div className="flex items-center gap-1 text-sm">
                         <Calendar className="h-3 w-3 text-muted-foreground" />
-                        <span>{item.createdAt ? new Date(item.createdAt).toLocaleDateString() : '-'}</span>
+                        <span>{item.createdAt ? new Date(item.createdAt).toLocaleDateString("fr-FR") : '-'}</span>
                       </div>
                     </TableCell>
 
@@ -199,7 +199,7 @@ export function StockItemTable({
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center gap-1 text-sm">
                             <Calendar className="h-3 w-3 text-muted-foreground" />
-                            <span>{new Date(item.expireAt).toLocaleDateString()}</span>
+                            <span>{new Date(item.expireAt).toLocaleDateString("fr-FR")}</span>
                           </div>
                           {expirationStatus && (
                             <Badge

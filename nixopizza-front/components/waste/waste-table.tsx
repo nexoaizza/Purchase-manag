@@ -115,7 +115,7 @@ export function WasteTable({
                   </TableCell>
                   <TableCell>
                     {waste.createdAt
-                      ? format(new Date(waste.createdAt), "MMM dd, yyyy")
+                      ? format(new Date(waste.createdAt), "dd/MM/yyyy")
                       : "N/A"}
                   </TableCell>
                   <TableCell className="text-right">

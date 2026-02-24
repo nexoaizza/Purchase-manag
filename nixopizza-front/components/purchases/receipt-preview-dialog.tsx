@@ -232,7 +232,7 @@ const ReceiptPDF = ({ order }: { order: IOrder }) => (
 
       <Text style={styles.footer}>
         Thank you for your business! Generated on{" "}
-        {new Date().toLocaleDateString()}
+        {new Date().toLocaleDateString("fr-FR")}
       </Text>
     </Page>
   </Document>
@@ -409,7 +409,7 @@ export function ReceiptPreviewDialog({
           <div className="text-center text-sm text-muted-foreground pt-4 border-t print:border-t print:border-gray-200 print:pt-2">
             <p className="print:text-xs">{t("thankYouBusiness")}</p>
             <p className="print:text-xs">
-              {t("generatedOn")} {new Date().toLocaleDateString()}
+              {t("generatedOn")} {new Date().toLocaleDateString("fr-FR")}
             </p>
           </div>
         </div>
