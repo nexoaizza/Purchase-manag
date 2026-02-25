@@ -221,7 +221,7 @@ export function AddSupplierDialog({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium">
-                {t("emailField")}
+                {t("emailOptional")}
               </Label>
               <Input
                 type="email"
@@ -259,11 +259,10 @@ export function AddSupplierDialog({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label>{t("addressRequired")}</Label>
+              <Label>{t("addressOptional")}</Label>
               <Input
                 value={formData.address}
                 onChange={(e) => handleInputChange("address", e.target.value)}
-                required
               />
             </div>
             <div className="space-y-2">
