@@ -102,8 +102,8 @@ export const createSupplier = async (req: Request, res: Response): Promise<void>
       categoryIds,
     } = req.body;
 
-    if (!name || !contactPerson || !phone1 || !address) {
-      res.status(400).json({ message: "Missing required fields: name, contactPerson, phone1, address" });
+    if (!name || !contactPerson || !phone1) {
+      res.status(400).json({ message: "Missing required fields: name, contactPerson, phone1" });
       return;
     }
 
