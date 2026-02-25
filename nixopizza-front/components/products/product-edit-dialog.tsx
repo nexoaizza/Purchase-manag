@@ -62,6 +62,7 @@ export function ProductEditDialog({
   });
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageRemoved, setImageRemoved] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const t = useTranslations("products");
@@ -81,6 +82,7 @@ export function ProductEditDialog({
         description: product.description || "",
       });
       setImage(null);
+      setImageRemoved(false);
       setImagePreview(product.imageUrl ? resolveImage(product.imageUrl) : null);
     } else {
       resetForm();
@@ -99,6 +101,7 @@ export function ProductEditDialog({
         return;
       }
       setImage(f);
+      setImageRemoved(false);
       setImagePreview(URL.createObjectURL(f));
     }
   };
@@ -106,6 +109,7 @@ export function ProductEditDialog({
   const removeImage = () => {
     setImage(null);
     setImagePreview(null);
+    setImageRemoved(true);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -119,6 +123,7 @@ export function ProductEditDialog({
       description: "",
     });
     setImage(null);
+    setImageRemoved(false);
     setImagePreview(null);
   };
 
@@ -134,7 +139,11 @@ export function ProductEditDialog({
     fd.append("minQty", formData.minQty.toString());
     if (formData.barcode) fd.append("barcode", formData.barcode);
     if (formData.description) fd.append("description", formData.description);
-    if (image) fd.append("image", image);
+    if (image) {
+      fd.append("image", image);
+    } else if (imageRemoved) {
+      fd.append("removeImage", "true");
+    }
 
     const { success, product: updated, message } = await updateProduct(
       product._id,
