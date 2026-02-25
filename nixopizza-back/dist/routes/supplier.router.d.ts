@@ -1,3 +1,3 @@
-declare const supplierRouter: import("express-serve-static-core").Router;
+declare const supplierRouter: any;
 export default supplierRouter;
 //# sourceMappingURL=supplier.router.d.ts.map

@@ -9,5 +9,6 @@ taskRouter.post("/", Auth_1.requireAdmin, task_controller_1.createTask);
 taskRouter.get("/", task_controller_1.getTasks);
 taskRouter.get("/:taskId", task_controller_1.getTaskById);
 taskRouter.put("/:taskId", task_controller_1.updateTaskStatus);
+taskRouter.delete("/:taskId", Auth_1.requireAdmin, task_controller_1.deleteTask);
 exports.default = taskRouter;
 //# sourceMappingURL=task.router.js.map

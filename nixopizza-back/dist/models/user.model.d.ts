@@ -15,10 +15,6 @@ export interface IUser extends Document {
     updatedAt: Date;
     comparePassword(candidatePassword: string): Promise<boolean>;
 }
-declare const User: import("mongoose").Model<IUser, {}, {}, {}, Document<unknown, {}, IUser, {}, {}> & IUser & Required<{
-    _id: import("mongoose").Types.ObjectId;
-}> & {
-    __v: number;
-}, any>;
+declare const User: any;
 export default User;
 //# sourceMappingURL=user.model.d.ts.map

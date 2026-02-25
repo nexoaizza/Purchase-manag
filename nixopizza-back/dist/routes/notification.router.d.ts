@@ -1,3 +1,3 @@
-declare const notificationRouter: import("express-serve-static-core").Router;
+declare const notificationRouter: any;
 export default notificationRouter;
 //# sourceMappingURL=notification.router.d.ts.map

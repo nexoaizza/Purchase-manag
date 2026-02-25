@@ -19,7 +19,7 @@ const supplierSchema = new mongoose_1.Schema({
     phone1: { type: String, required: [true, "Phone Number Is Required"], trim: true },
     phone2: { type: String, trim: true },
     phone3: { type: String, trim: true },
-    address: { type: String, required: [true, "Address Is Required"], trim: true },
+    address: { type: String, trim: true },
     city: { type: String, trim: true },
     image: { type: String },
     notes: { type: String },

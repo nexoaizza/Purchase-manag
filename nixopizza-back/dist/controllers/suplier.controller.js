@@ -20,10 +20,43 @@ const normalizeEmail = (value) => {
 /**
  * GET /api/suppliers
  */
-const getSuppliers = async (_req, res) => {
+const getSuppliers = async (req, res) => {
     try {
-        const suppliers = await supplier_model_1.default.find().sort({ createdAt: -1 });
-        res.status(200).json({ suppliers });
+        const { name, status, categoryIds, page = 1, limit = 10 } = req.query;
+        // Build filter query
+        const filter = {};
+        // Filter by name (case-insensitive search)
+        if (name && typeof name === 'string') {
+            filter.name = { $regex: name, $options: 'i' };
+        }
+        // Filter by status (active/inactive)
+        if (status && status !== 'all') {
+            filter.isActive = status === 'active';
+        }
+        // Filter by categories
+        if (categoryIds && typeof categoryIds === 'string') {
+            const categoryIdArray = categoryIds.split(',').filter(Boolean);
+            if (categoryIdArray.length > 0) {
+                filter.categoryIds = { $in: categoryIdArray };
+            }
+        }
+        // Calculate pagination
+        const pageNum = parseInt(page, 10) || 1;
+        const limitNum = parseInt(limit, 10) || 10;
+        const skip = (pageNum - 1) * limitNum;
+        // Get total count and suppliers
+        const totalSuppliers = await supplier_model_1.default.countDocuments(filter);
+        const suppliers = await supplier_model_1.default.find(filter)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limitNum);
+        const totalPages = Math.ceil(totalSuppliers / limitNum);
+        res.status(200).json({
+            suppliers,
+            pages: totalPages,
+            total: totalSuppliers,
+            currentPage: pageNum
+        });
     }
     catch (e) {
         res.status(500).json({ message: "Internal server error", error: e.message });
@@ -54,8 +87,8 @@ exports.getSupplierById = getSupplierById;
 const createSupplier = async (req, res) => {
     try {
         const { name, contactPerson, email, phone1, phone2, phone3, address, city, notes, isActive, categoryIds, } = req.body;
-        if (!name || !contactPerson || !phone1 || !address) {
-            res.status(400).json({ message: "Missing required fields: name, contactPerson, phone1, address" });
+        if (!name || !contactPerson || !phone1) {
+            res.status(400).json({ message: "Missing required fields: name, contactPerson, phone1" });
             return;
         }
         const normalizedEmail = normalizeEmail(email);

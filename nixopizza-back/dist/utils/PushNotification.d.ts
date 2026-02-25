@@ -1,2 +1,2 @@
-export declare const pushNotification: (title: string, message: string, type: "low_stock" | "budget_alert" | "expiry_warning" | "complited_task", actionUrl?: string) => Promise<void>;
+export declare const pushNotification: (title: string, message: string, type: "low_stock" | "budget_alert" | "expiry_warning" | "complited_task" | "task_assigned", actionUrl?: string) => Promise<void>;
 //# sourceMappingURL=PushNotification.d.ts.map
