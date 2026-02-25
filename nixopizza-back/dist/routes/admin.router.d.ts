@@ -1,3 +1,3 @@
-declare const adminRouter: import("express-serve-static-core").Router;
+declare const adminRouter: any;
 export default adminRouter;
 //# sourceMappingURL=admin.router.d.ts.map

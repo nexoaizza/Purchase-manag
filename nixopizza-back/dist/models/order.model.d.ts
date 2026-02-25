@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from "mongoose";
+import { Schema, Document } from "mongoose";
 export interface IStatusHistoryEntry {
     from: string | null;
     to: string;
@@ -24,10 +24,6 @@ export interface IOrder extends Document {
     canceledDate?: Date;
     statusHistory: IStatusHistoryEntry[];
 }
-declare const Order: mongoose.Model<IOrder, {}, {}, {}, mongoose.Document<unknown, {}, IOrder, {}, {}> & IOrder & Required<{
-    _id: mongoose.Types.ObjectId;
-}> & {
-    __v: number;
-}, any>;
+declare const Order: any;
 export default Order;
 //# sourceMappingURL=order.model.d.ts.map

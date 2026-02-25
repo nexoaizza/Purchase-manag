@@ -9,8 +9,6 @@ productRouter.use(Auth_1.authenticate);
 productRouter.post("/", (0, Multer_1.upload)().single("image"), product_controller_1.createProduct);
 productRouter.put("/:productId", Auth_1.requireAdmin, (0, Multer_1.upload)().single("image"), product_controller_1.updateProduct);
 productRouter.get("/", product_controller_1.getAllProducts);
-productRouter.get("/low", product_controller_1.getLowStockProducts); // unchanged (not in shown snippet)
-productRouter.get("/over", product_controller_1.getOverStockProducts); // unchanged
 productRouter.get("/:productId", product_controller_1.getProduct);
 productRouter.delete("/:productId", product_controller_1.deleteProduct);
 exports.default = productRouter;

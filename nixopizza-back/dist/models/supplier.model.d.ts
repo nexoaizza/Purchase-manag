@@ -7,7 +7,7 @@ export interface ISupplier {
     phone1: string;
     phone2?: string;
     phone3?: string;
-    address: string;
+    address?: string;
     city?: string;
     categoryIds: Types.ObjectId[];
     image?: string;
@@ -16,10 +16,6 @@ export interface ISupplier {
     createdAt: Date;
     updatedAt: Date;
 }
-declare const Supplier: import("mongoose").Model<ISupplier, {}, {}, {}, import("mongoose").Document<unknown, {}, ISupplier, {}, {}> & ISupplier & Required<{
-    _id: Types.ObjectId;
-}> & {
-    __v: number;
-}, any>;
+declare const Supplier: any;
 export default Supplier;
 //# sourceMappingURL=supplier.model.d.ts.map

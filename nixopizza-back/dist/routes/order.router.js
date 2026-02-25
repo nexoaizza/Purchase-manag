@@ -15,5 +15,6 @@ orderRouter.get("/stats", order_controller_1.getOrderStats);
 orderRouter.get("/analytics", order_controller_1.getOrderAnalytics);
 orderRouter.get("/:orderId", order_controller_1.getOrder);
 orderRouter.get("/", order_controller_1.getOrdersByFilter);
+orderRouter.delete("/:orderId", order_controller_1.deleteOrder);
 exports.default = orderRouter;
 //# sourceMappingURL=order.router.js.map
