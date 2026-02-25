@@ -84,6 +84,7 @@ export default function EditProductPage() {
   // image state
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageRemoved, setImageRemoved] = useState(false);
 
   // Load categories first
   useEffect(() => {
@@ -121,6 +122,7 @@ export default function EditProductPage() {
         categoryId: product.categoryId,
       });
       setPreviewImage(resolveImage(product.imageUrl));
+      setImageRemoved(false);
       // If categories already loaded, set selectedCategory now
       setSelectedCategory(product.categoryId || null);
     };
@@ -154,6 +156,7 @@ export default function EditProductPage() {
 
   const removeImage = () => {
     setImageFile(null);
+    setImageRemoved(true);
     setPreviewImage(null);
   };
 
@@ -177,6 +180,8 @@ export default function EditProductPage() {
     if (formData.expectedLifeTime) form.append("expectedLifeTime", String(formData.expectedLifeTime));
     if (imageFile) {
       form.append("image", imageFile);
+    } else if (imageRemoved) {
+      form.append("removeImage", "true");
     }
 
     const { success, message } = await updateProduct(productId, form);
