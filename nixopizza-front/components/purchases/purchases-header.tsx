@@ -201,7 +201,7 @@ export function PurchasesHeader({
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {dateRange.from && dateRange.to ? (
                   <>
-                    {format(dateRange.from, "PP")} - {format(dateRange.to, "PP")}
+                    {format(dateRange.from, "dd/MM/yyyy")} - {format(dateRange.to, "dd/MM/yyyy")}
                   </>
                 ) : (
                   <span>{t("pickDateRange")}</span>

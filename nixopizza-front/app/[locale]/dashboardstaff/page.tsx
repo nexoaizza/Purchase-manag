@@ -106,7 +106,7 @@ export default function StaffDashboardPage() {
                       <div>
                         <p className="font-medium">{order.supplierId.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          Created {new Date(order.createdAt).toLocaleDateString()}
+                          Created {new Date(order.createdAt).toLocaleDateString("fr-FR")}
                         </p>
                       </div>
                     </div>
