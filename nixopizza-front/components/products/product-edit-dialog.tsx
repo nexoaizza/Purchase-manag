@@ -62,6 +62,7 @@ export function ProductEditDialog({
   });
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageRemoved, setImageRemoved] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const t = useTranslations("products");
@@ -81,6 +82,7 @@ export function ProductEditDialog({
         description: product.description || "",
       });
       setImage(null);
+      setImageRemoved(false);
       setImagePreview(product.imageUrl ? resolveImage(product.imageUrl) : null);
     } else {
       resetForm();
@@ -105,6 +107,7 @@ export function ProductEditDialog({
 
   const removeImage = () => {
     setImage(null);
+    setImageRemoved(true);
     setImagePreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
@@ -119,6 +122,7 @@ export function ProductEditDialog({
       description: "",
     });
     setImage(null);
+    setImageRemoved(false);
     setImagePreview(null);
   };
 
@@ -135,6 +139,7 @@ export function ProductEditDialog({
     if (formData.barcode) fd.append("barcode", formData.barcode);
     if (formData.description) fd.append("description", formData.description);
     if (image) fd.append("image", image);
+    if (!image && imageRemoved) fd.append("removeImage", "true");
 
     const { success, product: updated, message } = await updateProduct(
       product._id,
