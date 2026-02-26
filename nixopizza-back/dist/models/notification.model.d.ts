@@ -1,6 +1,6 @@
 export interface INotification {
     _id: string;
-    type: "low_stock" | "budget_alert" | "expiry_warning" | "complited_task";
+    type: "low_stock" | "budget_alert" | "expiry_warning" | "complited_task" | "transfer";
     title: string;
     message: string;
     isRead: boolean;
@@ -9,10 +9,6 @@ export interface INotification {
     createdAt: Date;
     updatedAt: Date;
 }
-declare const Notification: import("mongoose").Model<INotification, {}, {}, {}, import("mongoose").Document<unknown, {}, INotification, {}, {}> & INotification & Required<{
-    _id: string;
-}> & {
-    __v: number;
-}, any>;
+declare const Notification: any;
 export default Notification;
 //# sourceMappingURL=notification.model.d.ts.map

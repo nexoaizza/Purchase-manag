@@ -6,7 +6,14 @@ export interface ITransfer {
   takenFrom: any;
   takenTo: any;
   quantity: number;
-  status: "pending" | "arrived";
+  status: "pending" | "in_progress" | "arrived" | "canceled";
+  assignedTo: {
+    _id: string;
+    fullname: string;
+    email: string;
+    avatar?: string;
+  } | string;
+  startTime: Date;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -17,7 +24,9 @@ export const createTransfer = async (data: {
   takenFrom: string;
   takenTo: string;
   quantity: number;
-  status?: "pending" | "arrived";
+  assignedTo: string;
+  startTime: string;
+  status?: "pending" | "in_progress" | "arrived" | "canceled";
 }) => {
   try {
     const {
@@ -43,6 +52,19 @@ export const getTransfers = async (params?: any) => {
   }
 };
 
+// Get my transfers (for authenticated staff)
+export const getMyTransfers = async (params?: any) => {
+  try {
+    const {
+      data: { transfers, total, pages },
+    } = await api.get("/transfers/my", { params });
+    return { success: true, transfers, total, pages };
+  } catch (error: any) {
+    const message = error.response?.data?.message || "Failed to fetch my transfers";
+    return { success: false, message };
+  }
+};
+
 // Get one transfer
 export const getTransfer = async (transferId: string) => {
   try {
@@ -64,7 +86,9 @@ export const updateTransfer = async (
     takenFrom?: string;
     takenTo?: string;
     quantity?: number;
-    status?: "pending" | "arrived";
+    status?: "pending" | "in_progress" | "arrived" | "canceled";
+    assignedTo?: string;
+    startTime?: string;
   }
 ) => {
   try {

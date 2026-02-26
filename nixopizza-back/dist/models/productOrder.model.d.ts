@@ -12,10 +12,6 @@ export interface IProductOrder {
     updatedAt: Date;
 }
 export type ProductOrderDocument = HydratedDocument<IProductOrder>;
-declare const ProductOrder: import("mongoose").Model<IProductOrder, {}, {}, {}, import("mongoose").Document<unknown, {}, IProductOrder, {}, {}> & IProductOrder & Required<{
-    _id: Types.ObjectId;
-}> & {
-    __v: number;
-}, any>;
+declare const ProductOrder: any;
 export default ProductOrder;
 //# sourceMappingURL=productOrder.model.d.ts.map

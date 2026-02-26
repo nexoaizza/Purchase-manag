@@ -8,5 +8,5 @@ export declare const updateStaff: (req: Request, res: Response) => Promise<void>
 /** DELETE /api/admin/staffs/:staffId */
 export declare const deleteStaff: (req: Request, res: Response) => Promise<void>;
 export declare const getCategoryAnalytics: (req: Request, res: Response) => Promise<void>;
-export declare const getMonthlySpendingAnalytics: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
+export declare const getMonthlySpendingAnalytics: (req: Request, res: Response) => Promise<any>;
 //# sourceMappingURL=admin.controller.d.ts.map

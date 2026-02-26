@@ -4,7 +4,7 @@ const mongoose_1 = require("mongoose");
 const notificationSchema = new mongoose_1.Schema({
     type: {
         type: String,
-        enum: ["low_stock", "budget_alert", "expiry_warning"],
+        enum: ["low_stock", "budget_alert", "expiry_warning", "complited_task", "transfer"],
     },
     title: String,
     message: String,

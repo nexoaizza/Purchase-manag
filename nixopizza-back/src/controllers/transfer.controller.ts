@@ -3,11 +3,13 @@ import Transfer from "../models/transfer.model";
 import StockItem from "../models/stock-item.model";
 import Stock from "../models/stock.model";
 import Product from "../models/product.model";
+import User from "../models/user.model";
+import { pushNotification } from "../utils/PushNotification";
 
 // CREATE - Create a transfer request from one stock to another
 export const createTransfer = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { items, takenFrom, takenTo, quantity, status } = req.body;
+    const { items, takenFrom, takenTo, quantity, status, assignedTo, startTime } = req.body;
 
     // Validation
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -22,6 +24,16 @@ export const createTransfer = async (req: Request, res: Response): Promise<void>
 
     if (!quantity || quantity < 1) {
       res.status(400).json({ message: "Quantity must be at least 1" });
+      return;
+    }
+
+    if (!assignedTo) {
+      res.status(400).json({ message: "Assigned staff member is required" });
+      return;
+    }
+
+    if (!startTime || isNaN(new Date(startTime).getTime())) {
+      res.status(400).json({ message: "A valid transfer start time is required" });
       return;
     }
 
@@ -44,6 +56,13 @@ export const createTransfer = async (req: Request, res: Response): Promise<void>
       return;
     }
 
+    // Verify assigned user exists
+    const assignedUser = await User.findById(assignedTo);
+    if (!assignedUser) {
+      res.status(404).json({ message: "Assigned staff member not found" });
+      return;
+    }
+
     // Verify all items exist
     const stockItems = await StockItem.find({ _id: { $in: items } });
     if (stockItems.length !== items.length) {
@@ -57,11 +76,14 @@ export const createTransfer = async (req: Request, res: Response): Promise<void>
       takenTo,
       quantity,
       status: status || "pending",
+      assignedTo,
+      startTime: new Date(startTime),
     });
 
     const populatedTransfer = await Transfer.findById(newTransfer._id)
       .populate("takenFrom", "name location")
       .populate("takenTo", "name location")
+      .populate("assignedTo", "fullname email avatar")
       .populate({
         path: "items",
         populate: {
@@ -69,6 +91,14 @@ export const createTransfer = async (req: Request, res: Response): Promise<void>
           select: "name",
         },
       });
+
+    // Notify assigned staff member
+    await pushNotification(
+      "New Transfer Assigned",
+      `You have been assigned a new transfer from ${sourceStock.name} to ${destStock.name}`,
+      "transfer",
+      `/transfers/${newTransfer._id}`
+    );
 
     res.status(201).json({ 
       message: "Transfer created successfully", 
@@ -87,6 +117,7 @@ export const getAllTransfers = async (req: Request, res: Response): Promise<void
       status,
       takenFrom,
       takenTo,
+      assignedTo,
       productName,
       dateFrom,
       dateTo,
@@ -103,7 +134,8 @@ export const getAllTransfers = async (req: Request, res: Response): Promise<void
     const query: any = {};
 
     // Filter by status
-    if (status && (status === "pending" || status === "arrived")) {
+    const validStatuses = ["pending", "in_progress", "arrived", "canceled"];
+    if (status && validStatuses.includes(status as string)) {
       query.status = status;
     }
 
@@ -115,6 +147,11 @@ export const getAllTransfers = async (req: Request, res: Response): Promise<void
     // Filter by destination stock
     if (takenTo) {
       query.takenTo = takenTo;
+    }
+
+    // Filter by assigned staff member
+    if (assignedTo) {
+      query.assignedTo = assignedTo;
     }
 
     // Filter by date range
@@ -193,6 +230,7 @@ export const getAllTransfers = async (req: Request, res: Response): Promise<void
         .limit(Number(limit))
         .populate("takenFrom", "name location")
         .populate("takenTo", "name location")
+        .populate("assignedTo", "fullname email avatar")
         .populate({
           path: "items",
           populate: {
@@ -220,6 +258,52 @@ export const getAllTransfers = async (req: Request, res: Response): Promise<void
   }
 };
 
+// READ - Get transfers assigned to the authenticated user
+export const getMyTransfers = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { status, page = 1, limit = 10 } = req.query;
+
+    if (Number(page) < 1 || Number(limit) < 1) {
+      res.status(400).json({ message: "Page and limit must be greater than 0" });
+      return;
+    }
+
+    const query: any = { assignedTo: req.user?.userId };
+
+    const validStatuses = ["pending", "in_progress", "arrived", "canceled"];
+    if (status && validStatuses.includes(status as string)) {
+      query.status = status;
+    }
+
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const [transfers, total] = await Promise.all([
+      Transfer.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit))
+        .populate("takenFrom", "name location")
+        .populate("takenTo", "name location")
+        .populate("assignedTo", "fullname email avatar")
+        .populate({
+          path: "items",
+          populate: {
+            path: "product",
+            select: "name",
+          },
+        }),
+      Transfer.countDocuments(query),
+    ]);
+
+    const pages = Math.ceil(total / Number(limit));
+
+    res.status(200).json({ transfers, total, pages });
+  } catch (error: any) {
+    console.error("Transfer getMyTransfers error:", error);
+    res.status(500).json({ message: "Internal server error", err: error.message });
+  }
+};
+
 // READ - Get single transfer by ID
 export const getTransferById = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -228,6 +312,7 @@ export const getTransferById = async (req: Request, res: Response): Promise<void
     const transfer = await Transfer.findById(transferId)
       .populate("takenFrom", "name location description")
       .populate("takenTo", "name location description")
+      .populate("assignedTo", "fullname email avatar")
       .populate({
         path: "items",
         populate: {
@@ -252,25 +337,71 @@ export const getTransferById = async (req: Request, res: Response): Promise<void
 export const updateTransfer = async (req: Request, res: Response): Promise<void> => {
   try {
     const { transferId } = req.params;
-    const { status, quantity, items } = req.body;
+    const { status, quantity, items, assignedTo, startTime } = req.body;
 
-    const transfer = await Transfer.findById(transferId);
+    const transfer = await Transfer.findById(transferId)
+      .populate("takenFrom", "name")
+      .populate("takenTo", "name");
 
     if (!transfer) {
       res.status(404).json({ message: "Transfer not found" });
       return;
     }
 
+    const validStatuses = ["pending", "in_progress", "arrived", "canceled"];
+
     // Update status if provided
     if (status !== undefined) {
-      if (status !== "pending" && status !== "arrived") {
-        res.status(400).json({ message: "Status must be either 'pending' or 'arrived'" });
+      if (!validStatuses.includes(status)) {
+        res.status(400).json({ message: "Status must be one of: pending, in_progress, arrived, canceled" });
         return;
       }
+      const prevStatus = transfer.status;
       transfer.status = status;
+
+      // Notify assigned staff if status changed
+      if (prevStatus !== status) {
+        const sourceName = (transfer.takenFrom as any)?.name || "";
+        const destName = (transfer.takenTo as any)?.name || "";
+        await pushNotification(
+          "Transfer Status Updated",
+          `Transfer from ${sourceName} to ${destName} has been updated to ${status}`,
+          "transfer",
+          `/transfers/${transfer._id}`
+        );
+      }
     }
 
-    // Update quantity if provided (only if still pending)
+    // Update assignedTo if provided
+    if (assignedTo !== undefined) {
+      const newAssignee = await User.findById(assignedTo);
+      if (!newAssignee) {
+        res.status(404).json({ message: "Assigned staff member not found" });
+        return;
+      }
+      transfer.assignedTo = assignedTo;
+
+      // Notify newly assigned staff member
+      const sourceName = (transfer.takenFrom as any)?.name || "";
+      const destName = (transfer.takenTo as any)?.name || "";
+      await pushNotification(
+        "New Transfer Assigned",
+        `You have been assigned a new transfer from ${sourceName} to ${destName}`,
+        "transfer",
+        `/transfers/${transfer._id}`
+      );
+    }
+
+    // Update startTime if provided
+    if (startTime !== undefined) {
+      if (isNaN(new Date(startTime).getTime())) {
+        res.status(400).json({ message: "A valid transfer start time is required" });
+        return;
+      }
+      transfer.startTime = new Date(startTime);
+    }
+
+    // Update quantity if provided (only if still pending or in_progress)
     if (quantity !== undefined) {
       if (transfer.status === "arrived") {
         res.status(400).json({ message: "Cannot update quantity after transfer has arrived" });
@@ -283,7 +414,7 @@ export const updateTransfer = async (req: Request, res: Response): Promise<void>
       transfer.quantity = quantity;
     }
 
-    // Update items if provided (only if still pending)
+    // Update items if provided (only if still pending or in_progress)
     if (items !== undefined) {
       if (transfer.status === "arrived") {
         res.status(400).json({ message: "Cannot update items after transfer has arrived" });
@@ -309,6 +440,7 @@ export const updateTransfer = async (req: Request, res: Response): Promise<void>
     const updatedTransfer = await Transfer.findById(transferId)
       .populate("takenFrom", "name location")
       .populate("takenTo", "name location")
+      .populate("assignedTo", "fullname email avatar")
       .populate({
         path: "items",
         populate: {
@@ -396,6 +528,7 @@ export const getTransfersByStock = async (req: Request, res: Response): Promise<
         .limit(Number(limit))
         .populate("takenFrom", "name location")
         .populate("takenTo", "name location")
+        .populate("assignedTo", "fullname email avatar")
         .populate({
           path: "items",
           populate: {

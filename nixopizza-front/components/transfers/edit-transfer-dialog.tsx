@@ -23,6 +23,7 @@ import {
 import { ArrowRightLeft } from "lucide-react";
 import toast from "react-hot-toast";
 import { updateTransfer, ITransfer } from "@/lib/apis/transfers";
+import { getStuff } from "@/lib/apis/stuff";
 
 interface EditTransferDialogProps {
   open: boolean;
@@ -39,19 +40,43 @@ export function EditTransferDialog({
 }: EditTransferDialogProps) {
   const t = useTranslations("transfers");
   const [loading, setLoading] = useState(false);
+  const [staffList, setStaffList] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     quantity: 1,
-    status: "pending" as "pending" | "arrived",
+    status: "pending" as "pending" | "in_progress" | "arrived" | "canceled",
+    assignedTo: "",
+    startTime: "",
   });
 
   useEffect(() => {
+    if (open) {
+      fetchStaff();
+    }
+  }, [open]);
+
+  useEffect(() => {
     if (transfer) {
+      const assignedId = typeof transfer.assignedTo === "string"
+        ? transfer.assignedTo
+        : transfer.assignedTo?._id || "";
+      const startTimeValue = transfer.startTime
+        ? new Date(transfer.startTime).toISOString().slice(0, 16)
+        : "";
       setFormData({
         quantity: transfer.quantity,
         status: transfer.status,
+        assignedTo: assignedId,
+        startTime: startTimeValue,
       });
     }
   }, [transfer]);
+
+  const fetchStaff = async () => {
+    const { success, staffs } = await getStuff();
+    if (success) {
+      setStaffList(staffs || []);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,10 +154,43 @@ export function EditTransferDialog({
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="assignedTo">{t("assignTo")}</Label>
+            <Select
+              value={formData.assignedTo}
+              onValueChange={(value) =>
+                setFormData({ ...formData, assignedTo: value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={t("selectStaff")} />
+              </SelectTrigger>
+              <SelectContent>
+                {staffList.map((staff) => (
+                  <SelectItem key={staff._id} value={staff._id}>
+                    {staff.fullname}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="startTime">{t("startTime")}</Label>
+            <Input
+              id="startTime"
+              type="datetime-local"
+              value={formData.startTime}
+              onChange={(e) =>
+                setFormData({ ...formData, startTime: e.target.value })
+              }
+            />
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="status">{t("status")}</Label>
             <Select
               value={formData.status}
-              onValueChange={(value: "pending" | "arrived") =>
+              onValueChange={(value: "pending" | "in_progress" | "arrived" | "canceled") =>
                 setFormData({ ...formData, status: value })
               }
             >
@@ -141,7 +199,9 @@ export function EditTransferDialog({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="pending">{t("pending")}</SelectItem>
+                <SelectItem value="in_progress">{t("inProgress")}</SelectItem>
                 <SelectItem value="arrived">{t("arrived")}</SelectItem>
+                <SelectItem value="canceled">{t("canceled")}</SelectItem>
               </SelectContent>
             </Select>
           </div>

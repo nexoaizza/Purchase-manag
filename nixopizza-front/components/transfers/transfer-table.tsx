@@ -74,7 +74,7 @@ export function TransferTable({
   const t = useTranslations("transfers");
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
   const [selectedTransfer, setSelectedTransfer] = useState<ITransfer | null>(null);
-  const [newStatus, setNewStatus] = useState<"pending" | "arrived">("pending");
+  const [newStatus, setNewStatus] = useState<"pending" | "in_progress" | "arrived" | "canceled">("pending");
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleStatusChangeClick = (transfer: ITransfer) => {
@@ -112,8 +112,12 @@ export function TransferTable({
     switch (status) {
       case "pending":
         return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">{t("pending")}</Badge>;
+      case "in_progress":
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">{t("inProgress")}</Badge>;
       case "arrived":
         return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">{t("arrived")}</Badge>;
+      case "canceled":
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">{t("canceled")}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -144,6 +148,8 @@ export function TransferTable({
                 <TableHead>{t("to")}</TableHead>
                 <TableHead>{t("items")}</TableHead>
                 <TableHead>{t("quantity")}</TableHead>
+                <TableHead>{t("assignedTo")}</TableHead>
+                <TableHead>{t("startTime")}</TableHead>
                 <TableHead>{t("status")}</TableHead>
                 <TableHead>{t("date")}</TableHead>
                 <TableHead className="text-right">{t("actions")}</TableHead>
@@ -170,6 +176,16 @@ export function TransferTable({
                     </Badge>
                   </TableCell>
                   <TableCell>{transfer.quantity}</TableCell>
+                  <TableCell>
+                    {typeof transfer.assignedTo === "object" && transfer.assignedTo
+                      ? transfer.assignedTo.fullname
+                      : "N/A"}
+                  </TableCell>
+                  <TableCell>
+                    {transfer.startTime
+                      ? format(new Date(transfer.startTime), "dd/MM/yyyy HH:mm")
+                      : "N/A"}
+                  </TableCell>
                   <TableCell>{getStatusBadge(transfer.status)}</TableCell>
                   <TableCell>
                     {transfer.createdAt
@@ -236,7 +252,7 @@ export function TransferTable({
               </label>
               <Select
                 value={newStatus}
-                onValueChange={(value: "pending" | "arrived") => setNewStatus(value)}
+                onValueChange={(value: "pending" | "in_progress" | "arrived" | "canceled") => setNewStatus(value)}
               >
                 <SelectTrigger id="status">
                   <SelectValue placeholder={t("selectStatusPlaceholder")} />
@@ -249,10 +265,24 @@ export function TransferTable({
                       </Badge>
                     </div>
                   </SelectItem>
+                  <SelectItem value="in_progress">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                        {t("inProgress")}
+                      </Badge>
+                    </div>
+                  </SelectItem>
                   <SelectItem value="arrived">
                     <div className="flex items-center gap-2">
                       <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                         {t("arrived")}
+                      </Badge>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="canceled">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                        {t("canceled")}
                       </Badge>
                     </div>
                   </SelectItem>

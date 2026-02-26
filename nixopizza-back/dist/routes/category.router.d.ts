@@ -1,3 +1,3 @@
-declare const categoryRouter: import("express-serve-static-core").Router;
+declare const categoryRouter: any;
 export default categoryRouter;
 //# sourceMappingURL=category.router.d.ts.map
