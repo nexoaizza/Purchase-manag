@@ -8,7 +8,7 @@ import {
   getTransfersByStock,
   getMyTransfers,
 } from "../controllers/transfer.controller";
-import { authenticate, requireAdmin } from "../middlewares/Auth";
+import { authenticate, requireAdmin, canUpdateTransfer } from "../middlewares/Auth";
 
 const transferRouter = Router();
 
@@ -21,7 +21,7 @@ transferRouter.get("/my", getMyTransfers);
 transferRouter.post("/", requireAdmin, createTransfer);
 transferRouter.get("/", getAllTransfers);
 transferRouter.get("/:transferId", getTransferById);
-transferRouter.put("/:transferId", requireAdmin, updateTransfer);
+transferRouter.put("/:transferId", canUpdateTransfer, updateTransfer);
 transferRouter.delete("/:transferId", requireAdmin, deleteTransfer);
 
 // Get transfers by stock
