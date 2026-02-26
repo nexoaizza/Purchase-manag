@@ -108,7 +108,7 @@ export function LoginForm() {
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? t("signingIn") : t("Sign In")}
+              {isLoading ? t("Signing in...") : t("Sign In")}
             </Button>
           </form>
 

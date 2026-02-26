@@ -1,8 +1,6 @@
 import { Request, Response } from "express";
 import Task from "../models/task.model";
-import User from "../models/user.model";
 import { pushNotification } from "../utils/PushNotification";
-import { sendPushNotification } from "../services/firebase.service";
 
 const generateTaskNumber = () => {
   const date = new Date().toISOString().split("T")[0].replace(/-/g, "");
@@ -25,33 +23,6 @@ export const createTask = async (req: Request, res: Response) => {
       description,
       deadline,
     });
-
-    // Send FCM push notification and in-app notification to assigned staff
-    try {
-      const staff = await User.findById(staffId);
-      if (staff?.fcmToken) {
-        const notifBody = deadline
-          ? `Task ${newTask.taskNumber} has been assigned to you. Deadline: ${new Date(deadline).toISOString()}`
-          : `Task ${newTask.taskNumber} has been assigned to you`;
-        const data: Record<string, string> = {
-          type: "task_assigned",
-          taskId: String(newTask._id),
-          taskNumber: newTask.taskNumber,
-        };
-        if (deadline) {
-          data.deadline = new Date(deadline).toISOString();
-        }
-        await sendPushNotification(staff.fcmToken, "New Task Assigned", notifBody, data);
-      }
-      await pushNotification(
-        "New Task Assigned",
-        `Task ${newTask.taskNumber} has been assigned.`,
-        "task_assigned",
-        `${process.env.BASE_URL}/api/tasks/${newTask._id}`
-      );
-    } catch (notifError) {
-      console.error("Error sending task assignment notification:", notifError);
-    }
 
     res
       .status(200)

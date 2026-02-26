@@ -201,6 +201,7 @@ function UserMenu() {
     window.location.href = "/";
   };
   
+  console.log("user", user);
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

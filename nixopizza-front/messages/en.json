@@ -6,7 +6,7 @@
         "Password": "Password",
         "Sign In": "Sign In",
         "Forgot your password?": "Forgot your password?",
-        "signingIn": "Signing in...",
+        "Signing in...": "Signing in...",
         "Enter your password": "Enter your password",
         "Enter your email": "Enter your email"
     },
@@ -509,8 +509,7 @@
         "to": "to",
         "afterTransfer": "After transfer",
         "newQuantity": "new quantity",
-        "remainingInSource": "remaining in source",
-        "selectCategory": "Select a category"
+        "remainingInSource": "remaining in source"
     },
     "purchases": {
         "title": "Purchase Lists",
@@ -1084,19 +1083,6 @@
             "phonePlaceholder": "+1 234 567 8900",
             "role": "Role"
         },
-        "changePassword": {
-            "title": "Change Password",
-            "description": "Update your account password. You will need your current password.",
-            "currentPassword": "Current Password",
-            "currentPasswordPlaceholder": "Enter current password",
-            "newPassword": "New Password",
-            "newPasswordPlaceholder": "Enter new password",
-            "confirmPassword": "Confirm New Password",
-            "confirmPasswordPlaceholder": "Confirm new password",
-            "updatePassword": "Update Password",
-            "passwordsDoNotMatch": "New password and confirmation do not match",
-            "fillAllFields": "Please fill current password, new password and confirmation"
-        },
         "language": {
             "title": "Language Settings",
             "description": "Choose your preferred language for the application",
@@ -1144,9 +1130,6 @@
         "creating": "Creating...",
         "update": "Update Transfer",
         "updating": "Updating...",
-        "category": "Category",
-        "selectCategory": "Select category (optional)",
-        "allCategories": "All Categories",
         "searchPlaceholder": "Search by stock name...",
         "filterByStatus": "Filter by status",
         "filterByStock": "Filter by stock",

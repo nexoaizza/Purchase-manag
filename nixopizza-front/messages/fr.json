@@ -6,7 +6,7 @@
         "Password": "Mot de passe",
         "Sign In": "Se connecter",
         "Forgot your password?": "Mot de passe oublié?",
-        "signingIn": "Connexion en cours...",
+        "Signing in...": "Connexion en cours...",
         "Enter your password": "Entrez votre mot de passe",
         "Enter your email": "Entrez votre email"
     },
@@ -505,8 +505,7 @@
         "wasteWarningMessage": "Cela supprimera définitivement l'article de stock de votre inventaire et l'enregistrera comme déchet. Cette action ne peut pas être annulée.",
         "summaryTitle": "Résumé:",
         "used": "Utilisé",
-        "remaining": "Restant",
-        "selectCategory":"Sélectionner une catégorie"
+        "remaining": "Restant"
     },
     "purchases": {
         "title": "Listes d'achat",
@@ -1080,19 +1079,6 @@
             "phonePlaceholder": "+33 1 23 45 67 89",
             "role": "Rôle"
         },
-        "changePassword": {
-            "title": "Changer le Mot de Passe",
-            "description": "Mettez à jour le mot de passe de votre compte. Vous aurez besoin de votre mot de passe actuel.",
-            "currentPassword": "Mot de Passe Actuel",
-            "currentPasswordPlaceholder": "Entrez le mot de passe actuel",
-            "newPassword": "Nouveau Mot de Passe",
-            "newPasswordPlaceholder": "Entrez le nouveau mot de passe",
-            "confirmPassword": "Confirmer le Nouveau Mot de Passe",
-            "confirmPasswordPlaceholder": "Confirmez le nouveau mot de passe",
-            "updatePassword": "Mettre à Jour le Mot de Passe",
-            "passwordsDoNotMatch": "Le nouveau mot de passe et la confirmation ne correspondent pas",
-            "fillAllFields": "Veuillez remplir le mot de passe actuel, le nouveau et la confirmation"
-        },
         "language": {
             "title": "Paramètres de Langue",
             "description": "Choisissez votre langue préférée pour l'application",
@@ -1121,7 +1107,7 @@
         "selectSourceStock": "Sélectionner l'entrepôt source",
         "selectDestinationStock": "Sélectionner l'entrepôt de destination",
         "selectItems": "Sélectionner les Articles",
-        "selectItemsPlaceholder": "Sélectionner les articles",
+        "selectItemsPlaceholder": "Sélectionner les articles à transférer",
         "quantity": "Quantité",
         "quantityPlaceholder": "Entrez la quantité",
         "status": "Statut",
@@ -1140,9 +1126,6 @@
         "creating": "Création en cours...",
         "update": "Mettre à Jour le Transfert",
         "updating": "Mise à jour...",
-        "category": "Catégorie",
-        "selectCategory": "Sélectionner une catégorie",
-        "allCategories": "Toutes les Catégories",
         "searchPlaceholder": "Rechercher par nom d'entrepôt...",
         "filterByStatus": "Filtrer par statut",
         "filterByStock": "Filtrer par entrepôt",
