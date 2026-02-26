@@ -6,5 +6,5 @@ declare global {
  * Append dbName to an Atlas SRV URI if it has no path already.
  */
 export declare function ensureDbInUri(uri: string, dbName: string | undefined): string;
-export default function connectDB(): Promise<typeof mongoose | mongoose.Connection>;
+export default function connectDB(): Promise<any>;
 //# sourceMappingURL=database.d.ts.map

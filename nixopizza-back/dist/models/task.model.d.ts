@@ -2,19 +2,12 @@ import { Schema, Document } from "mongoose";
 export interface ITask extends Document {
     taskNumber: string;
     staffId: Schema.Types.ObjectId;
-    items: {
-        productId: Schema.Types.ObjectId;
-        quantity: number;
-    }[];
+    description?: string;
     status: "pending" | "completed" | "canceled";
-    deadline: Date;
+    deadline?: Date;
     createdAt: Date;
     updatedAt: Date;
 }
-declare const Task: import("mongoose").Model<ITask, {}, {}, {}, Document<unknown, {}, ITask, {}, {}> & ITask & Required<{
-    _id: import("mongoose").Types.ObjectId;
-}> & {
-    __v: number;
-}, any>;
+declare const Task: any;
 export default Task;
 //# sourceMappingURL=task.model.d.ts.map

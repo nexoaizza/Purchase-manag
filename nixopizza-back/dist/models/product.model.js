@@ -29,11 +29,6 @@ const productSchema = new mongoose_1.Schema({
     description: {
         type: String,
     },
-    currentStock: {
-        type: Number,
-        required: [true, "Product Stock Is Required"],
-        default: 0,
-    },
     minQty: {
         type: Number,
         default: 0,
@@ -41,6 +36,10 @@ const productSchema = new mongoose_1.Schema({
     recommendedQty: {
         type: Number,
         default: 0,
+    },
+    expectedLifeTime: {
+        type: Number,
+        required: false,
     },
 }, {
     timestamps: true,

@@ -6,16 +6,12 @@ export interface IProduct extends Document {
     categoryId: Schema.Types.ObjectId;
     imageUrl?: string;
     description?: string;
-    currentStock: number;
     minQty: number;
     recommendedQty: number;
+    expectedLifeTime?: number;
     createdAt?: Date;
     updatedAt?: Date;
 }
-declare const Product: import("mongoose").Model<IProduct, {}, {}, {}, Document<unknown, {}, IProduct, {}, {}> & IProduct & Required<{
-    _id: import("mongoose").Types.ObjectId;
-}> & {
-    __v: number;
-}, any>;
+declare const Product: any;
 export default Product;
 //# sourceMappingURL=product.model.d.ts.map

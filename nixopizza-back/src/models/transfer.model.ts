@@ -5,7 +5,9 @@ export interface ITransfer extends Document {
   takenFrom: Schema.Types.ObjectId;
   takenTo: Schema.Types.ObjectId;
   quantity: number;
-  status: "pending" | "arrived";
+  status: "pending" | "in_progress" | "arrived" | "canceled";
+  assignedTo: Schema.Types.ObjectId;
+  startTime: Date;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -36,9 +38,18 @@ const transferSchema = new Schema<ITransfer>(
     },
     status: {
       type: String,
-      enum: ["pending", "arrived"],
+      enum: ["pending", "in_progress", "arrived", "canceled"],
       default: "pending",
       required: true,
+    },
+    assignedTo: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: [true, "Assigned staff member is required"],
+    },
+    startTime: {
+      type: Date,
+      required: [true, "Transfer start time is required"],
     },
   },
   { timestamps: true }
@@ -47,6 +58,7 @@ const transferSchema = new Schema<ITransfer>(
 // Add index for better query performance
 transferSchema.index({ status: 1, createdAt: -1 });
 transferSchema.index({ takenFrom: 1, takenTo: 1 });
+transferSchema.index({ assignedTo: 1, status: 1 });
 
 const Transfer = model<ITransfer>("Transfer", transferSchema);
 
