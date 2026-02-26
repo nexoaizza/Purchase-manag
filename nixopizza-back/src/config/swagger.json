@@ -106,9 +106,28 @@
           "_id": { "type": "string" },
           "title": { "type": "string" },
           "message": { "type": "string" },
-          "type": { "type": "string" },
+          "type": { "type": "string", "enum": ["low_stock", "budget_alert", "expiry_warning", "complited_task", "transfer"] },
+          "subject": { "type": "string" },
+          "recipient": { "type": "string" },
+          "transfer": { "type": "string" },
+          "status": { "type": "string" },
           "read": { "type": "boolean" },
           "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Transfer": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "items": { "type": "array", "items": { "type": "string" } },
+          "takenFrom": { "type": "string", "description": "Source stock ID" },
+          "takenTo": { "type": "string", "description": "Destination stock ID" },
+          "quantity": { "type": "number" },
+          "status": { "type": "string", "enum": ["pending", "in_progress", "arrived", "canceled"] },
+          "assignedTo": { "type": "string", "description": "Staff user ID" },
+          "startTime": { "type": "string", "format": "date-time" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
         }
       },
       "Error": {
@@ -129,7 +148,8 @@
     { "name": "Categories", "description": "Category management" },
     { "name": "Suppliers", "description": "Supplier management" },
     { "name": "Tasks", "description": "Task assignment and tracking" },
-    { "name": "Notifications", "description": "Notification management" }
+    { "name": "Notifications", "description": "Notification management" },
+    { "name": "Transfers", "description": "Stock transfer management" }
   ],
   "paths": {
     "/api/health": {
@@ -1290,6 +1310,156 @@
               }
             }
           }
+        }
+      }
+    },
+    "/api/transfers": {
+      "get": {
+        "tags": ["Transfers"],
+        "summary": "Get all transfers (with pagination and filters)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["pending", "in_progress", "arrived", "canceled"] } },
+          { "name": "takenFrom", "in": "query", "schema": { "type": "string" } },
+          { "name": "takenTo", "in": "query", "schema": { "type": "string" } },
+          { "name": "productName", "in": "query", "schema": { "type": "string" } },
+          { "name": "dateFrom", "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "dateTo", "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "sortBy", "in": "query", "schema": { "type": "string", "enum": ["newest", "oldest", "status", "stock_asc", "stock_desc"] } },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 10 } }
+        ],
+        "responses": {
+          "200": { "description": "List of transfers" }
+        }
+      },
+      "post": {
+        "tags": ["Transfers"],
+        "summary": "Create a new transfer (Admin only)",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["items", "takenFrom", "takenTo", "quantity", "assignedTo", "startTime"],
+                "properties": {
+                  "items": { "type": "array", "items": { "type": "string" }, "description": "Array of StockItem IDs" },
+                  "takenFrom": { "type": "string", "description": "Source stock ID" },
+                  "takenTo": { "type": "string", "description": "Destination stock ID" },
+                  "quantity": { "type": "number" },
+                  "status": { "type": "string", "enum": ["pending", "in_progress", "arrived", "canceled"] },
+                  "assignedTo": { "type": "string", "description": "Staff user ID" },
+                  "startTime": { "type": "string", "format": "date-time" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Transfer created successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Transfer" }
+              }
+            }
+          },
+          "400": { "description": "Validation error" },
+          "404": { "description": "Stock, user, or stock item not found" }
+        }
+      }
+    },
+    "/api/transfers/my": {
+      "get": {
+        "tags": ["Transfers"],
+        "summary": "Get transfers assigned to the logged-in staff member",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 10 } }
+        ],
+        "responses": {
+          "200": { "description": "List of transfers assigned to current user" }
+        }
+      }
+    },
+    "/api/transfers/{transferId}": {
+      "get": {
+        "tags": ["Transfers"],
+        "summary": "Get a transfer by ID",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "transferId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transfer details",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Transfer" }
+              }
+            }
+          },
+          "404": { "description": "Transfer not found" }
+        }
+      },
+      "put": {
+        "tags": ["Transfers"],
+        "summary": "Update a transfer (Admin only)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "transferId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": { "type": "string", "enum": ["pending", "in_progress", "arrived", "canceled"] },
+                  "quantity": { "type": "number" },
+                  "items": { "type": "array", "items": { "type": "string" } }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Transfer updated successfully" },
+          "400": { "description": "Validation error" },
+          "404": { "description": "Transfer not found" }
+        }
+      },
+      "delete": {
+        "tags": ["Transfers"],
+        "summary": "Delete a transfer (Admin only)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "transferId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Transfer deleted successfully" },
+          "404": { "description": "Transfer not found" }
+        }
+      }
+    },
+    "/api/transfers/stock/{stockId}": {
+      "get": {
+        "tags": ["Transfers"],
+        "summary": "Get transfers by stock",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "stockId", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "type", "in": "query", "schema": { "type": "string", "enum": ["all", "incoming", "outgoing"], "default": "all" } },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 10 } }
+        ],
+        "responses": {
+          "200": { "description": "List of transfers for the given stock" },
+          "404": { "description": "Stock not found" }
         }
       }
     }

@@ -58,7 +58,7 @@ export function ManualOrderDialog({
   const t = useTranslations("purchases");
   const [open, setOpen] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState<ISupplier | null>(
-    null,
+    null
   );
   const [orderItems, setOrderItems] = useState<IOrderItem[]>([
     { productId: "", quantity: 1, unitCost: 0, expirationDate: new Date() },
@@ -70,73 +70,63 @@ export function ManualOrderDialog({
   const [openLoadTpl, setOpenLoadTpl] = useState(false);
 
   // Products state
+  const [products, setProducts] = useState<IProduct[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<IProduct[]>([]);
-  const [selectedProducts, setSelectedProducts] = useState<(IProduct | null)[]>(
-    [null],
-  );
-  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+  const [selectedProducts, setSelectedProducts] = useState<(IProduct | null)[]>([
+    null,
+  ]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
 
   // Submission/Error state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch products based on selected supplier's categories
+  // Fetch products on mount
   useEffect(() => {
     const fetchProducts = async () => {
-      if (
-        !selectedSupplier ||
-        !selectedSupplier.categoryIds ||
-        selectedSupplier.categoryIds.length === 0
-      ) {
-        setFilteredProducts([]);
-        setIsLoadingProducts(false);
-        return;
-      }
-
       try {
         setIsLoadingProducts(true);
-        setError(null);
-
-        // Convert categoryIds to strings (in case they're ObjectId objects)
-        const categoryIdsString = selectedSupplier.categoryIds
-          .map((id) => String(id))
-          .filter((id) => id && id !== "undefined" && id !== "null")
-          .join(",");
-
-        console.log("Fetching products for categoryIds:", categoryIdsString);
-
-        // Fetch products filtered by supplier's categoryIds
-        const response = await getProducts({
-          categoryIds: categoryIdsString,
-          limit: 60,
-        });
+        const response = await getProducts();
 
         if (response && Array.isArray(response.products)) {
-          setFilteredProducts(response.products);
+          setProducts(response.products);
         } else if (response && Array.isArray(response)) {
-          setFilteredProducts(response);
+          setProducts(response);
         } else {
           console.error("Unexpected response format:", response);
-          setFilteredProducts([]);
+          setProducts([]);
         }
-
-        // Reset selected products and order items when supplier changes
-        setSelectedProducts(orderItems.map(() => null));
-        setOrderItems((prev) =>
-          prev.map((item) => ({ ...item, productId: "" })),
-        );
       } catch (err) {
         console.error("Error fetching products:", err);
-        setFilteredProducts([]);
-        setError("Failed to load products for this supplier.");
+        setProducts([]);
+        setError("Failed to load products. Please refresh the page.");
       } finally {
         setIsLoadingProducts(false);
       }
     };
-
     fetchProducts();
+  }, []);
+
+  // Filter products based on supplier categories
+  useEffect(() => {
+    if (selectedSupplier && selectedSupplier.categoryIds) {
+      const filtered = products.filter((product) => {
+        const productCategoryId =
+          typeof product.categoryId === "object"
+            ? (product.categoryId as any)?._id
+            : (product as any).categoryId;
+        return selectedSupplier.categoryIds.includes(productCategoryId);
+      });
+      setFilteredProducts(filtered);
+      setSelectedProducts(orderItems.map(() => null));
+      setOrderItems((prev) =>
+        prev.map((item) => ({ ...item, productId: "" }))
+      );
+    } else {
+      setFilteredProducts([]);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSupplier]);
+  }, [selectedSupplier, products]);
 
   const addOrderItem = () => {
     setOrderItems((items) => [
@@ -155,7 +145,7 @@ export function ManualOrderDialog({
   const updateOrderItem = (
     index: number,
     field: keyof IOrderItem,
-    value: string | number | Date,
+    value: string | number | Date
   ) => {
     setOrderItems((prev) => {
       const updated = [...prev];
@@ -165,22 +155,16 @@ export function ManualOrderDialog({
   };
 
   // IMPORTANT FIX: ProductSelect expects 'onSelect', not 'onProductChange'
-  const handleProductSelect = (index: number, product: any | null) => {
-    const updatedSelectedProducts = [...selectedProducts];
-    // Cast the incoming product to IProduct | null to satisfy the selectedProducts state type
-    updatedSelectedProducts[index] = product as IProduct | null;
-    setSelectedProducts(updatedSelectedProducts);
-
-    updateOrderItem(
-      index,
-      "productId",
-      product ? (product as IProduct)._id : "",
-    );
-  };
+    const handleProductSelect = (index: number, product: any | null) => {
+      const updatedSelectedProducts = [...selectedProducts];
+      // Cast the incoming product to IProduct | null to satisfy the selectedProducts state type
+      updatedSelectedProducts[index] = product as IProduct | null;
+      setSelectedProducts(updatedSelectedProducts);
+  
+      updateOrderItem(index, "productId", product ? (product as IProduct)._id : "");
+    };
 
   const handleSupplierChange = (supplier: ISupplier | null) => {
-    console.log("Selected supplier:", supplier);
-    console.log("Category IDs:", supplier?.categoryIds);
     setSelectedSupplier(supplier);
     if (supplier) setError(null);
   };
@@ -188,7 +172,10 @@ export function ManualOrderDialog({
   const handleBillUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (!file.type.match("image.*") && !file.type.match("application/pdf")) {
+      if (
+        !file.type.match("image.*") &&
+        !file.type.match("application/pdf")
+      ) {
         toast.error("Please select an image or PDF file");
         return;
       }
@@ -220,10 +207,12 @@ export function ManualOrderDialog({
           !it.productId ||
           it.productId.trim() === "" ||
           Number.isNaN(it.quantity) ||
-          it.quantity <= 0,
+          it.quantity <= 0
       )
     ) {
-      setError(t("validQuantityError"));
+      setError(
+        t("validQuantityError")
+      );
       return;
     }
     if (orderItems.some((item) => !item.productId)) {
@@ -240,7 +229,10 @@ export function ManualOrderDialog({
       dataToSend.append("notes", notes);
 
       if (expectedDate) {
-        dataToSend.append("expectedDate", new Date(expectedDate).toISOString());
+        dataToSend.append(
+          "expectedDate",
+          new Date(expectedDate).toISOString()
+        );
       }
 
       if (billFile) {
@@ -249,17 +241,11 @@ export function ManualOrderDialog({
 
       orderItems.forEach((item, index) => {
         dataToSend.append(`items[${index}][productId]`, item.productId);
-        dataToSend.append(
-          `items[${index}][quantity]`,
-          item.quantity.toString(),
-        );
-        dataToSend.append(
-          `items[${index}][unitCost]`,
-          item.unitCost.toString(),
-        );
+        dataToSend.append(`items[${index}][quantity]`, item.quantity.toString());
+        dataToSend.append(`items[${index}][unitCost]`, item.unitCost.toString());
         dataToSend.append(
           `items[${index}][expirationDate]`,
-          new Date(item.expirationDate).toISOString(),
+          new Date(item.expirationDate).toISOString()
         );
       });
 
@@ -313,7 +299,9 @@ export function ManualOrderDialog({
             <Package className="h-5 w-5" />
             {t("createManualOrder")}
           </DialogTitle>
-          <DialogDescription>{t("createCustomOrder")}</DialogDescription>
+          <DialogDescription>
+            {t("createCustomOrder")}
+          </DialogDescription>
         </DialogHeader>
 
         {error && (
@@ -332,29 +320,30 @@ export function ManualOrderDialog({
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Supplier Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="supplier" className="text-sm font-medium">
-              {t("supplierRequired")}
-            </Label>
-            <SupplierSelect
-              selectedSupplier={selectedSupplier}
-              onSupplierChange={handleSupplierChange}
-              placeholder={t("selectSupplier")}
-              className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg"
-            />
-            {selectedSupplier && (
-              <div className="text-sm text-muted-foreground mt-2">
-                {t("contactInfo")}: {selectedSupplier.phone1} •{" "}
-                {selectedSupplier.email}
-              </div>
-            )}
-            {selectedSupplier && filteredProducts.length === 0 && (
-              <div className="bg-yellow-50 text-yellow-700 px-4 py-3 rounded-lg flex items-center gap-2 border border-yellow-200 mt-2">
-                <AlertCircle className="h-4 w-4" />
-                <span className="text-sm">{t("noProductsAvailable")}</span>
-              </div>
-            )}
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="supplier" className="text-sm font-medium">
+                {t("supplierRequired")}
+              </Label>
+              <SupplierSelect
+                selectedSupplier={selectedSupplier}
+                onSupplierChange={handleSupplierChange}
+                placeholder={t("selectSupplier")}
+                className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg"
+              />
+              {selectedSupplier && (
+                <div className="text-sm text-muted-foreground mt-2">
+                  {t("contactInfo")}: {selectedSupplier.phone1} • {selectedSupplier.email}
+                </div>
+              )}
+              {selectedSupplier && filteredProducts.length === 0 && (
+                <div className="bg-yellow-50 text-yellow-700 px-4 py-3 rounded-lg flex items-center gap-2 border border-yellow-200 mt-2">
+                  <AlertCircle className="h-4 w-4" />
+                  <span className="text-sm">
+                    {t("noProductsAvailable")}
+                  </span>
+                </div>
+              )}
+            </div>
 
           {/* Order Items */}
           <Card className="border-0 shadow-sm rounded-xl">
@@ -383,8 +372,7 @@ export function ManualOrderDialog({
                   variant="secondary"
                   size="sm"
                   onClick={() => {
-                    if (!selectedSupplier)
-                      return toast.error(t("selectSupplierFirst"));
+                    if (!selectedSupplier) return toast.error(t("selectSupplierFirst"));
                     setOpenLoadTpl(true);
                   }}
                   className="gap-2 rounded-full border-2 border-input"
@@ -402,9 +390,7 @@ export function ManualOrderDialog({
                       className="flex flex-col sm:flex-row items-start sm:items-end gap-4 p-4 border rounded-xl bg-card"
                     >
                       <div className="flex-1 space-y-2">
-                        <Label className="text-sm font-medium">
-                          {t("productRequired")}
-                        </Label>
+                        <Label className="text-sm font-medium">{t("productRequired")}</Label>
                         <ProductSelect
                           products={filteredProducts}
                           selectedProduct={selectedProducts[index] || null}
@@ -435,11 +421,7 @@ export function ManualOrderDialog({
                           onChange={(e) => {
                             const v = e.target.value;
                             const num = v === "" ? NaN : parseInt(v);
-                            updateOrderItem(
-                              index,
-                              "quantity",
-                              Number.isNaN(num) ? 0 : num,
-                            );
+                            updateOrderItem(index, "quantity", Number.isNaN(num) ? 0 : num);
                           }}
                           className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg py-5"
                         />
@@ -481,7 +463,7 @@ export function ManualOrderDialog({
                             updateOrderItem(
                               index,
                               "expirationDate",
-                              new Date(e.target.value),
+                              new Date(e.target.value)
                             )
                           }
                           className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg py-5"
@@ -578,37 +560,20 @@ export function ManualOrderDialog({
             const allowedIds = new Set(filteredProducts.map((p) => p._id));
             const mapped = (tpl.items || [])
               .filter((it: any) => {
-                const id =
-                  typeof it.productId === "string"
-                    ? it.productId
-                    : it.productId?._id;
-                return allowedIds.has(id);
+                const id = typeof it.productId === "string" ? it.productId : it.productId?._id; return allowedIds.has(id);
               })
               .map((it: any) => ({
-                productId:
-                  typeof it.productId === "string"
-                    ? it.productId
-                    : it.productId?._id,
+                productId: typeof it.productId === "string" ? it.productId : it.productId?._id,
                 quantity: it.quantity,
                 unitCost: 0,
                 expirationDate: new Date(),
               }));
-            if (!mapped.length) {
-              toast.error(t("noTemplateItems"));
-              return;
-            }
+            if (!mapped.length) { toast.error(t("noTemplateItems")); return; }
             setOrderItems(mapped);
             setSelectedProducts(
-              mapped.map(
-                (m: IOrderItem) =>
-                  filteredProducts.find(
-                    (p: IProduct) => p._id === m.productId,
-                  ) || null,
-              ),
+              mapped.map((m: IOrderItem) => filteredProducts.find((p: IProduct) => p._id === m.productId) || null)
             );
-            toast.success(
-              `${t("loadedTemplate")} ${mapped.length} ${t("templateLoadedCount")}`,
-            );
+            toast.success(`${t("loadedTemplate")} ${mapped.length} ${t("templateLoadedCount")}`);
           }}
         />
       </DialogContent>

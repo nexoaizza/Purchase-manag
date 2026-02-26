@@ -19,10 +19,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { User, Globe, Save, Upload, X, Lock } from "lucide-react";
+import { User, Globe, Save, Upload, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { updateProfile } from "@/lib/apis/auth";
 
 export default function ParametersPage() {
   const t = useTranslations("parameters");
@@ -37,12 +36,6 @@ export default function ParametersPage() {
     email: user?.email || "",
     phone: user?.phone1 || "",
   });
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
-  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
   useEffect(() => {
     // if user previously selected a preferred locale, navigate there
@@ -99,36 +92,8 @@ export default function ParametersPage() {
   };
 
   const handleSaveProfile = async () => {
-    // TODO: Implement profile update API call (fullname, email, avatar)
+    // TODO: Implement profile update API call
     toast.success("Profile updated successfully");
-  };
-
-  const handlePasswordInputChange = (field: keyof typeof passwordData, value: string) => {
-    setPasswordData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleUpdatePassword = async () => {
-    const { currentPassword, newPassword, confirmPassword } = passwordData;
-    if (!currentPassword.trim() || !newPassword.trim() || !confirmPassword.trim()) {
-      toast.error(t("changePassword.fillAllFields"));
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      toast.error(t("changePassword.passwordsDoNotMatch"));
-      return;
-    }
-    setIsUpdatingPassword(true);
-    const result = await updateProfile({
-      password: currentPassword,
-      newPassword,
-    });
-    setIsUpdatingPassword(false);
-    if (result.success) {
-      toast.success(result.message || "Password updated successfully");
-      setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
-    } else {
-      toast.error(result.message || "Failed to update password");
-    }
   };
 
   return (
@@ -275,76 +240,6 @@ export default function ParametersPage() {
                 />
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Change Password */}
-        <Card className="border-0 shadow-lg rounded-xl">
-          <CardHeader className="pb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Lock className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <CardTitle className="font-heading text-xl">
-                  {t("changePassword.title")}
-                </CardTitle>
-                <CardDescription>
-                  {t("changePassword.description")}
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-2">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="currentPassword" className="text-sm font-medium">
-                  {t("changePassword.currentPassword")}
-                </Label>
-                <Input
-                  id="currentPassword"
-                  type="password"
-                  value={passwordData.currentPassword}
-                  onChange={(e) => handlePasswordInputChange("currentPassword", e.target.value)}
-                  placeholder={t("changePassword.currentPasswordPlaceholder")}
-                  className="py-5 border-2 border-input focus-visible:ring-2 focus-visible:ring-primary/30 rounded-lg"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="newPassword" className="text-sm font-medium">
-                  {t("changePassword.newPassword")}
-                </Label>
-                <Input
-                  id="newPassword"
-                  type="password"
-                  value={passwordData.newPassword}
-                  onChange={(e) => handlePasswordInputChange("newPassword", e.target.value)}
-                  placeholder={t("changePassword.newPasswordPlaceholder")}
-                  className="py-5 border-2 border-input focus-visible:ring-2 focus-visible:ring-primary/30 rounded-lg"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-sm font-medium">
-                  {t("changePassword.confirmPassword")}
-                </Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={passwordData.confirmPassword}
-                  onChange={(e) => handlePasswordInputChange("confirmPassword", e.target.value)}
-                  placeholder={t("changePassword.confirmPasswordPlaceholder")}
-                  className="py-5 border-2 border-input focus-visible:ring-2 focus-visible:ring-primary/30 rounded-lg"
-                />
-              </div>
-            </div>
-            <Button
-              onClick={handleUpdatePassword}
-              disabled={isUpdatingPassword}
-              className="gap-2 rounded-full px-6 bg-primary hover:bg-primary/90"
-            >
-              <Lock className="h-4 w-4" />
-              {isUpdatingPassword ? "..." : t("changePassword.updatePassword")}
-            </Button>
           </CardContent>
         </Card>
 

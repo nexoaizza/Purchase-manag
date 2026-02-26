@@ -3,11 +3,14 @@ import Transfer from "../models/transfer.model";
 import StockItem from "../models/stock-item.model";
 import Stock from "../models/stock.model";
 import Product from "../models/product.model";
+import User from "../models/user.model";
+import { Types } from "mongoose";
+import { pushNotification } from "../utils/PushNotification";
 
 // CREATE - Create a transfer request from one stock to another
 export const createTransfer = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { items, takenFrom, takenTo, quantity, status } = req.body;
+    const { items, takenFrom, takenTo, quantity, status, assignedTo, startTime } = req.body;
 
     // Validation
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -22,6 +25,16 @@ export const createTransfer = async (req: Request, res: Response): Promise<void>
 
     if (!quantity || quantity < 1) {
       res.status(400).json({ message: "Quantity must be at least 1" });
+      return;
+    }
+
+    if (!assignedTo) {
+      res.status(400).json({ message: "assignedTo (staff ID) is required" });
+      return;
+    }
+
+    if (!startTime) {
+      res.status(400).json({ message: "startTime is required" });
       return;
     }
 
@@ -44,6 +57,17 @@ export const createTransfer = async (req: Request, res: Response): Promise<void>
       return;
     }
 
+    // Verify assigned user exists and is staff
+    const assignedUser = await User.findById(assignedTo);
+    if (!assignedUser) {
+      res.status(404).json({ message: "Assigned user not found" });
+      return;
+    }
+    if (assignedUser.role !== "staff") {
+      res.status(400).json({ message: "Assigned user must be a staff member" });
+      return;
+    }
+
     // Verify all items exist
     const stockItems = await StockItem.find({ _id: { $in: items } });
     if (stockItems.length !== items.length) {
@@ -57,11 +81,28 @@ export const createTransfer = async (req: Request, res: Response): Promise<void>
       takenTo,
       quantity,
       status: status || "pending",
+      assignedTo,
+      startTime: new Date(startTime),
     });
+
+    // Send "Transfer assigned" notification
+    await pushNotification(
+      "Transfer assigned",
+      `A new transfer has been assigned to you.`,
+      "transfer",
+      undefined,
+      {
+        subject: "Transfer assigned",
+        recipient: assignedTo,
+        transfer: newTransfer._id as Types.ObjectId,
+        status: newTransfer.status,
+      }
+    );
 
     const populatedTransfer = await Transfer.findById(newTransfer._id)
       .populate("takenFrom", "name location")
       .populate("takenTo", "name location")
+      .populate("assignedTo", "fullname email")
       .populate({
         path: "items",
         populate: {
@@ -103,7 +144,7 @@ export const getAllTransfers = async (req: Request, res: Response): Promise<void
     const query: any = {};
 
     // Filter by status
-    if (status && (status === "pending" || status === "arrived")) {
+    if (status && (["pending", "in_progress", "arrived", "canceled"] as string[]).includes(status as string)) {
       query.status = status;
     }
 
@@ -193,6 +234,7 @@ export const getAllTransfers = async (req: Request, res: Response): Promise<void
         .limit(Number(limit))
         .populate("takenFrom", "name location")
         .populate("takenTo", "name location")
+        .populate("assignedTo", "fullname email")
         .populate({
           path: "items",
           populate: {
@@ -228,6 +270,7 @@ export const getTransferById = async (req: Request, res: Response): Promise<void
     const transfer = await Transfer.findById(transferId)
       .populate("takenFrom", "name location description")
       .populate("takenTo", "name location description")
+      .populate("assignedTo", "fullname email")
       .populate({
         path: "items",
         populate: {
@@ -261,19 +304,25 @@ export const updateTransfer = async (req: Request, res: Response): Promise<void>
       return;
     }
 
+    const validStatuses = ["pending", "in_progress", "arrived", "canceled"];
+    let statusChanged = false;
+
     // Update status if provided
     if (status !== undefined) {
-      if (status !== "pending" && status !== "arrived") {
-        res.status(400).json({ message: "Status must be either 'pending' or 'arrived'" });
+      if (!validStatuses.includes(status)) {
+        res.status(400).json({ message: "Status must be one of: pending, in_progress, arrived, canceled" });
         return;
+      }
+      if (transfer.status !== status) {
+        statusChanged = true;
       }
       transfer.status = status;
     }
 
-    // Update quantity if provided (only if still pending)
+    // Update quantity if provided (only if still pending or in_progress)
     if (quantity !== undefined) {
-      if (transfer.status === "arrived") {
-        res.status(400).json({ message: "Cannot update quantity after transfer has arrived" });
+      if (transfer.status === "arrived" || transfer.status === "canceled") {
+        res.status(400).json({ message: "Cannot update quantity after transfer has arrived or been canceled" });
         return;
       }
       if (quantity < 1) {
@@ -283,10 +332,10 @@ export const updateTransfer = async (req: Request, res: Response): Promise<void>
       transfer.quantity = quantity;
     }
 
-    // Update items if provided (only if still pending)
+    // Update items if provided (only if still pending or in_progress)
     if (items !== undefined) {
-      if (transfer.status === "arrived") {
-        res.status(400).json({ message: "Cannot update items after transfer has arrived" });
+      if (transfer.status === "arrived" || transfer.status === "canceled") {
+        res.status(400).json({ message: "Cannot update items after transfer has arrived or been canceled" });
         return;
       }
       if (!Array.isArray(items) || items.length === 0) {
@@ -306,9 +355,26 @@ export const updateTransfer = async (req: Request, res: Response): Promise<void>
 
     await transfer.save();
 
+    // Send "Transfer status changed" notification if status was updated
+    if (statusChanged) {
+      await pushNotification(
+        "Transfer status changed",
+        `Transfer status has been updated to ${transfer.status}.`,
+        "transfer",
+        undefined,
+        {
+          subject: "Transfer status changed",
+          recipient: transfer.assignedTo as Types.ObjectId,
+          transfer: transfer._id as Types.ObjectId,
+          status: transfer.status,
+        }
+      );
+    }
+
     const updatedTransfer = await Transfer.findById(transferId)
       .populate("takenFrom", "name location")
       .populate("takenTo", "name location")
+      .populate("assignedTo", "fullname email")
       .populate({
         path: "items",
         populate: {
@@ -396,6 +462,7 @@ export const getTransfersByStock = async (req: Request, res: Response): Promise<
         .limit(Number(limit))
         .populate("takenFrom", "name location")
         .populate("takenTo", "name location")
+        .populate("assignedTo", "fullname email")
         .populate({
           path: "items",
           populate: {
@@ -419,6 +486,59 @@ export const getTransfersByStock = async (req: Request, res: Response): Promise<
     });
   } catch (error: any) {
     console.error("Transfer getByStock error:", error);
+    res.status(500).json({ message: "Internal server error", err: error.message });
+  }
+};
+
+// GET /transfers/my — Returns transfers assigned to the logged-in staff member
+export const getMyTransfers = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+
+    if (Number(page) < 1 || Number(limit) < 1) {
+      res.status(400).json({ message: "Page and limit must be greater than 0" });
+      return;
+    }
+
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const [transfers, totalItems] = await Promise.all([
+      Transfer.find({ assignedTo: userId })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit))
+        .populate("takenFrom", "name location")
+        .populate("takenTo", "name location")
+        .populate("assignedTo", "fullname email")
+        .populate({
+          path: "items",
+          populate: {
+            path: "product",
+            select: "name",
+          },
+        }),
+      Transfer.countDocuments({ assignedTo: userId }),
+    ]);
+
+    const totalPages = Math.ceil(totalItems / Number(limit));
+
+    res.status(200).json({
+      transfers,
+      pagination: {
+        currentPage: Number(page),
+        totalPages,
+        totalItems,
+        itemsPerPage: Number(limit),
+      },
+    });
+  } catch (error: any) {
+    console.error("Transfer getMyTransfers error:", error);
     res.status(500).json({ message: "Internal server error", err: error.message });
   }
 };

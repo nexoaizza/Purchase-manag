@@ -23,7 +23,6 @@ import {
   CheckCircle,
   DollarSign,
   XCircle,
-  Trash2,
 } from "lucide-react";
 import { PurchaseOrderDialog } from "@/components/purchases/purchase-order-dialog";
 import { ReceiptPreviewDialog } from "./receipt-preview-dialog";
@@ -34,7 +33,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { SubmitReviewDialog } from "./submit-review-dialog";
 import { VerifyOrderDialog } from "./verify-order-dialog";
 import { MarkPaidDialog } from "./mark-paid-dialog";
-import { updateOrder, deleteOrder } from "@/lib/apis/purchase-list";
+import { updateOrder } from "@/lib/apis/purchase-list";
 import toast from "react-hot-toast";
 import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
 
@@ -134,22 +133,6 @@ export function PurchaseListsTable({
       toast.error(t("errorCancelingOrder"));
     } finally {
       setIsCancelLoading(false);
-    }
-  };
-
-  const handleDeleteOrder = async (orderId: string) => {
-    if (!confirm(t("confirmDeleteOrder"))) return;
-
-    try {
-      const { success, message } = await deleteOrder(orderId);
-      if (success) {
-        toast.success(message);
-        setPurchaseOrders((prev) => prev.filter((o) => o._id !== orderId));
-      } else {
-        toast.error(message);
-      }
-    } catch (error) {
-      toast.error(t("failedToDeleteOrder"));
     }
   };
 
@@ -441,13 +424,6 @@ export function PurchaseListsTable({
                           >
                             <Download className="h-4 w-4 mr-2" />
                             {t("exportPDF")}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-red-600 focus:text-red-600 focus:bg-red-50"
-                            onClick={() => handleDeleteOrder(order._id)}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            {t("delete")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

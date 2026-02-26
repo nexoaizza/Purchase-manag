@@ -6,7 +6,7 @@
         "Password": "كلمة المرور",
         "Sign In": "تسجيل الدخول",
         "Forgot your password?": "هل نسيت كلمة المرور؟",
-        "signingIn": "جاري تسجيل الدخول...",
+        "Signing in...": "جاري تسجيل الدخول...",
         "Enter your password": "أدخل كلمة المرور الخاصة بك",
         "Enter your email": "أدخل بريدك الإلكتروني"
     },
@@ -505,8 +505,7 @@
         "wasteWarningMessage": "سيؤدي هذا إلى إزالة عنصر المخزون نهائيًا من مخزونك وتسجيله كنفايات. لا يمكن التراجع عن هذا الإجراء.",
         "summaryTitle": "الملخص:",
         "used": "المستخدم",
-        "remaining": "المتبقي",
-        "selectCategory":"اختر فئة"
+        "remaining": "المتبقي"
     },
     "purchases": {
         "title": "قوائم الشراء",
@@ -1080,19 +1079,6 @@
             "phonePlaceholder": "+213 123 456 789",
             "role": "الدور"
         },
-        "changePassword": {
-            "title": "تغيير كلمة المرور",
-            "description": "تحديث كلمة مرور حسابك. ستحتاج إلى كلمة المرور الحالية.",
-            "currentPassword": "كلمة المرور الحالية",
-            "currentPasswordPlaceholder": "أدخل كلمة المرور الحالية",
-            "newPassword": "كلمة المرور الجديدة",
-            "newPasswordPlaceholder": "أدخل كلمة المرور الجديدة",
-            "confirmPassword": "تأكيد كلمة المرور الجديدة",
-            "confirmPasswordPlaceholder": "أكد كلمة المرور الجديدة",
-            "updatePassword": "تحديث كلمة المرور",
-            "passwordsDoNotMatch": "كلمة المرور الجديدة والتأكيد غير متطابقتين",
-            "fillAllFields": "يرجى ملء كلمة المرور الحالية والجديدة والتأكيد"
-        },
         "language": {
             "title": "إعدادات اللغة",
             "description": "اختر لغتك المفضلة للتطبيق",
@@ -1140,9 +1126,6 @@
         "creating": "جاري الإنشاء...",
         "update": "تحديث النقل",
         "updating": "جاري التحديث...",
-        "category": "الفئة",
-        "selectCategory": "اختر فئة (اختياري)",
-        "allCategories": "جميع الفئات",
         "searchPlaceholder": "البحث باسم المستودع...",
         "filterByStatus": "تصفية حسب الحالة",
         "filterByStock": "تصفية حسب المستودع",

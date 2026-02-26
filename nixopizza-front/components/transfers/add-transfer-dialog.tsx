@@ -25,7 +25,6 @@ import toast from "react-hot-toast";
 import { createTransfer } from "@/lib/apis/transfers";
 import { getStocks, IStock } from "@/lib/apis/stocks";
 import { getStockItems } from "@/lib/apis/stock-items";
-import { getCategories } from "@/lib/apis/categories";
 
 interface AddTransferDialogProps {
   open: boolean;
@@ -41,9 +40,7 @@ export function AddTransferDialog({
   const t = useTranslations("transfers");
   const [loading, setLoading] = useState(false);
   const [stocks, setStocks] = useState<IStock[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
   const [stockItems, setStockItems] = useState<any[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [formData, setFormData] = useState({
     items: [] as string[],
     takenFrom: "",
@@ -55,15 +52,14 @@ export function AddTransferDialog({
   useEffect(() => {
     if (open) {
       fetchStocks();
-      fetchCategories();
     }
   }, [open]);
 
   useEffect(() => {
     if (formData.takenFrom) {
-      fetchStockItems(formData.takenFrom, selectedCategory);
+      fetchStockItems(formData.takenFrom);
     }
-  }, [formData.takenFrom, selectedCategory]);
+  }, [formData.takenFrom]);
 
   const fetchStocks = async () => {
     const { success, stocks: fetchedStocks } = await getStocks();
@@ -72,20 +68,8 @@ export function AddTransferDialog({
     }
   };
 
-  const fetchCategories = async () => {
-    const { success, categories: fetchedCategories } = await getCategories();
-    if (success) {
-      setCategories(fetchedCategories || []);
-    }
-  };
-
-  const fetchStockItems = async (stockId: string, categoryId?: string) => {
-    const params: any = { stock: stockId };
-    if (categoryId && categoryId !== "all") {
-      params.category = categoryId;
-    }
-    params.limit = 40;
-    const { success, stockItems: items } = await getStockItems(params);
+  const fetchStockItems = async (stockId: string) => {
+    const { success, stockItems: items } = await getStockItems({ stock: stockId });
     if (success) {
       setStockItems(items || []);
     }
@@ -182,7 +166,7 @@ export function AddTransferDialog({
               </SelectContent>
             </Select>
           </div>
-          <div className="flex gap-4">
+
           <div className="space-y-2">
             <Label htmlFor="items">{t("selectItems")}</Label>
             <Select
@@ -204,27 +188,7 @@ export function AddTransferDialog({
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="category">{t("category")}</Label>
-            <Select
-              value={selectedCategory}
-              onValueChange={(value) => setSelectedCategory(value)}
-              disabled={!formData.takenFrom}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={t("selectCategory")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("allCategories")}</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category._id} value={category._id}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          </div>
+
           <div className="space-y-2">
             <Label htmlFor="quantity">{t("quantity")}</Label>
             <Input
