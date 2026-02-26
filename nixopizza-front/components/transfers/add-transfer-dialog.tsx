@@ -25,6 +25,13 @@ import toast from "react-hot-toast";
 import { createTransfer } from "@/lib/apis/transfers";
 import { getStocks, IStock } from "@/lib/apis/stocks";
 import { getStockItems } from "@/lib/apis/stock-items";
+import { getStuff } from "@/lib/apis/stuff";
+
+interface IStaff {
+  _id: string;
+  fullname: string;
+  email: string;
+}
 
 interface AddTransferDialogProps {
   open: boolean;
@@ -41,12 +48,15 @@ export function AddTransferDialog({
   const [loading, setLoading] = useState(false);
   const [stocks, setStocks] = useState<IStock[]>([]);
   const [stockItems, setStockItems] = useState<any[]>([]);
+  const [staffList, setStaffList] = useState<IStaff[]>([]);
   const [formData, setFormData] = useState({
     items: [] as string[],
     takenFrom: "",
     takenTo: "",
     quantity: 1,
     status: "pending" as "pending" | "arrived",
+    assignedTo: "",
+    startTime: "",
   });
 
   useEffect(() => {
@@ -66,6 +76,10 @@ export function AddTransferDialog({
     if (success) {
       setStocks(fetchedStocks || []);
     }
+    const staffRes = await getStuff();
+    if (staffRes.success) {
+      setStaffList(staffRes.staffs || []);
+    }
   };
 
   const fetchStockItems = async (stockId: string) => {
@@ -77,8 +91,16 @@ export function AddTransferDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.takenFrom || !formData.takenTo || formData.items.length === 0 || formData.quantity < 1) {
+
+    const isFormValid =
+      formData.takenFrom &&
+      formData.takenTo &&
+      formData.items.length > 0 &&
+      formData.quantity >= 1 &&
+      formData.assignedTo &&
+      formData.startTime;
+
+    if (!isFormValid) {
       toast.error(t("fillAllFields"));
       return;
     }
@@ -99,7 +121,9 @@ export function AddTransferDialog({
         takenFrom: "", 
         takenTo: "", 
         quantity: 1,
-        status: "pending" 
+        status: "pending",
+        assignedTo: "",
+        startTime: "",
       });
       onTransferCreated();
     } else {
@@ -220,6 +244,40 @@ export function AddTransferDialog({
                 <SelectItem value="arrived">{t("arrived")}</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="assignedTo">{t("assignedTo")}</Label>
+            <Select
+              value={formData.assignedTo}
+              onValueChange={(value) =>
+                setFormData({ ...formData, assignedTo: value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={t("selectStaffMember")} />
+              </SelectTrigger>
+              <SelectContent>
+                {staffList.map((staff) => (
+                  <SelectItem key={staff._id} value={staff._id}>
+                    {staff.fullname} ({staff.email})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="startTime">{t("startTime")}</Label>
+            <Input
+              id="startTime"
+              type="datetime-local"
+              value={formData.startTime}
+              onChange={(e) =>
+                setFormData({ ...formData, startTime: e.target.value })
+              }
+              required
+            />
           </div>
 
           <DialogFooter>

@@ -25,6 +25,13 @@ import toast from "react-hot-toast";
 import { updateStockItem, createStockItem, IStockItem } from "@/lib/apis/stock-items";
 import { getStocks } from "@/lib/apis/stocks";
 import { createTransfer } from "@/lib/apis/transfers";
+import { getStuff } from "@/lib/apis/stuff";
+
+interface IStaff {
+  _id: string;
+  fullname: string;
+  email: string;
+}
 
 interface TransferStockItemDialogProps {
   stockItem: IStockItem | null;
@@ -42,8 +49,10 @@ export function TransferStockItemDialog({
   const t = useTranslations("stockItems");
   const [loading, setLoading] = useState(false);
   const [stocks, setStocks] = useState<any[]>([]);
+  const [staffList, setStaffList] = useState<IStaff[]>([]);
   const [transferQuantity, setTransferQuantity] = useState("");
   const [destinationStock, setDestinationStock] = useState("");
+  const [assignedTo, setAssignedTo] = useState("");
   const [quantityError, setQuantityError] = useState("");
 
   useEffect(() => {
@@ -51,7 +60,11 @@ export function TransferStockItemDialog({
       fetchStocks();
       setTransferQuantity("");
       setDestinationStock("");
+      setAssignedTo("");
       setQuantityError("");
+      getStuff().then((res) => {
+        if (res.success) setStaffList(res.staffs || []);
+      });
     }
   }, [open]);
 
@@ -84,7 +97,7 @@ export function TransferStockItemDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!stockItem || !destinationStock || !transferQuantity) {
+    if (!stockItem || !destinationStock || !transferQuantity || !assignedTo) {
       toast.error(t("fillAllFields"));
       return;
     }
@@ -156,7 +169,9 @@ export function TransferStockItemDialog({
         takenFrom: stockItemId,
         takenTo: destinationStock,
         quantity: quantity,
-        status: "pending", // Mark as arrived since we're doing immediate transfer
+        status: "pending",
+        assignedTo: assignedTo,
+        startTime: new Date().toISOString(),
       });
 
       if (!transferSuccess) {
@@ -260,6 +275,25 @@ export function TransferStockItemDialog({
               </Select>
             </div>
 
+            {/* Assigned Staff */}
+            <div className="space-y-2">
+              <Label htmlFor="assignedTo">
+                {t("assignedTo")} <span className="text-red-500">*</span>
+              </Label>
+              <Select value={assignedTo} onValueChange={setAssignedTo}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t("selectStaffMember")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {staffList.map((staff) => (
+                    <SelectItem key={staff._id} value={staff._id}>
+                      {staff.fullname} ({staff.email})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Transfer Summary */}
             {transferQuantity && destinationStock && (
               <div className="rounded-lg bg-muted p-4 space-y-2">
@@ -292,7 +326,7 @@ export function TransferStockItemDialog({
             </Button>
             <Button
               type="submit"
-              disabled={loading || !transferQuantity || !destinationStock || !!quantityError}
+              disabled={loading || !transferQuantity || !destinationStock || !assignedTo || !!quantityError}
               className="bg-orange-600 hover:bg-orange-700 text-white"
             >
               {loading ? t("transferring") : t("transfer")}
