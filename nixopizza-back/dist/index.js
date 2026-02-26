@@ -18,6 +18,11 @@ const admin_router_1 = __importDefault(require("./routes/admin.router"));
 const task_router_1 = __importDefault(require("./routes/task.router"));
 const supplier_router_1 = __importDefault(require("./routes/supplier.router"));
 const notification_router_1 = __importDefault(require("./routes/notification.router"));
+const stock_router_1 = __importDefault(require("./routes/stock.router"));
+const stock_item_router_1 = __importDefault(require("./routes/stock-item.router"));
+const template_router_1 = __importDefault(require("./routes/template.router"));
+const transfer_router_1 = __importDefault(require("./routes/transfer.router"));
+const waste_router_1 = __importDefault(require("./routes/waste.router"));
 const blobUpload_router_1 = __importDefault(require("./routes/blobUpload.router"));
 const user_model_1 = __importDefault(require("./models/user.model"));
 const expirationMonitoring_controller_1 = require("./controllers/expirationMonitoring.controller");
@@ -45,6 +50,8 @@ const allowedOrigins = [
     process.env.STAG_ADMIN_ORIGIN,
     process.env.DEV_CLIENT_ORIGIN,
     process.env.DEV_ADMIN_ORIGIN,
+    "http://localhost:3000",
+    "http://localhost:3001"
 ]
     .filter(Boolean)
     .map((o) => o.replace(/\/+$/, "")); // normalize
@@ -77,6 +84,11 @@ app.use("/api/categories", category_router_1.default);
 app.use("/api/tasks", task_router_1.default);
 app.use("/api/suppliers", supplier_router_1.default);
 app.use("/api/notifications", notification_router_1.default);
+app.use("/api/stocks", stock_router_1.default);
+app.use("/api/stock-items", stock_item_router_1.default);
+app.use("/api/templates", template_router_1.default);
+app.use("/api/transfers", transfer_router_1.default);
+app.use("/api/wastes", waste_router_1.default);
 const PORT = process.env.PORT || 5000;
 async function ensureAdmin() {
     try {

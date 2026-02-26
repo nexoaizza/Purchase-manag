@@ -7,7 +7,7 @@ export interface ISupplier {
     phone1: string;
     phone2?: string;
     phone3?: string;
-    address: string;
+    address?: string;
     city?: string;
     categoryIds: Types.ObjectId[];
     image?: string;

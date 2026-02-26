@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getOverStockProducts = exports.getLowStockProducts = exports.deleteProduct = exports.getProduct = exports.getAllProducts = exports.updateProduct = exports.createProduct = void 0;
+exports.deleteProduct = exports.getProduct = exports.getAllProducts = exports.updateProduct = exports.createProduct = void 0;
 const product_model_1 = __importDefault(require("../models/product.model"));
 const Delete_1 = require("../utils/Delete");
 const crypto_1 = __importDefault(require("crypto"));
@@ -11,8 +11,8 @@ const blob_1 = require("../utils/blob");
 // CREATE
 const createProduct = async (req, res) => {
     try {
-        const { name, barcode, unit, categoryId, description, currentStock, minQty, recommendedQty, } = req.body;
-        if (!name || !unit || !categoryId || currentStock === undefined || minQty === undefined) {
+        const { name, barcode, unit, categoryId, description, minQty, recommendedQty, expectedLifeTime, } = req.body;
+        if (!name || !unit || !categoryId || minQty === undefined) {
             res.status(400).json({ message: "Missing required fields" });
             return;
         }
@@ -35,10 +35,10 @@ const createProduct = async (req, res) => {
                 unit,
                 categoryId,
                 description,
-                currentStock: Number(currentStock),
                 minQty: Number(minQty),
-                recommendedQty: recommendedQty !== undefined ? Number(recommendedQty) : 0,
                 imageUrl,
+                recommendedQty: recommendedQty ? Number(recommendedQty) : 0,
+                expectedLifeTime: expectedLifeTime ? Number(expectedLifeTime) : undefined,
             });
             res.status(201).json({ message: "Product created successfully", product: newProduct });
         }
@@ -59,7 +59,7 @@ exports.createProduct = createProduct;
 // UPDATE
 const updateProduct = async (req, res) => {
     try {
-        const { name, barcode, unit, categoryId, description, currentStock, minQty, recommendedQty, } = req.body;
+        const { name, barcode, unit, categoryId, description, minQty, recommendedQty, expectedLifeTime, } = req.body;
         const product = await product_model_1.default.findById(req.params.productId);
         if (!product) {
             res.status(404).json({ message: "Product not found" });
@@ -79,12 +79,12 @@ const updateProduct = async (req, res) => {
             product.categoryId = categoryId;
         if (description !== undefined)
             product.description = description;
-        if (currentStock !== undefined)
-            product.currentStock = Number(currentStock);
         if (minQty !== undefined)
             product.minQty = Number(minQty);
         if (recommendedQty !== undefined)
             product.recommendedQty = Number(recommendedQty);
+        if (expectedLifeTime !== undefined)
+            product.expectedLifeTime = expectedLifeTime ? Number(expectedLifeTime) : undefined;
         if (req.file) {
             if (product.imageUrl && product.imageUrl.startsWith("/uploads/")) {
                 try {
@@ -99,6 +99,17 @@ const updateProduct = async (req, res) => {
             const key = `${Date.now()}-${unique}${ext}`;
             const uploaded = await (0, blob_1.uploadBufferToBlob)(key, req.file.buffer, req.file.mimetype);
             product.imageUrl = uploaded.url;
+        }
+        else if (req.body.removeImage === "true") {
+            if (product.imageUrl && product.imageUrl.startsWith("/uploads/")) {
+                try {
+                    (0, Delete_1.deleteImage)(product.imageUrl);
+                }
+                catch (e) {
+                    console.warn("Failed to delete legacy product image:", e);
+                }
+            }
+            product.imageUrl = undefined;
         }
         try {
             await product.save();
@@ -197,42 +208,4 @@ const deleteProduct = async (req, res) => {
     }
 };
 exports.deleteProduct = deleteProduct;
-// LOW STOCK
-const getLowStockProducts = async (req, res) => {
-    try {
-        const products = await product_model_1.default.find({});
-        const critical = products.filter(p => p.currentStock <= 0);
-        const high = products.filter(p => p.currentStock > 0 && p.currentStock < p.minQty / 2);
-        const medium = products.filter(p => p.currentStock >= p.minQty / 2 && p.currentStock < p.minQty);
-        res.status(200).json({
-            summary: {
-                critical: critical.length,
-                high: high.length,
-                medium: medium.length,
-                total: critical.length + high.length + medium.length,
-            },
-            critical,
-            high,
-            medium,
-        });
-    }
-    catch (error) {
-        console.error("Low stock error:", error);
-        res.status(500).json({ message: "Internal server error", err: error.message });
-    }
-};
-exports.getLowStockProducts = getLowStockProducts;
-// OVER STOCK
-const getOverStockProducts = async (req, res) => {
-    try {
-        const products = await product_model_1.default.find({});
-        const over = products.filter(p => p.recommendedQty > 0 && p.currentStock > p.recommendedQty);
-        res.status(200).json({ count: over.length, products: over });
-    }
-    catch (error) {
-        console.error("Over stock error:", error);
-        res.status(500).json({ message: "Internal server error", err: error.message });
-    }
-};
-exports.getOverStockProducts = getOverStockProducts;
 //# sourceMappingURL=product.controller.js.map

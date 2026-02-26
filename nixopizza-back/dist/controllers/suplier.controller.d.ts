@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 /**
  * GET /api/suppliers
  */
-export declare const getSuppliers: (_req: Request, res: Response) => Promise<void>;
+export declare const getSuppliers: (req: Request, res: Response) => Promise<void>;
 /**
  * GET /api/suppliers/:supplierId
  */

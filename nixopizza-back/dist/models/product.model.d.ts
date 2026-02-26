@@ -6,9 +6,9 @@ export interface IProduct extends Document {
     categoryId: Schema.Types.ObjectId;
     imageUrl?: string;
     description?: string;
-    currentStock: number;
     minQty: number;
     recommendedQty: number;
+    expectedLifeTime?: number;
     createdAt?: Date;
     updatedAt?: Date;
 }

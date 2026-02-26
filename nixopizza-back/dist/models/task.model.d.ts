@@ -2,12 +2,9 @@ import { Schema, Document } from "mongoose";
 export interface ITask extends Document {
     taskNumber: string;
     staffId: Schema.Types.ObjectId;
-    items: {
-        productId: Schema.Types.ObjectId;
-        quantity: number;
-    }[];
+    description?: string;
     status: "pending" | "completed" | "canceled";
-    deadline: Date;
+    deadline?: Date;
     createdAt: Date;
     updatedAt: Date;
 }
