@@ -78,6 +78,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       : [
           { name: t("dashboard"), href: "/dashboardstaff", icon: BarChart3 },
           { name: t("orders"), href: "/dashboardstaff/orders", icon: Users },
+          { name: t("transfers"), href: "/dashboardstaff/transfers", icon: ArrowRightLeft },
         ];
 
   return (

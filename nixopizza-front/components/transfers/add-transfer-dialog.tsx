@@ -25,6 +25,7 @@ import toast from "react-hot-toast";
 import { createTransfer } from "@/lib/apis/transfers";
 import { getStocks, IStock } from "@/lib/apis/stocks";
 import { getStockItems } from "@/lib/apis/stock-items";
+import { getStuff } from "@/lib/apis/stuff";
 
 interface AddTransferDialogProps {
   open: boolean;
@@ -41,17 +42,21 @@ export function AddTransferDialog({
   const [loading, setLoading] = useState(false);
   const [stocks, setStocks] = useState<IStock[]>([]);
   const [stockItems, setStockItems] = useState<any[]>([]);
+  const [staffList, setStaffList] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     items: [] as string[],
     takenFrom: "",
     takenTo: "",
     quantity: 1,
-    status: "pending" as "pending" | "arrived",
+    assignedTo: "",
+    startTime: "",
+    status: "pending" as "pending" | "in_progress" | "arrived" | "canceled",
   });
 
   useEffect(() => {
     if (open) {
       fetchStocks();
+      fetchStaff();
     }
   }, [open]);
 
@@ -65,6 +70,13 @@ export function AddTransferDialog({
     const { success, stocks: fetchedStocks } = await getStocks();
     if (success) {
       setStocks(fetchedStocks || []);
+    }
+  };
+
+  const fetchStaff = async () => {
+    const { success, staffs } = await getStuff();
+    if (success) {
+      setStaffList(staffs || []);
     }
   };
 
@@ -88,6 +100,16 @@ export function AddTransferDialog({
       return;
     }
 
+    if (!formData.assignedTo) {
+      toast.error(t("fillAllFields"));
+      return;
+    }
+
+    if (!formData.startTime) {
+      toast.error(t("fillAllFields"));
+      return;
+    }
+
     setLoading(true);
     const { success, message } = await createTransfer(formData);
     setLoading(false);
@@ -99,6 +121,8 @@ export function AddTransferDialog({
         takenFrom: "", 
         takenTo: "", 
         quantity: 1,
+        assignedTo: "",
+        startTime: "",
         status: "pending" 
       });
       onTransferCreated();
@@ -205,10 +229,44 @@ export function AddTransferDialog({
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="assignedTo">{t("assignedTo")}</Label>
+            <Select
+              value={formData.assignedTo}
+              onValueChange={(value) =>
+                setFormData({ ...formData, assignedTo: value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={t("selectStaff")} />
+              </SelectTrigger>
+              <SelectContent>
+                {staffList.map((staff) => (
+                  <SelectItem key={staff._id} value={staff._id}>
+                    {staff.fullname} - {staff.email}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="startTime">{t("startTime")}</Label>
+            <Input
+              id="startTime"
+              type="datetime-local"
+              value={formData.startTime}
+              onChange={(e) =>
+                setFormData({ ...formData, startTime: e.target.value })
+              }
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="status">{t("status")}</Label>
             <Select
               value={formData.status}
-              onValueChange={(value: "pending" | "arrived") =>
+              onValueChange={(value: "pending" | "in_progress" | "arrived" | "canceled") =>
                 setFormData({ ...formData, status: value })
               }
             >
@@ -217,7 +275,9 @@ export function AddTransferDialog({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="pending">{t("pending")}</SelectItem>
+                <SelectItem value="in_progress">{t("inProgress")}</SelectItem>
                 <SelectItem value="arrived">{t("arrived")}</SelectItem>
+                <SelectItem value="canceled">{t("canceled")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
