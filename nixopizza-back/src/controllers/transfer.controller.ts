@@ -6,6 +6,7 @@ import Product from "../models/product.model";
 import User from "../models/user.model";
 import { Types } from "mongoose";
 import { pushNotification } from "../utils/PushNotification";
+import { sendPushNotification } from "../services/firebase.service";
 
 // CREATE - Create a transfer request from one stock to another
 export const createTransfer = async (req: Request, res: Response): Promise<void> => {
@@ -98,6 +99,16 @@ export const createTransfer = async (req: Request, res: Response): Promise<void>
         status: newTransfer.status,
       }
     );
+
+    // Send real FCM push notification to the assigned staff's device
+    if (assignedUser.fcmToken) {
+      await sendPushNotification(
+        assignedUser.fcmToken,
+        "New Transfer Assigned",
+        "A new transfer has been assigned to you.",
+        { transferId: (newTransfer._id as Types.ObjectId).toString() }
+      ).catch((err) => console.error("FCM push notification error for transfer assignment:", err));
+    }
 
     const populatedTransfer = await Transfer.findById(newTransfer._id)
       .populate("takenFrom", "name location")
@@ -369,6 +380,17 @@ export const updateTransfer = async (req: Request, res: Response): Promise<void>
           status: transfer.status,
         }
       );
+
+      // Send real FCM push notification to the assigned staff's device
+      const assignedUser = await User.findById(transfer.assignedTo);
+      if (assignedUser && assignedUser.fcmToken) {
+        await sendPushNotification(
+          assignedUser.fcmToken,
+          "Transfer Status Updated",
+          `Your transfer status has been updated to ${transfer.status}.`,
+          { transferId: (transfer._id as Types.ObjectId).toString() }
+        ).catch((err) => console.error("FCM push notification error for transfer status update:", err));
+      }
     }
 
     const updatedTransfer = await Transfer.findById(transferId)
