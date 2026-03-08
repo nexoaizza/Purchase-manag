@@ -22,7 +22,8 @@ import {
 } from "@/components/ui/select";
 import { ArrowRightLeft } from "lucide-react";
 import toast from "react-hot-toast";
-import { updateTransfer, ITransfer } from "@/lib/apis/transfers";
+import { updateTransfer, ITransfer, TransferStatus } from "@/lib/apis/transfers";
+import { getStuff } from "@/lib/apis/stuff";
 
 interface EditTransferDialogProps {
   open: boolean;
@@ -39,19 +40,35 @@ export function EditTransferDialog({
 }: EditTransferDialogProps) {
   const t = useTranslations("transfers");
   const [loading, setLoading] = useState(false);
+  const [staffList, setStaffList] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     quantity: 1,
-    status: "pending" as "pending" | "arrived",
+    status: "pending" as TransferStatus,
+    assignedTo: "",
   });
+
+  useEffect(() => {
+    if (open) {
+      fetchStaff();
+    }
+  }, [open]);
 
   useEffect(() => {
     if (transfer) {
       setFormData({
         quantity: transfer.quantity,
         status: transfer.status,
+        assignedTo: transfer.assignedTo?._id || transfer.assignedTo || "",
       });
     }
   }, [transfer]);
+
+  const fetchStaff = async () => {
+    const { success, staffs } = await getStuff();
+    if (success) {
+      setStaffList(staffs || []);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,6 +131,27 @@ export function EditTransferDialog({
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="assignedTo">{t("assignedTo")}</Label>
+            <Select
+              value={formData.assignedTo}
+              onValueChange={(value) =>
+                setFormData({ ...formData, assignedTo: value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={t("selectStaff")} />
+              </SelectTrigger>
+              <SelectContent>
+                {staffList.map((staff) => (
+                  <SelectItem key={staff._id} value={staff._id}>
+                    {staff.fullname} - {staff.email}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="quantity">{t("quantity")}</Label>
             <Input
               id="quantity"
@@ -132,7 +170,7 @@ export function EditTransferDialog({
             <Label htmlFor="status">{t("status")}</Label>
             <Select
               value={formData.status}
-              onValueChange={(value: "pending" | "arrived") =>
+              onValueChange={(value: TransferStatus) =>
                 setFormData({ ...formData, status: value })
               }
             >
@@ -141,7 +179,9 @@ export function EditTransferDialog({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="pending">{t("pending")}</SelectItem>
+                <SelectItem value="in_progress">{t("inProgress")}</SelectItem>
                 <SelectItem value="arrived">{t("arrived")}</SelectItem>
+                <SelectItem value="canceled">{t("canceled")}</SelectItem>
               </SelectContent>
             </Select>
           </div>

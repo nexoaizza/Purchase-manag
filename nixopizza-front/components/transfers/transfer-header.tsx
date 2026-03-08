@@ -58,7 +58,9 @@ export function TransferHeader({
           <SelectContent>
             <SelectItem value="all">{t("allStatuses")}</SelectItem>
             <SelectItem value="pending">{t("pending")}</SelectItem>
+            <SelectItem value="in_progress">{t("inProgress")}</SelectItem>
             <SelectItem value="arrived">{t("arrived")}</SelectItem>
+            <SelectItem value="canceled">{t("canceled")}</SelectItem>
           </SelectContent>
         </Select>
         <Select value={fromStockFilter} onValueChange={setFromStockFilter}>

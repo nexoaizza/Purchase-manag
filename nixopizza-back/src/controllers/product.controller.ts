@@ -110,6 +110,15 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
       const key = `${Date.now()}-${unique}${ext}`;
       const uploaded = await uploadBufferToBlob(key, req.file.buffer, req.file.mimetype);
       product.imageUrl = uploaded.url;
+    } else if (req.body.removeImage === "true") {
+      if (product.imageUrl && product.imageUrl.startsWith("/uploads/")) {
+        try {
+          deleteImage(product.imageUrl);
+        } catch (e) {
+          console.warn("Failed to delete legacy product image:", e);
+        }
+      }
+      product.imageUrl = undefined;
     }
 
     try {

@@ -6,12 +6,16 @@ import {
   updateTransfer,
   deleteTransfer,
   getTransfersByStock,
+  getMyTransfers,
 } from "../controllers/transfer.controller";
 import { authenticate, requireAdmin } from "../middlewares/Auth";
 
 const transferRouter = Router();
 
 transferRouter.use(authenticate);
+
+// Get transfers assigned to the logged-in staff member
+transferRouter.get("/my", getMyTransfers);
 
 // CRUD operations
 transferRouter.post("/", requireAdmin, createTransfer);
