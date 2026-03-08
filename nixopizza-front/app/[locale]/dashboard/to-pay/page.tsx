@@ -36,7 +36,7 @@ export default function ToPayPage() {
     }
 
     const lastThursday = new Date(today);
-    lastThursday.setDate(today.getDate() - daysToSubtract - 7);
+    lastThursday.setDate(today.getDate() - daysToSubtract);
     lastThursday.setHours(0, 0, 0, 0);
 
     return lastThursday;
