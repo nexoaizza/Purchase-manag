@@ -72,6 +72,10 @@ export default function OwsUsPage() {
           const supplierMap = new Map<string, SupplierData>();
 
           orders.forEach((order: any) => {
+            if (!order.createdAt) return;
+            const orderDate = new Date(order.createdAt);
+            if (orderDate < start || orderDate > end) return;
+
             const supplierId = order.supplierId._id;
             const supplierName = order.supplierId.name;
             const supplierImage = order.supplierId.image;
