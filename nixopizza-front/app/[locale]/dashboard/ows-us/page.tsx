@@ -36,7 +36,7 @@ export default function OwsUsPage() {
     }
 
     const lastThursday = new Date(today);
-    lastThursday.setDate(today.getDate() - daysToSubtract);
+    lastThursday.setDate(today.getDate() - daysToSubtract - 7);
     lastThursday.setHours(0, 0, 0, 0);
 
     return lastThursday;
