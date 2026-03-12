@@ -51,6 +51,7 @@ export function StuffEditDialog({
     phone3: "",
     address: "",
     isActive: true,
+    role: "staff",
     notes: "",
     password: "", // optional new password
     avatar: null as File | null,
@@ -66,6 +67,7 @@ export function StuffEditDialog({
         phone3: stuff.phone3 || "",
         address: stuff.address || "",
         isActive: stuff.isActive,
+        role: stuff.role || "staff",
         notes: "",
         password: "",
         avatar: null,
@@ -113,6 +115,7 @@ export function StuffEditDialog({
     if (formData.phone3) payload.append("phone3", formData.phone3);
     if (formData.address) payload.append("address", formData.address);
     payload.append("status", formData.isActive ? "Active" : "Inactive");
+    payload.append("role", formData.role);
     if (formData.notes) payload.append("notes", formData.notes);
     if (formData.password.trim().length > 0)
       payload.append("password", formData.password.trim());
@@ -250,6 +253,23 @@ export function StuffEditDialog({
               <SelectContent>
                 <SelectItem value="Active">{t("active")}</SelectItem>
                 <SelectItem value="Inactive">{t("inactive")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Role */}
+          <div className="space-y-2">
+            <Label>{t("role")}</Label>
+            <Select
+              value={formData.role}
+              onValueChange={(value) => handleInputChange("role", value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={t("selectRolePlaceholder")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="staff">{t("staff")}</SelectItem>
+                <SelectItem value="admin">{t("admin")}</SelectItem>
               </SelectContent>
             </Select>
           </div>

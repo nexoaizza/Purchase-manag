@@ -215,7 +215,11 @@
     "failedToAssignTask": "Failed to assign task",
     "staffMember": "Staff Member",
     "selectProduct": "Select a product",
-    "assignTaskButton": "Assign Task"
+    "assignTaskButton": "Assign Task",
+    "role": "Role",
+    "admin": "Admin",
+    "staff": "Staff",
+    "selectRolePlaceholder": "Select a role"
   },
   "tasks": {
     "title": "Task Management",

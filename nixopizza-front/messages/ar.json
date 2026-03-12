@@ -213,7 +213,11 @@
     "failedToAssignTask": "فشل تعيين المهمة",
     "staffMember": "عضو الموظفين",
     "selectProduct": "اختر منتج",
-    "assignTaskButton": "تعيين المهمة"
+    "assignTaskButton": "تعيين المهمة",
+    "role": "الدور",
+    "admin": "مسؤول",
+    "staff": "موظف",
+    "selectRolePlaceholder": "اختر دوراً"
   },
   "tasks": {
     "title": "إدارة المهام",

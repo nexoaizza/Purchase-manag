@@ -213,7 +213,11 @@
     "failedToAssignTask": "Échec de l'attribution de la tâche",
     "staffMember": "Membre du personnel",
     "selectProduct": "Sélectionner un produit",
-    "assignTaskButton": "Attribuer la tâche"
+    "assignTaskButton": "Attribuer la tâche",
+    "role": "Rôle",
+    "admin": "Admin",
+    "staff": "Personnel",
+    "selectRolePlaceholder": "Sélectionnez un rôle"
   },
   "tasks": {
     "title": "Gestion des tâches",

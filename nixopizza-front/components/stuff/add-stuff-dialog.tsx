@@ -11,6 +11,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Upload } from "lucide-react";
 import toast from "react-hot-toast";
@@ -35,6 +42,7 @@ export function AddStuffDialog({ addNewStuff }: AddStuffDialogProps) {
     phone3: "",
     address: "",
     status: "Active",
+    role: "staff",
     notes: "",
     avatar: null as File | null,
   });
@@ -69,6 +77,7 @@ export function AddStuffDialog({ addNewStuff }: AddStuffDialogProps) {
       phone3: "",
       address: "",
       status: "Active",
+      role: "staff",
       notes: "",
       avatar: null,
     });
@@ -89,6 +98,7 @@ export function AddStuffDialog({ addNewStuff }: AddStuffDialogProps) {
     if (formData.phone3) payload.append("phone3", formData.phone3);
     if (formData.address) payload.append("address", formData.address);
     payload.append("status", formData.status);
+    payload.append("role", formData.role);
     if (formData.notes) payload.append("notes", formData.notes);
     if (formData.avatar) payload.append("image", formData.avatar);
 
@@ -214,10 +224,33 @@ export function AddStuffDialog({ addNewStuff }: AddStuffDialogProps) {
             </div>
             <div className="space-y-2">
               <Label>{t("statusField")}</Label>
-              <Input
+              <Select
                 value={formData.status}
-                onChange={(e) => handleInputChange("status", e.target.value)}
-              />
+                onValueChange={(value) => handleInputChange("status", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t("selectStatusPlaceholder")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Active">{t("active")}</SelectItem>
+                  <SelectItem value="Inactive">{t("inactive")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>{t("role")}</Label>
+              <Select
+                value={formData.role}
+                onValueChange={(value) => handleInputChange("role", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t("selectRolePlaceholder")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="staff">{t("staff")}</SelectItem>
+                  <SelectItem value="admin">{t("admin")}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

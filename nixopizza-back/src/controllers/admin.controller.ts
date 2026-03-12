@@ -56,7 +56,7 @@ export const newStaffMember = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { fullname, email, password, phone1, phone2, phone3, address } = req.body;
+    const { fullname, email, password, phone1, phone2, phone3, address, role } = req.body;
     if (!fullname || !email || !password) {
       res.status(400).json({ message: "fullname, email and password are required" });
       return;
@@ -75,6 +75,7 @@ export const newStaffMember = async (
       phone2,
       phone3,
       address,
+      role: role || "staff",
     });
 
     if (req.file) {
@@ -108,6 +109,7 @@ export const updateStaff = async (
       status,
       notes,      // optional; not stored unless you added field
       password,   // optional new password
+      role,       // role update
     } = req.body;
 
     const staff = await User.findById(staffId).select("+password");
@@ -134,6 +136,9 @@ export const updateStaff = async (
     staff.address = address ?? staff.address;
     if (typeof status !== "undefined") {
       staff.isActive = status === "Active";
+    }
+    if (role) {
+      staff.role = role;
     }
 
     // Optional password update
@@ -172,6 +177,7 @@ export const updateStaff = async (
         address: staff.address,
         isActive: staff.isActive,
         avatar: staff.avatar,
+        role: staff.role,
       },
     });
   } catch (error: any) {
