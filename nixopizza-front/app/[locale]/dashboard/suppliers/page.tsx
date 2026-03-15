@@ -19,6 +19,7 @@ export interface ISupplier {
   address: string;
   city?: string;
   categoryIds: string[];
+  productIds?: any[]; // Can be string[] or populated product objects
   image: string;
   notes?: string;
   isActive: boolean;

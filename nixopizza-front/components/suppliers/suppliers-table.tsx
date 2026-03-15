@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { SupplierEditDialog } from "./supplier-edit-dialog";
 import { SupplierDetailsDialog } from "./supplier-details-dialog";
+import { SupplierProductsManager } from "./supplier-products-manager";
 import { deleteSupplier, get_all_suppliers } from "@/lib/apis/suppliers";
 import toast from "react-hot-toast";
 import { ISupplier } from "@/app/[locale]/dashboard/suppliers/page";
@@ -67,6 +68,7 @@ export function SuppliersTable({
   >(null);
   const [selectedSupplierOrder, setSelectedSupplierOrder] = useState<any>(null);
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
+  const [isProductsDialogOpen, setIsProductsDialogOpen] = useState(false);
 
   const handleEdit = (supplier: any) => {
     setIsEditDialogOpen(true);
@@ -96,6 +98,11 @@ export function SuppliersTable({
   const handleViewSupplier = (supplier: any) => {
     setSelectedSupplierOrder(supplier);
     setIsOrderDialogOpen(true);
+  };
+
+  const handleManageProducts = (supplier: any) => {
+    setSelectedSupplier(supplier);
+    setIsProductsDialogOpen(true);
   };
 
   if (suppliers.length === 0) {
@@ -207,6 +214,12 @@ export function SuppliersTable({
                             {t("viewDetails")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
+                            onClick={() => handleManageProducts(supplier)}
+                          >
+                            <Package className="h-4 w-4 mr-2" />
+                            {t("manageProducts")}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
                             onClick={() => handleEdit(supplier)}
                           >
                             <Edit className="h-4 w-4 mr-2" />
@@ -241,6 +254,12 @@ export function SuppliersTable({
         orders={selectedSupplierOrder}
         open={isOrderDialogOpen}
         onOpenChange={setIsOrderDialogOpen}
+      />
+      <SupplierProductsManager
+        supplier={selectedSupplier}
+        open={isProductsDialogOpen}
+        onOpenChange={setIsProductsDialogOpen}
+        onUpdate={handleUpdateSupplier}
       />
       <SupplierEditDialog
         supplier={selectedSupplier}

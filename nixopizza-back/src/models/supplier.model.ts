@@ -11,6 +11,7 @@ export interface ISupplier {
   address: string;
   city?: string;
   categoryIds: Types.ObjectId[];
+  productIds: Types.ObjectId[]; // products this supplier provides
   image?: string;
   notes?: string;
   isActive: boolean;
@@ -43,6 +44,7 @@ const supplierSchema = new Schema<ISupplier>(
     notes: { type: String },
     isActive: { type: Boolean, default: true },
     categoryIds: { type: [Schema.Types.ObjectId], ref: "Category", default: [] },
+    productIds: { type: [Schema.Types.ObjectId], ref: "Product", default: [] },
   },
   { timestamps: true }
 );

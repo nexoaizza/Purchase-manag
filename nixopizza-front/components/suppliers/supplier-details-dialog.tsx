@@ -21,6 +21,7 @@ import {
   Tag,
   CheckCircle2,
   XCircle,
+  Package,
 } from "lucide-react";
 import { ISupplier } from "@/app/[locale]/dashboard/suppliers/page";
 import { ICategory } from "@/app/[locale]/dashboard/categories/page";
@@ -167,6 +168,36 @@ export function SupplierDetailsDialog({
                     >
                       {category.name}
                     </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Products */}
+          {supplier.productIds && supplier.productIds.length > 0 && (
+            <Card>
+              <CardContent className="pt-0">
+                <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  {t("products")} ({supplier.productIds.length})
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {supplier.productIds.map((product: any) => (
+                    <div
+                      key={product._id}
+                      className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30"
+                    >
+                      <Package className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{product.name}</p>
+                        {product.categoryId && (
+                          <p className="text-xs text-muted-foreground truncate">
+                            {product.categoryId.name}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   ))}
                 </div>
               </CardContent>

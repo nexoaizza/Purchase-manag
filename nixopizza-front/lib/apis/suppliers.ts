@@ -82,3 +82,51 @@ export const deleteSupplier = async (id: string) => {
     return { success: false, message };
   }
 };
+
+export const addProductToSupplier = async (supplierId: string, productId: string) => {
+  try {
+    const {
+      data: { supplier },
+    } = await axiosAPI.post(`/suppliers/${supplierId}/products`, { productId });
+    return { success: true, supplier };
+  } catch (error: any) {
+    const message = error.response?.data?.message || "Failed to add product to supplier";
+    return { success: false, message };
+  }
+};
+
+export const removeProductFromSupplier = async (supplierId: string, productId: string) => {
+  try {
+    const {
+      data: { supplier },
+    } = await axiosAPI.delete(`/suppliers/${supplierId}/products/${productId}`);
+    return { success: true, supplier };
+  } catch (error: any) {
+    const message = error.response?.data?.message || "Failed to remove product from supplier";
+    return { success: false, message };
+  }
+};
+
+export const getSupplierProducts = async (supplierId: string) => {
+  try {
+    const {
+      data: { products },
+    } = await axiosAPI.get(`/suppliers/${supplierId}/products`);
+    return { success: true, products };
+  } catch (error: any) {
+    const message = error.response?.data?.message || "Failed to get supplier products";
+    return { success: false, message, products: [] };
+  }
+};
+
+export const setSupplierProducts = async (supplierId: string, productIds: string[]) => {
+  try {
+    const {
+      data: { supplier },
+    } = await axiosAPI.put(`/suppliers/${supplierId}/products`, { productIds });
+    return { success: true, supplier };
+  } catch (error: any) {
+    const message = error.response?.data?.message || "Failed to save supplier products";
+    return { success: false, message };
+  }
+};

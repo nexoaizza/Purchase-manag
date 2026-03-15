@@ -3,6 +3,9 @@ import Supplier from "../models/supplier.model";
 import crypto from "crypto";
 import { uploadBufferToBlob } from "../utils/blob";
 import { deleteImage } from "../utils/Delete";
+import { addProductToSupplier, removeProductFromSupplier } from "../utils/supplierSync";
+import { Types } from "mongoose";
+import Product from "../models/product.model";
 
 /**
  * Normalize email: empty -> undefined
@@ -49,14 +52,18 @@ export const getSuppliers = async (req: Request, res: Response): Promise<void> =
     // Get total count and suppliers
     const totalSuppliers = await Supplier.countDocuments(filter);
     const suppliers = await Supplier.find(filter)
+      .populate({
+        path: "productIds",
+        select: "name imageUrl minQty barcode",
+      })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum);
 
     const totalPages = Math.ceil(totalSuppliers / limitNum);
 
-    res.status(200).json({ 
-      suppliers, 
+    res.status(200).json({
+      suppliers,
       pages: totalPages,
       total: totalSuppliers,
       currentPage: pageNum
@@ -71,7 +78,10 @@ export const getSuppliers = async (req: Request, res: Response): Promise<void> =
  */
 export const getSupplierById = async (req: Request, res: Response): Promise<void> => {
   try {
-    const supplier = await Supplier.findById(req.params.supplierId);
+    const supplier = await Supplier.findById(req.params.supplierId).populate({
+      path: "productIds",
+      select: "name imageUrl"
+    });
     if (!supplier) {
       res.status(404).json({ message: "Supplier not found" });
       return;
@@ -209,5 +219,112 @@ export const updateSupplier = async (req: Request, res: Response): Promise<void>
     res.status(200).json({ message: "Supplier updated successfully", supplier });
   } catch (e: any) {
     res.status(500).json({ message: "Internal server error", error: e.message });
+  }
+};
+
+/**
+ * POST /api/suppliers/:supplierId/products
+ * Add a product to a supplier
+ */
+export const addProductToSupplierController = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { supplierId } = req.params;
+    const { productId } = req.body;
+
+    if (!productId) {
+      res.status(400).json({ message: "Product ID is required" });
+      return;
+    }
+
+    await addProductToSupplier(supplierId, productId);
+
+    const updatedSupplier = await Supplier.findById(supplierId).populate("productIds");
+    res.status(200).json({
+      message: "Product added to supplier successfully",
+      supplier: updatedSupplier
+    });
+  } catch (e: any) {
+    res.status(500).json({ message: e.message || "Internal server error" });
+  }
+};
+
+/**
+ * DELETE /api/suppliers/:supplierId/products/:productId
+ * Remove a product from a supplier
+ */
+export const removeProductFromSupplierController = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { supplierId, productId } = req.params;
+
+    await removeProductFromSupplier(supplierId, productId);
+
+    const updatedSupplier = await Supplier.findById(supplierId).populate("productIds");
+    res.status(200).json({
+      message: "Product removed from supplier successfully",
+      supplier: updatedSupplier
+    });
+  } catch (e: any) {
+    res.status(500).json({ message: e.message || "Internal server error" });
+  }
+};
+
+/**
+ * GET /api/suppliers/:supplierId/products
+ * Get all products for a supplier
+ */
+export const getSupplierProducts = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { supplierId } = req.params;
+
+    const supplier = await Supplier.findById(supplierId).populate({
+      path: "productIds",
+      populate: { path: "categoryId" }
+    });
+
+    if (!supplier) {
+      res.status(404).json({ message: "Supplier not found" });
+      return;
+    }
+
+    res.status(200).json({ products: supplier.productIds });
+  } catch (e: any) {
+    res.status(500).json({ message: "Internal server error", error: e.message });
+  }
+};
+
+/**
+ * PUT /api/suppliers/:supplierId/products
+ * Replace the full product list for a supplier.
+ */
+export const setSupplierProductsController = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { supplierId } = req.params;
+    const { productIds } = req.body;
+
+    if (!Array.isArray(productIds)) {
+      res.status(400).json({ message: "productIds must be an array" });
+      return;
+    }
+
+    const supplier = await Supplier.findById(supplierId);
+    if (!supplier) {
+      res.status(404).json({ message: "Supplier not found" });
+      return;
+    }
+
+    supplier.productIds = productIds.map((id: string) => new Types.ObjectId(id));
+    await supplier.save();
+
+    const updated = await Supplier.findById(supplierId).populate({
+      path: "productIds",
+      populate: { path: "categoryId" },
+    });
+
+    res.status(200).json({
+      message: "Supplier products saved successfully",
+      supplier: updated,
+    });
+  } catch (e: any) {
+    res.status(500).json({ message: e.message || "Internal server error" });
   }
 };
