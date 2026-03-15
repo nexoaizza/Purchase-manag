@@ -28,7 +28,6 @@ import {
 import { createOrder } from "@/lib/apis/purchase-list";
 import { ProductSelect } from "@/components/ui/product-select";
 import { SupplierSelect } from "@/components/ui/supplier-select";
-import { getProducts } from "@/lib/apis/products";
 import { IProduct } from "@/app/[locale]/dashboard/products/page";
 import { ISupplier } from "@/app/[locale]/dashboard/suppliers/page";
 import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
@@ -74,67 +73,28 @@ export function ManualOrderDialog({
   const [selectedProducts, setSelectedProducts] = useState<(IProduct | null)[]>(
     [null],
   );
-  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
 
   // Submission/Error state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch products based on selected supplier's categories
+  // Derive available products from the supplier's populated productIds —
+  // no extra API call needed; the supplier object already carries them.
   useEffect(() => {
-    const fetchProducts = async () => {
-      if (
-        !selectedSupplier ||
-        !selectedSupplier.categoryIds ||
-        selectedSupplier.categoryIds.length === 0
-      ) {
-        setFilteredProducts([]);
-        setIsLoadingProducts(false);
-        return;
-      }
+    if (!selectedSupplier) {
+      setFilteredProducts([]);
+      return;
+    }
 
-      try {
-        setIsLoadingProducts(true);
-        setError(null);
+    const products: IProduct[] = (selectedSupplier.productIds ?? []).filter(
+      (p: any) => p && typeof p === "object" && p._id,
+    ) as IProduct[];
 
-        // Convert categoryIds to strings (in case they're ObjectId objects)
-        const categoryIdsString = selectedSupplier.categoryIds
-          .map((id) => String(id))
-          .filter((id) => id && id !== "undefined" && id !== "null")
-          .join(",");
+    setFilteredProducts(products);
 
-        console.log("Fetching products for categoryIds:", categoryIdsString);
-
-        // Fetch products filtered by supplier's categoryIds
-        const response = await getProducts({
-          categoryIds: categoryIdsString,
-          limit: 60,
-        });
-
-        if (response && Array.isArray(response.products)) {
-          setFilteredProducts(response.products);
-        } else if (response && Array.isArray(response)) {
-          setFilteredProducts(response);
-        } else {
-          console.error("Unexpected response format:", response);
-          setFilteredProducts([]);
-        }
-
-        // Reset selected products and order items when supplier changes
-        setSelectedProducts(orderItems.map(() => null));
-        setOrderItems((prev) =>
-          prev.map((item) => ({ ...item, productId: "" })),
-        );
-      } catch (err) {
-        console.error("Error fetching products:", err);
-        setFilteredProducts([]);
-        setError("Failed to load products for this supplier.");
-      } finally {
-        setIsLoadingProducts(false);
-      }
-    };
-
-    fetchProducts();
+    // Reset order items whenever the supplier changes
+    setSelectedProducts(orderItems.map(() => null));
+    setOrderItems((prev) => prev.map((item) => ({ ...item, productId: "" })));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSupplier]);
 
@@ -323,12 +283,6 @@ export function ManualOrderDialog({
           </div>
         )}
 
-        {isLoadingProducts && (
-          <div className="bg-blue-50 text-blue-700 px-4 py-3 rounded-lg flex items-center gap-2 border border-blue-200">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <span className="text-sm">{t("loadingProducts")}</span>
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Supplier Selection */}
@@ -370,7 +324,6 @@ export function ManualOrderDialog({
                   onClick={addOrderItem}
                   disabled={
                     !selectedSupplier ||
-                    isLoadingProducts ||
                     filteredProducts.length === 0
                   }
                   className="gap-2 rounded-full border-2 border-input"
@@ -552,7 +505,6 @@ export function ManualOrderDialog({
                 !selectedSupplier ||
                 orderItems.length === 0 ||
                 isSubmitting ||
-                isLoadingProducts ||
                 filteredProducts.length === 0 ||
                 orderItems.some((item) => !item.productId)
               }

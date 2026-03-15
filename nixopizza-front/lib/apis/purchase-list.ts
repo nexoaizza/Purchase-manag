@@ -18,9 +18,9 @@ export const createOrder = async (formData: FormData) => {
   }
 };
 
-export const assignOrder = async (orderId: string, staffId: string) => {
+export const assignOrder = async (orderId: string, staffId: string, assignmentType: "receive" | "make" = "make") => {
   try {
-    const { data } = await axiosAPI.post(`/orders/${orderId}/assign`, { staffId });
+    const { data } = await axiosAPI.post(`/orders/${orderId}/assign`, { staffId, assignmentType });
     return { success: true, order: data.order };
   } catch (error: any) {
     return { success: false, message: error.response?.data?.message || "Failed to assign order" };

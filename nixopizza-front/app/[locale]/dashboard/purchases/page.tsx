@@ -30,6 +30,7 @@ export interface IOrder {
     _id: string;
     avatar: string;
   } | null;
+  assignmentType?: "receive" | "make";
   status: "not assigned" | "assigned" | "pending_review" | "verified" | "paid" | "canceled";
   totalAmount: number;
   items: {

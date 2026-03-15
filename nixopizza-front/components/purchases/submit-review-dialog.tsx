@@ -104,7 +104,7 @@ export function SubmitReviewDialog({
 
   const handleSubmit = async () => {
     if (!order) return;
-    if (order.status !== "assigned") {
+    if (order.status !== "assigned" && order.status !== "not assigned") {
       toast.error(t("orderMustBeAssigned"));
       return;
     }

@@ -13,6 +13,7 @@ export interface IOrder extends Document {
   orderNumber: string;
   supplierId: Schema.Types.ObjectId;
   staffId: Schema.Types.ObjectId;
+  assignmentType?: "receive" | "make";
   status: "not assigned" | "assigned" | "pending_review" | "verified" | "paid" | "canceled";
   totalAmount: number;
   items: Schema.Types.ObjectId[];
@@ -50,6 +51,11 @@ const orderSchema = new Schema<IOrder>(
     staffId: {
       type: Schema.Types.ObjectId,
       ref: "User",
+    },
+    assignmentType: {
+      type: String,
+      enum: ["receive", "make"],
+      default: "make",
     },
     status: {
       type: String,

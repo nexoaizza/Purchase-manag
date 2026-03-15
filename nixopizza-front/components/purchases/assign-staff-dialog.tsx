@@ -47,6 +47,7 @@ export function AssignStaffDialog({
   const t = useTranslations("purchases");
   const [staffList, setStaffList] = useState<Staff[]>([]);
   const [selectedStaffId, setSelectedStaffId] = useState<string>("");
+  const [assignmentType, setAssignmentType] = useState<"receive" | "make">("make");
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingStaff, setIsFetchingStaff] = useState(false);
 
@@ -87,7 +88,8 @@ const handleAssign = async () => {
   try {
     const { success, order: updatedOrder, message } = await assignOrder(
       order._id,
-      selectedStaffId
+      selectedStaffId,
+      assignmentType
     );
 
     if (success && updatedOrder) {
@@ -95,6 +97,7 @@ const handleAssign = async () => {
   onOrderUpdated(updatedOrder);
   onOpenChange(false);
   setSelectedStaffId("");
+  setAssignmentType("make");
 
   // ✅ Refresh page after successful assignment
   setTimeout(() => {
@@ -167,6 +170,28 @@ const handleAssign = async () => {
                 </SelectContent>
               </Select>
             )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="assignmentType" className="text-sm font-medium">
+              {t("assignmentTypeLabel") || "Assignment Type"}
+            </Label>
+            <Select
+              value={assignmentType}
+              onValueChange={(v: "receive" | "make") => setAssignmentType(v)}
+            >
+              <SelectTrigger className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg">
+                <SelectValue placeholder="Select assignment type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="receive">
+                  {t("assignmentTypeReceive") || "Receive the arrived order"}
+                </SelectItem>
+                <SelectItem value="make">
+                  {t("assignmentTypeMake") || "Go make order"}
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Order Details */}

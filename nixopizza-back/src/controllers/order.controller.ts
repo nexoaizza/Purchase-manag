@@ -153,7 +153,7 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
 export const assignOrder = async (req: Request, res: Response): Promise<void> => {
   try {
     const orderId = req.params.orderId;
-    const { staffId } = req.body;
+    const { staffId, assignmentType } = req.body;
 
     if (!staffId) {
       res.status(400).json({ message: "Staff ID is required" });
@@ -175,6 +175,7 @@ export const assignOrder = async (req: Request, res: Response): Promise<void> =>
 
     const prevStatus = order.status;
     order.staffId = staffId;
+    order.assignmentType = assignmentType || "make";
     order.status = "assigned";
     order.assignedDate = new Date();
     pushStatusHistory(order, prevStatus, "assigned", req.user?.userId);
@@ -281,12 +282,20 @@ export const submitOrderForReview = async (
       res.status(404).json({ message: "Order not found" });
       return;
     }
-    if (order.status !== "assigned") {
+    if (order.status !== "assigned" && order.status !== "not assigned") {
       res
         .status(400)
-        .json({ message: "Order must be assigned before submitting for review" });
+        .json({ message: "Order must be assigned or not assigned before submitting for review" });
       return;
     }
+    
+    // Auto-assign to current user if order is not assigned
+    if (order.status === "not assigned" && req.user?.userId) {
+      order.staffId = req.user.userId as any;
+      order.assignedDate = new Date();
+      pushStatusHistory(order, "not assigned", "assigned", req.user.userId);
+    }
+    
     if (!req.file) {
       res.status(400).json({ message: "Bill file is required" });
       return;

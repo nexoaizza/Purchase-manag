@@ -184,6 +184,17 @@ export function PurchaseListsTable({
             </Button>
             <Button
               size="sm"
+              className="gap-2 bg-orange-600 text-white hover:bg-orange-700"
+              onClick={() => {
+                setSelectedOrder(order);
+                setIsSubmitDialogOpen(true);
+              }}
+            >
+              <CheckCircle className="h-3 w-3" />
+              {t("submitBillButton")}
+            </Button>
+            <Button
+              size="sm"
               variant="outline"
               disabled={isCancelLoading}
               className="gap-2 border-red-600 text-red-600 hover:bg-red-50"
