@@ -84,7 +84,7 @@ export default function EditProductPage() {
   // image state
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [removeImageFlag, setRemoveImageFlag] = useState(false);
+  const [imageRemoved, setImageRemoved] = useState(false);
 
   // Load categories first
   useEffect(() => {
@@ -122,6 +122,7 @@ export default function EditProductPage() {
         categoryId: product.categoryId,
       });
       setPreviewImage(resolveImage(product.imageUrl));
+      setImageRemoved(false);
       // If categories already loaded, set selectedCategory now
       setSelectedCategory(product.categoryId || null);
     };
@@ -144,7 +145,6 @@ export default function EditProductPage() {
 
   const handleImageChange = (file: File | null) => {
     setImageFile(file);
-    setRemoveImageFlag(false);
     if (file) {
       const reader = new FileReader();
       reader.onload = () => setPreviewImage(reader.result as string);
@@ -156,8 +156,8 @@ export default function EditProductPage() {
 
   const removeImage = () => {
     setImageFile(null);
+    setImageRemoved(true);
     setPreviewImage(null);
-    setRemoveImageFlag(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -180,7 +180,7 @@ export default function EditProductPage() {
     if (formData.expectedLifeTime) form.append("expectedLifeTime", String(formData.expectedLifeTime));
     if (imageFile) {
       form.append("image", imageFile);
-    } else if (removeImageFlag) {
+    } else if (imageRemoved) {
       form.append("removeImage", "true");
     }
 

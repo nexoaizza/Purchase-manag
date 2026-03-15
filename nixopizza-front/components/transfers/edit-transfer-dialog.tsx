@@ -23,6 +23,13 @@ import {
 import { ArrowRightLeft } from "lucide-react";
 import toast from "react-hot-toast";
 import { updateTransfer, ITransfer } from "@/lib/apis/transfers";
+import { getStuff } from "@/lib/apis/stuff";
+
+interface IStaff {
+  _id: string;
+  fullname: string;
+  email: string;
+}
 
 interface EditTransferDialogProps {
   open: boolean;
@@ -39,9 +46,11 @@ export function EditTransferDialog({
 }: EditTransferDialogProps) {
   const t = useTranslations("transfers");
   const [loading, setLoading] = useState(false);
+  const [staffList, setStaffList] = useState<IStaff[]>([]);
   const [formData, setFormData] = useState({
     quantity: 1,
     status: "pending" as "pending" | "arrived",
+    assignedTo: "",
   });
 
   useEffect(() => {
@@ -49,9 +58,18 @@ export function EditTransferDialog({
       setFormData({
         quantity: transfer.quantity,
         status: transfer.status,
+        assignedTo: typeof transfer.assignedTo === "object" ? transfer.assignedTo?._id : transfer.assignedTo || "",
       });
     }
   }, [transfer]);
+
+  useEffect(() => {
+    if (open) {
+      getStuff().then((res) => {
+        if (res.success) setStaffList(res.staffs || []);
+      });
+    }
+  }, [open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,6 +160,27 @@ export function EditTransferDialog({
               <SelectContent>
                 <SelectItem value="pending">{t("pending")}</SelectItem>
                 <SelectItem value="arrived">{t("arrived")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="assignedTo">{t("assignedTo")}</Label>
+            <Select
+              value={formData.assignedTo}
+              onValueChange={(value) =>
+                setFormData({ ...formData, assignedTo: value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={t("selectStaffMember")} />
+              </SelectTrigger>
+              <SelectContent>
+                {staffList.map((staff) => (
+                  <SelectItem key={staff._id} value={staff._id}>
+                    {staff.fullname} ({staff.email})
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

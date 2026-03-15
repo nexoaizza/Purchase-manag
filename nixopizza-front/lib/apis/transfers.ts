@@ -7,6 +7,8 @@ export interface ITransfer {
   takenTo: any;
   quantity: number;
   status: "pending" | "arrived";
+  assignedTo?: any;
+  startTime?: Date | string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -18,6 +20,8 @@ export const createTransfer = async (data: {
   takenTo: string;
   quantity: number;
   status?: "pending" | "arrived";
+  assignedTo: string;
+  startTime: string;
 }) => {
   try {
     const {
@@ -65,6 +69,7 @@ export const updateTransfer = async (
     takenTo?: string;
     quantity?: number;
     status?: "pending" | "arrived";
+    assignedTo?: string;
   }
 ) => {
   try {

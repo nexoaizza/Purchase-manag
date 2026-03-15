@@ -8,7 +8,7 @@ export interface ISupplier {
   phone1: string;
   phone2?: string;
   phone3?: string;
-  address: string;
+  address?: string;
   city?: string;
   categoryIds: Types.ObjectId[];
   productIds: Types.ObjectId[]; // products this supplier provides
@@ -38,7 +38,7 @@ const supplierSchema = new Schema<ISupplier>(
     phone1: { type: String, required: [true, "Phone Number Is Required"], trim: true },
     phone2: { type: String, trim: true },
     phone3: { type: String, trim: true },
-    address: { type: String, required: [true, "Address Is Required"], trim: true },
+    address: { type: String, trim: true },
     city: { type: String, trim: true },
     image: { type: String },
     notes: { type: String },
