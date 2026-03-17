@@ -1101,7 +1101,7 @@
         "selectSourceStock": "Sélectionner l'entrepôt source",
         "selectDestinationStock": "Sélectionner l'entrepôt de destination",
         "selectItems": "Sélectionner les Articles",
-        "selectItemsPlaceholder": "Sélectionner les articles à transférer",
+        "selectItemsPlaceholder": "Sélectionner les articles",
         "selectCategory": "Sélectionner une catégorie",
         "allCategories": "Toutes les catégories",
         "loadingMore": "Chargement de plus d'articles...",
