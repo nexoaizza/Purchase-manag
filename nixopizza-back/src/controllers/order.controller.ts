@@ -529,6 +529,35 @@ export const updateOrder = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
+/* ------------------------- DELETE ORDER ------------------------- */
+export const deleteOrder = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const orderId = req.params.orderId;
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      res.status(404).json({ message: "Order not found" });
+      return;
+    }
+
+    // Prevent deleting finalized orders to avoid data inconsistencies.
+    if (["verified", "paid"].includes(order.status)) {
+      res.status(400).json({ message: "Cannot delete a verified or paid order" });
+      return;
+    }
+
+    if (Array.isArray(order.items) && order.items.length > 0) {
+      await ProductOrder.deleteMany({ _id: { $in: order.items } });
+    }
+
+    await Order.findByIdAndDelete(orderId);
+
+    res.status(200).json({ message: "Order deleted successfully" });
+  } catch (error: any) {
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
 /* ------------------------- FILTER ORDERS ------------------------- */
 export const getOrdersByFilter = async (
   req: Request,

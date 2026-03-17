@@ -10,6 +10,7 @@ import { getStockItems, deleteStockItem, IStockItem } from "@/lib/apis/stock-ite
 export default function StockItemsPage() {
   const [stockItems, setStockItems] = useState<IStockItem[]>([]);
   const [productName, setProductName] = useState("");
+  const [category, setCategory] = useState("");
   const [stock, setStock] = useState("");
   const [expirationStatus, setExpirationStatus] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -26,6 +27,7 @@ export default function StockItemsPage() {
       order: "desc",
     };
 
+    if (category && category !== "all") params.category = category;
     if (stock && stock !== "all") params.stock = stock;
 
     const { stockItems: fetchedItems, pages, message, success } = await getStockItems(params);
@@ -81,7 +83,7 @@ export default function StockItemsPage() {
 
   useEffect(() => {
     fetchStockItems();
-  }, [limit, currentPage, productName, stock, expirationStatus]);
+  }, [limit, currentPage, productName, category, stock, expirationStatus]);
 
   const handleEdit = (stockItem: IStockItem) => {
     setSelectedStockItem(stockItem);
@@ -111,6 +113,7 @@ export default function StockItemsPage() {
       <div className="space-y-6">
         <StockItemHeader
           onProductNameChange={setProductName}
+          onCategoryChange={setCategory}
           onStockChange={setStock}
           onExpirationStatusChange={setExpirationStatus}
           onStockItemCreated={handleStockItemCreated}

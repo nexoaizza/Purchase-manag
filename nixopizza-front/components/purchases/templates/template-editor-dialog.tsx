@@ -114,7 +114,7 @@ export default function TemplateEditorDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[720px]">
+      <DialogContent className="sm:max-w-[720px] max-h-11/12 overflow-auto">
         <DialogHeader>
           <DialogTitle>{initial ? t("editTemplate") : t("createTemplate")}</DialogTitle>
           <DialogDescription>{t("templateEditorDescription")}</DialogDescription>

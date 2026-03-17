@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { Types } from "mongoose";
 import StockItem from "../models/stock-item.model";
 import Stock from "../models/stock.model";
 
@@ -150,6 +151,7 @@ export const getAllStockItems = async (req: Request, res: Response): Promise<voi
     const { 
       location, 
       product, 
+      category,
       stock,
       minQuantity, 
       maxQuantity,
@@ -157,8 +159,6 @@ export const getAllStockItems = async (req: Request, res: Response): Promise<voi
       createdAtTo,
       expireAtFrom,
       expireAtTo,
-      sortBy, 
-      order, 
       page = 1, 
       limit = 10 
     } = req.query;
@@ -172,12 +172,27 @@ export const getAllStockItems = async (req: Request, res: Response): Promise<voi
 
     // Filter by product
     if (product) {
-      query.product = product;
+      if (!Types.ObjectId.isValid(product as string)) {
+        res.status(400).json({ message: "Invalid product id" });
+        return;
+      }
+      query.product = new Types.ObjectId(product as string);
     }
 
     // Filter by stock
     if (stock) {
-      query.stock = stock;
+      if (!Types.ObjectId.isValid(stock as string)) {
+        res.status(400).json({ message: "Invalid stock id" });
+        return;
+      }
+      query.stock = new Types.ObjectId(stock as string);
+    }
+
+    if (category) {
+      if (!Types.ObjectId.isValid(category as string)) {
+        res.status(400).json({ message: "Invalid category id" });
+        return;
+      }
     }
 
     // Filter by quantity range
@@ -201,32 +216,97 @@ export const getAllStockItems = async (req: Request, res: Response): Promise<voi
       if (expireAtTo) query.expireAt.$lte = new Date(expireAtTo as string);
     }
 
-    const sortField = sortBy?.toString() || "createdAt";
-    const sortOrder = order === "asc" ? 1 : -1;
     const skip = (Number(page) - 1) * Number(limit);
+    const pipeline: any[] = [
+      { $match: query },
+      {
+        $lookup: {
+          from: "products",
+          localField: "product",
+          foreignField: "_id",
+          as: "product",
+        },
+      },
+      {
+        $unwind: {
+          path: "$product",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      ...(category
+        ? [
+            {
+              $match: {
+                "product.categoryId": new Types.ObjectId(category as string),
+              },
+            },
+          ]
+        : []),
+      {
+        $lookup: {
+          from: "categories",
+          localField: "product.categoryId",
+          foreignField: "_id",
+          as: "category",
+        },
+      },
+      {
+        $unwind: {
+          path: "$category",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          "product.category": "$category",
+        },
+      },
+      {
+        $project: {
+          category: 0,
+        },
+      },
+      {
+        $lookup: {
+          from: "stocks",
+          localField: "stock",
+          foreignField: "_id",
+          as: "stock",
+        },
+      },
+      {
+        $unwind: {
+          path: "$stock",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+    ];
 
-    let stockItems = await StockItem.find(query)
-      .populate("product")
-      .populate("stock")
-      .sort({ [sortField]: sortOrder })
-      .skip(skip)
-      .limit(Number(limit));
-
-    // Filter by location (after populating stock)
     if (location) {
-      stockItems = stockItems.filter((item: any) => {
-        if (item.stock && item.stock.location) {
-          return item.stock.location.toLowerCase().includes((location as string).toLowerCase());
-        }
-        return false;
+      pipeline.push({
+        $match: {
+          "stock.location": { $regex: location as string, $options: "i" },
+        },
       });
     }
 
-    const total = await StockItem.countDocuments(query);
+    pipeline.push(
+      { $sort: { "product.name": 1 } },
+      {
+        $facet: {
+          metadata: [{ $count: "total" }],
+          data: [{ $skip: skip }, { $limit: Number(limit) }],
+        },
+      }
+    );
+
+    const aggregatedResult = await StockItem.aggregate(pipeline);
+    const total = aggregatedResult[0]?.metadata?.[0]?.total || 0;
+    const stockItems = aggregatedResult[0]?.data || [];
 
     res.status(200).json({
-      total: location ? stockItems.length : total,
-      pages: Math.ceil((location ? stockItems.length : total) / Number(limit)),
+      total,
+      pages: Math.ceil(total / Number(limit)),
       stockItems,
     });
   } catch (error: any) {
@@ -296,7 +376,7 @@ export const getExpiredStockItems = async (req: Request, res: Response): Promise
     const allStockItems = await StockItem.find()
       .populate("product")
       .populate("stock")
-      .sort({ createdAt: 1 });
+      .sort({ name: 1 });
 
     // Filter items that are expired based on expectedLifeTime
     const expiredItems = allStockItems.filter((item: any) => {

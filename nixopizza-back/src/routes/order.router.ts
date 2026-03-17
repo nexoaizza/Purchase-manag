@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authenticate } from "../middlewares/Auth";
+import { authenticate, requireAdmin } from "../middlewares/Auth";
 import { upload } from "../middlewares/Multer";
 import {
   createOrder,
@@ -7,6 +7,7 @@ import {
   submitOrderForReview,
   verifyOrder,
   updateOrder,
+  deleteOrder,
   getOrdersByFilter,
   getOrderStats,
   getOrderAnalytics,
@@ -21,6 +22,7 @@ orderRouter.post("/:orderId/assign", assignOrder);
 orderRouter.post("/:orderId/review", upload().single("image"), submitOrderForReview);
 orderRouter.post("/:orderId/verify", verifyOrder);
 orderRouter.put("/:orderId", upload().single("image"), updateOrder);
+orderRouter.delete("/:orderId", requireAdmin, deleteOrder);
 orderRouter.get("/stats", getOrderStats);
 orderRouter.get("/analytics", getOrderAnalytics);
 orderRouter.get("/:orderId", getOrder);

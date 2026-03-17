@@ -15,15 +15,15 @@ import { upload } from "../middlewares/Multer";
 const supplierRouter = Router();
 
 
-supplierRouter.post("/", requireAdmin, upload().single("image"), createSupplier);
+supplierRouter.post("/", upload().single("image"), createSupplier);
 supplierRouter.get("/", getSuppliers);
 supplierRouter.get("/:supplierId", getSupplierById);
-supplierRouter.put("/:supplierId", requireAdmin, upload().single("image"), updateSupplier);
+supplierRouter.put("/:supplierId", upload().single("image"), updateSupplier);
 
 // Product assignment routes
-supplierRouter.post("/:supplierId/products", requireAdmin, addProductToSupplierController);
-supplierRouter.delete("/:supplierId/products/:productId", requireAdmin, removeProductFromSupplierController);
+supplierRouter.post("/:supplierId/products", addProductToSupplierController);
+supplierRouter.delete("/:supplierId/products/:productId", removeProductFromSupplierController);
 supplierRouter.get("/:supplierId/products", getSupplierProducts);
-supplierRouter.put("/:supplierId/products", requireAdmin, setSupplierProductsController);
+supplierRouter.put("/:supplierId/products", setSupplierProductsController);
 
 export default supplierRouter;

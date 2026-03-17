@@ -17,6 +17,7 @@ import {
   MoreHorizontal,
   Eye,
   Download,
+  Trash2,
   Receipt,
   Package,
   UserPlus,
@@ -33,7 +34,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { SubmitReviewDialog } from "./submit-review-dialog";
 import { VerifyOrderDialog } from "./verify-order-dialog";
 import { MarkPaidDialog } from "./mark-paid-dialog";
-import { updateOrder } from "@/lib/apis/purchase-list";
+import { updateOrder, deleteOrder } from "@/lib/apis/purchase-list";
 import toast from "react-hot-toast";
 import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
 
@@ -63,6 +64,7 @@ export function PurchaseListsTable({
   const [isVerifyDialogOpen, setIsVerifyDialogOpen] = useState(false);
   const [isMarkPaidDialogOpen, setIsMarkPaidDialogOpen] = useState(false);
   const [isCancelLoading, setIsCancelLoading] = useState(false);
+  const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null);
 
   const { user } = useAuth();
 
@@ -106,7 +108,7 @@ export function PurchaseListsTable({
     }
   };
 
-  const handleOrderUpdated = (updatedOrder: IOrder) => {
+  const handleOrderUpdated = (updatedOrder: any) => {
     setPurchaseOrders(prevOrders =>
       prevOrders.map(ord => (ord._id === updatedOrder._id ? updatedOrder : ord))
     );
@@ -133,6 +135,26 @@ export function PurchaseListsTable({
       toast.error(t("errorCancelingOrder"));
     } finally {
       setIsCancelLoading(false);
+    }
+  };
+
+  const handleDeleteOrder = async (order: IOrder) => {
+    const confirmed = window.confirm(t("confirmDeleteOrder"));
+    if (!confirmed) return;
+
+    setDeletingOrderId(order._id);
+    try {
+      const { success, message } = await deleteOrder(order._id);
+      if (success) {
+        setPurchaseOrders((prev) => prev.filter((ord) => ord._id !== order._id));
+        toast.success(t("orderDeleted"));
+      } else {
+        toast.error(message || t("failedToDeleteOrder"));
+      }
+    } catch {
+      toast.error(t("failedToDeleteOrder"));
+    } finally {
+      setDeletingOrderId(null);
     }
   };
 
@@ -436,6 +458,20 @@ export function PurchaseListsTable({
                             <Download className="h-4 w-4 mr-2" />
                             {t("exportPDF")}
                           </DropdownMenuItem>
+                          {user?.role === "admin" && (
+                            <DropdownMenuItem
+                              className="text-red-600 focus:text-red-600"
+                              disabled={deletingOrderId === order._id}
+                              onClick={() => handleDeleteOrder(order)}
+                            >
+                              {deletingOrderId === order._id ? (
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-4 w-4 mr-2" />
+                              )}
+                              {t("delete")}
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
