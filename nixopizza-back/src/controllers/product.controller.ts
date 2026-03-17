@@ -158,8 +158,8 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
     }
     if (categoryId) query.categoryId = categoryId;
 
-    const sortField = sortBy?.toString() || "createdAt";
-    const sortOrder = order === "asc" ? 1 : -1;
+    const sortField = sortBy?.toString() || "name";
+    const sortOrder = order === "desc" ? -1 : 1;
     const skip = (Number(page) - 1) * Number(limit);
 
     const products = await Product.find(query)
