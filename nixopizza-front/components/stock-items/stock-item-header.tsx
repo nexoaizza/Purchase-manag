@@ -4,8 +4,9 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Search } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AddStockItemDialog } from "./add-stock-item-dialog";
+import { Slider } from "@/components/ui/slider";
 
 import {
   Select,
@@ -14,7 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useEffect } from "react";
 import { getStocks } from "@/lib/apis/stocks";
 import { getCategories } from "@/lib/apis/categories";
 
@@ -23,12 +23,16 @@ export function StockItemHeader({
   onCategoryChange,
   onStockChange,
   onExpirationStatusChange,
+  onMinPriceChange,
+  onMaxPriceChange,
   onStockItemCreated,
 }: {
   onProductNameChange: (productName: string) => void;
   onCategoryChange: (category: string) => void;
   onStockChange: (stock: string) => void;
   onExpirationStatusChange: (status: string) => void;
+  onMinPriceChange: (minPrice: string) => void;
+  onMaxPriceChange: (maxPrice: string) => void;
   onStockItemCreated: () => void;
 }) {
   const t = useTranslations("stockItems");
@@ -36,6 +40,7 @@ export function StockItemHeader({
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedStock, setSelectedStock] = useState("");
   const [expirationStatus, setExpirationStatus] = useState("");
+  const [priceRange, setPriceRange] = useState<number[]>([0, 1000]);
   const [stocks, setStocks] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -44,6 +49,15 @@ export function StockItemHeader({
     fetchStocks();
     fetchCategories();
   }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onMinPriceChange(priceRange[0].toString());
+      onMaxPriceChange(priceRange[1].toString());
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [priceRange, onMinPriceChange, onMaxPriceChange]);
 
   const fetchStocks = async () => {
     const { success, stocks: fetchedStocks } = await getStocks({ limit: 1000 });
@@ -77,6 +91,10 @@ export function StockItemHeader({
   const handleExpirationStatusChange = (value: string) => {
     setExpirationStatus(value);
     onExpirationStatusChange(value);
+  };
+
+  const handlePriceRangeChange = (value: number[]) => {
+    setPriceRange(value);
   };
 
   const handleStockItemCreated = () => {
@@ -148,6 +166,19 @@ export function StockItemHeader({
             <SelectItem value="expired">{t("expired")}</SelectItem>
           </SelectContent>
         </Select>
+        <div className="flex flex-col gap-2 w-full lg:w-48">
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span>Min: ${priceRange[0]}</span>
+            <span>Max: ${priceRange[1]}</span>
+          </div>
+          <Slider
+            min={0}
+            max={1000}
+            step={1}
+            value={priceRange}
+            onValueChange={handlePriceRangeChange}
+          />
+        </div>
       </div>
 
       <AddStockItemDialog

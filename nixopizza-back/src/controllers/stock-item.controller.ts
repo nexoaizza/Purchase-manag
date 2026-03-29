@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import { Types } from "mongoose";
 import StockItem from "../models/stock-item.model";
 import Stock from "../models/stock.model";
+import Product from "../models/product.model";
+import { createLocalNotification } from "./notification.controller";
 
 // CREATE
 export const createStockItem = async (req: Request, res: Response): Promise<void> => {
@@ -35,6 +37,19 @@ export const createStockItem = async (req: Request, res: Response): Promise<void
     const populatedItem = await StockItem.findById(newStockItem._id)
       .populate("product")
       .populate("stock");
+
+    // Check for low stock
+    if (populatedItem) {
+      const prod = populatedItem.product as any;
+      if (prod && populatedItem.quantity <= prod.minQty) {
+        await createLocalNotification(
+          `Product ${prod.name} is low in stock in ${ (populatedItem.stock as any).name } (${populatedItem.quantity} left)`,
+          "warning",
+          "Low Stock Alert",
+          "inventory"
+        );
+      }
+    }
 
     res.status(201).json({ message: "Stock item created successfully", stockItem: populatedItem });
   } catch (error: any) {
@@ -106,6 +121,19 @@ export const createMultipleStockItems = async (req: Request, res: Response): Pro
       .populate("product")
       .populate("stock");
 
+    // Check for low stock in each created item
+    for (const item of populatedItems) {
+      const prod = item.product as any;
+      if (prod && item.quantity <= prod.minQty) {
+        await createLocalNotification(
+          `Product ${prod.name} is low in stock in ${ (item.stock as any).name } (${item.quantity} left)`,
+          "warning",
+          "Low Stock Alert",
+          "inventory"
+        );
+      }
+    }
+
     res.status(201).json({ 
       message: `${createdItems.length} stock items created successfully`, 
       stockItems: populatedItems,
@@ -138,6 +166,19 @@ export const updateStockItem = async (req: Request, res: Response): Promise<void
       .populate("product")
       .populate("stock");
 
+    // Check for low stock
+    if (populatedItem) {
+      const prod = populatedItem.product as any;
+      if (prod && populatedItem.quantity <= prod.minQty) {
+        await createLocalNotification(
+          `Product ${prod.name} is low in stock in ${ (populatedItem.stock as any).name } (${populatedItem.quantity} left)`,
+          "warning",
+          "Low Stock Alert",
+          "inventory"
+        );
+      }
+    }
+
     res.status(200).json({ message: "Stock item updated successfully", stockItem: populatedItem });
   } catch (error: any) {
     console.error("Stock item update error:", error);
@@ -155,10 +196,14 @@ export const getAllStockItems = async (req: Request, res: Response): Promise<voi
       stock,
       minQuantity, 
       maxQuantity,
+      minPrice,
+      maxPrice,
       createdAtFrom,
       createdAtTo,
       expireAtFrom,
       expireAtTo,
+      sortBy = "product",
+      order = "asc",
       page = 1, 
       limit = 10 
     } = req.query;
@@ -196,10 +241,23 @@ export const getAllStockItems = async (req: Request, res: Response): Promise<voi
     }
 
     // Filter by quantity range
-    if (minQuantity !== undefined || maxQuantity !== undefined) {
+    if (
+      (minQuantity !== undefined && minQuantity !== "") || 
+      (maxQuantity !== undefined && maxQuantity !== "")
+    ) {
       query.quantity = {};
-      if (minQuantity !== undefined) query.quantity.$gte = Number(minQuantity);
-      if (maxQuantity !== undefined) query.quantity.$lte = Number(maxQuantity);
+      if (minQuantity !== undefined && minQuantity !== "") query.quantity.$gte = Number(minQuantity);
+      if (maxQuantity !== undefined && maxQuantity !== "") query.quantity.$lte = Number(maxQuantity);
+    }
+
+    // Filter by price range
+    if (
+      (minPrice !== undefined && minPrice !== "") || 
+      (maxPrice !== undefined && maxPrice !== "")
+    ) {
+      query.price = {};
+      if (minPrice !== undefined && minPrice !== "") query.price.$gte = Number(minPrice);
+      if (maxPrice !== undefined && maxPrice !== "") query.price.$lte = Number(maxPrice);
     }
 
     // Filter by createdAt date range
@@ -290,8 +348,16 @@ export const getAllStockItems = async (req: Request, res: Response): Promise<voi
       });
     }
 
+    let sortStage: any = { "product.name": 1 };
+    if (sortBy === "product") {
+      sortStage = { "product.name": order === "desc" ? -1 : 1 };
+    } else if (sortBy === "expiration") {
+      // Sorting by expireAt directly; if product doesn't have an expiration it will likely sink/float based on 1/-1
+      sortStage = { expireAt: order === "desc" ? -1 : 1 };
+    }
+
     pipeline.push(
-      { $sort: { "product.name": 1 } },
+      { $sort: sortStage },
       {
         $facet: {
           metadata: [{ $count: "total" }],
