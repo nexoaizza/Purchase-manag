@@ -16,19 +16,25 @@ export default function StockItemsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [limit, setLimit] = useState(10);
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedStockItem, setSelectedStockItem] = useState<IStockItem | null>(null);
+  const [sortBy, setSortBy] = useState("product");
+  const [order, setOrder] = useState("desc");
 
   const fetchStockItems = async () => {
     const params: any = {
       limit,
       page: currentPage,
-      sortBy: "createdAt",
-      order: "desc",
+      sortBy,
+      order,
     };
 
     if (category && category !== "all") params.category = category;
     if (stock && stock !== "all") params.stock = stock;
+    if (minPrice !== undefined && minPrice !== "") params.minPrice = minPrice;
+    if (maxPrice !== undefined && maxPrice !== "") params.maxPrice = maxPrice;
 
     const { stockItems: fetchedItems, pages, message, success } = await getStockItems(params);
 
@@ -83,7 +89,7 @@ export default function StockItemsPage() {
 
   useEffect(() => {
     fetchStockItems();
-  }, [limit, currentPage, productName, category, stock, expirationStatus]);
+  }, [limit, currentPage, productName, category, stock, expirationStatus, sortBy, order, minPrice, maxPrice]);
 
   const handleEdit = (stockItem: IStockItem) => {
     setSelectedStockItem(stockItem);
@@ -116,6 +122,8 @@ export default function StockItemsPage() {
           onCategoryChange={setCategory}
           onStockChange={setStock}
           onExpirationStatusChange={setExpirationStatus}
+          onMinPriceChange={setMinPrice}
+          onMaxPriceChange={setMaxPrice}
           onStockItemCreated={handleStockItemCreated}
         />
         <StockItemTable
@@ -127,6 +135,16 @@ export default function StockItemsPage() {
           setCurrentPage={setCurrentPage}
           limit={limit}
           setLimit={setLimit}
+          sortBy={sortBy}
+          order={order}
+          onSort={(newSortBy: string) => {
+            if (sortBy === newSortBy) {
+              setOrder(order === "desc" ? "asc" : "desc");
+            } else {
+              setSortBy(newSortBy);
+              setOrder("desc"); // first click desc
+            }
+          }}
         />
         <EditStockItemDialog
           stockItem={selectedStockItem}
