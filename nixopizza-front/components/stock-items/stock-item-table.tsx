@@ -28,6 +28,9 @@ import {
   AlertCircle,
   ArrowRightLeft,
   MinusCircle,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { IStockItem } from "@/lib/apis/stock-items";
 import { Pagination } from "../ui/pagination";
@@ -47,6 +50,9 @@ interface StockItemTableProps {
   setCurrentPage: (page: number) => void;
   limit: number;
   setLimit: (l: number) => void;
+  sortBy: string;
+  order: string;
+  onSort: (column: string) => void;
 }
 
 export function StockItemTable({
@@ -58,6 +64,9 @@ export function StockItemTable({
   setCurrentPage,
   limit,
   setLimit,
+  sortBy,
+  order,
+  onSort,
 }: StockItemTableProps) {
   const t = useTranslations("stockItems");
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
@@ -131,12 +140,36 @@ export function StockItemTable({
           <Table>
             <TableHeader className="bg-muted/50">
               <TableRow>
-                <TableHead>{t("product")}</TableHead>
+                <TableHead 
+                  className="cursor-pointer hover:bg-muted transition-colors select-none group"
+                  onClick={() => onSort("product")}
+                >
+                  <div className="flex items-center gap-1">
+                    {t("product")}
+                    {sortBy === "product" ? (
+                      order === "desc" ? <ArrowDown className="h-4 w-4" /> : <ArrowUp className="h-4 w-4" />
+                    ) : (
+                      <ArrowUpDown className="h-4 w-4 opacity-0 group-hover:opacity-50" />
+                    )}
+                  </div>
+                </TableHead>
                 <TableHead>{t("stock")}</TableHead>
                 <TableHead>{t("quantity")}</TableHead>
                 <TableHead>{t("price")}</TableHead>
                 <TableHead>{t("dateReceived")}</TableHead>
-                <TableHead>{t("expiration")}</TableHead>
+                <TableHead 
+                  className="cursor-pointer hover:bg-muted transition-colors select-none group"
+                  onClick={() => onSort("expiration")}
+                >
+                  <div className="flex items-center gap-1">
+                    {t("expiration")}
+                    {sortBy === "expiration" ? (
+                      order === "desc" ? <ArrowDown className="h-4 w-4" /> : <ArrowUp className="h-4 w-4" />
+                    ) : (
+                      <ArrowUpDown className="h-4 w-4 opacity-0 group-hover:opacity-50" />
+                    )}
+                  </div>
+                </TableHead>
                 <TableHead className="text-right">{t("actions")}</TableHead>
               </TableRow>
             </TableHeader>
