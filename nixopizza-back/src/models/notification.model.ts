@@ -1,10 +1,26 @@
 import { model, Schema, Types } from "mongoose";
 
+
+export type NotificationTypeEnum =
+  "critical"
+  | "success"
+  | "warning"
+  | "info"
+  ;
+
+export type NotificationCategoryEnum =
+  "inventory"
+  | "orders"
+  | "suppliers"
+  | "system"
+  ;
+
 export interface INotification {
   _id: string;
-  type: "low_stock" | "budget_alert" | "expiry_warning" | "complited_task" | "transfer";
+  type: NotificationTypeEnum;
   subject?: string;
   title: string;
+  category: NotificationCategoryEnum;
   message: string;
   isRead: boolean;
   recipientRole?: string;
@@ -25,6 +41,10 @@ const notificationSchema = new Schema<INotification>(
     subject: String,
     title: String,
     message: String,
+    category: {
+      type: String,
+      enum: ["inventory", "orders", "suppliers", "system"],
+    },
     isRead: {
       type: Boolean,
       default: false,

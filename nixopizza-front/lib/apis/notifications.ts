@@ -2,14 +2,14 @@ import axiosAPI from "../axios.ts";
 
 // The axios notifications curd logic
 
-const apiURL = "v1/notifications";
+const apiURL = "/notifications";
 
 // get all notifications with pagination
-export const get_all_notifications = async (): Promise<any> => {
+export const get_all_notifications = async (page: number = 1, limit: number = 10): Promise<any> => {
   try {
-    const res = await axiosAPI.get(apiURL);
-    if ((res.status === 200, res.data)) {
-      return res.data.data;
+    const res = await axiosAPI.get(`${apiURL}?page=${page}&limit=${limit}`);
+    if (res.status === 200 && res.data) {
+      return res.data;
     } else {
       throw res;
     }
@@ -95,3 +95,17 @@ export const delete_notification = async (id: string): Promise<200> => {
   }
 };
 
+// Mark a single notification as read
+export const read_notification = async (id: string): Promise<any> => {
+  try {
+    const res = await axiosAPI.put(`${apiURL}/${id}`);
+    if (res.status === 200) {
+      return res.data;
+    } else {
+      throw res;
+    }
+  } catch (err: any) {
+    console.log("PUT :", err);
+    throw Error("notification (Read) : Something went wrong");
+  }
+};

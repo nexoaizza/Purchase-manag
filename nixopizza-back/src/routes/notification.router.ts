@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { authenticate, requireAdmin } from "../middlewares/Auth";
 import {
+  createNotification,
   getNotifications,
   readAllNotifications,
   readNotification,
@@ -10,7 +11,7 @@ const notificationRouter = Router();
 
 notificationRouter.use(authenticate);
 notificationRouter.use(requireAdmin);
-
+notificationRouter.post('/',createNotification)
 notificationRouter.get("/", getNotifications);
 notificationRouter.put("/", readAllNotifications);
 notificationRouter.put("/:notificationId", readNotification);

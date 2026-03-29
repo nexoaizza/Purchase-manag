@@ -3,82 +3,30 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { AlertTriangle, Package, ShoppingCart, Users, Clock, CheckCircle, X } from "lucide-react"
+import { AlertTriangle, Package, ShoppingCart, Users, Clock, CheckCircle, X, ChevronLeft, ChevronRight } from "lucide-react"
 import { useEffect, useState } from "react"
-import { get_all_notifications } from "@/lib/apis/notifications"
+import { get_all_notifications, read_notification } from "@/lib/apis/notifications"
 import { useTranslations } from "next-intl"
 
 interface Notification {
-  id: string
+  _id: string
   title: string
   message: string
   type: "critical" | "warning" | "info" | "success"
   category: "inventory" | "orders" | "suppliers" | "system"
-  timestamp: string
+  createdAt: string
   isRead: boolean
 }
 
-const mockNotifications: Notification[] = [
-  {
-    id: "1",
-    title: "Critical Stock Alert",
-    message: "iPhone 15 Pro is critically low (2 units remaining)",
-    type: "critical",
-    category: "inventory",
-    timestamp: "2 minutes ago",
-    isRead: false,
-  },
-  {
-    id: "2",
-    title: "Purchase Order Completed",
-    message: "PO-2024-001 from Apple Inc. has been delivered",
-    type: "success",
-    category: "orders",
-    timestamp: "1 hour ago",
-    isRead: false,
-  },
-  {
-    id: "3",
-    title: "New Supplier Added",
-    message: "Samsung Electronics has been added to your supplier directory",
-    type: "info",
-    category: "suppliers",
-    timestamp: "3 hours ago",
-    isRead: true,
-  },
-  {
-    id: "4",
-    title: "Low Stock Warning",
-    message: "5 products are running low on stock",
-    type: "warning",
-    category: "inventory",
-    timestamp: "5 hours ago",
-    isRead: false,
-  },
-  {
-    id: "5",
-    title: "System Maintenance",
-    message: "Scheduled maintenance completed successfully",
-    type: "info",
-    category: "system",
-    timestamp: "1 day ago",
-    isRead: true,
-  },
-  {
-    id: "6",
-    title: "Purchase List Generated",
-    message: "Weekly purchase list has been automatically generated",
-    type: "info",
-    category: "orders",
-    timestamp: "2 days ago",
-    isRead: true,
-  },
-]
+
 
 export function NotificationsList() {
   const t = useTranslations("notifications")
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications)
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<"all" | "unread" | "critical">("all")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
 
   const getIcon = (category: string) => {
     switch (category) {
@@ -112,23 +60,52 @@ export function NotificationsList() {
     return true
   })
 
-  const markAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((notification) => (notification.id === id ? { ...notification, isRead: true } : notification)),
-    )
+  const markAsRead = async (id: string) => {
+    try {
+      await read_notification(id)
+      setNotifications((prev) =>
+        prev.map((notification) => (notification._id === id ? { ...notification, isRead: true } : notification)),
+      )
+    } catch (e) {
+      console.error(e)
+    }
   }
 
   const dismissNotification = (id: string) => {
-    setNotifications((prev) => prev.filter((notification) => notification.id !== id))
+    setNotifications((prev) => prev.filter((notification) => notification._id !== id))
   }
+  
   const fetchNotifications = async () => {
-    const data = await get_all_notifications()
-    console.log(data)
-    //setNotifications(data)
+    try {
+      setLoading(true)
+      const data = await get_all_notifications(currentPage)
+      const fetchedNotifications = data?.notifications || []
+      setNotifications(fetchedNotifications)
+      setTotalPages(data?.pages || 1)
+      
+      // Automatically mark visible fetched notifications as read
+      if (fetchedNotifications.length > 0) {
+        const unreadIds = fetchedNotifications.filter((n: Notification) => !n.isRead).map((n: Notification) => n._id)
+        if (unreadIds.length > 0) {
+          unreadIds.forEach(async (id: string) => {
+            try {
+              await read_notification(id)
+            } catch (e) {
+              console.error(e)
+            }
+          })
+          setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })))
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error)
+    } finally {
+      setLoading(false)
+    }
   }
   useEffect(() => {
     fetchNotifications()
-  }, [])
+  }, [currentPage])
   return (
     <Card>
       <CardHeader>
@@ -153,15 +130,24 @@ export function NotificationsList() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {filteredNotifications.map((notification) => {
-            const Icon = getIcon(notification.category)
-            return (
-              <div
-                key={notification.id}
-                className={`flex items-start gap-4 p-4 rounded-lg border transition-colors ${
-                  notification.isRead ? "bg-muted/30" : "bg-background"
-                }`}
-              >
+          {loading ? (
+            <div className="flex justify-center p-8">
+              <Clock className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : filteredNotifications.length === 0 ? (
+            <div className="text-center p-8 text-muted-foreground">
+              {t("noNotifications")}
+            </div>
+          ) : (
+            filteredNotifications.map((notification) => {
+              const Icon = getIcon(notification.category)
+              return (
+                <div
+                  key={notification._id}
+                  className={`flex items-start gap-4 p-4 rounded-lg border transition-colors ${
+                    notification.isRead ? "bg-muted/30" : "bg-background"
+                  }`}
+                >
                 <div className="p-2 rounded-full bg-muted">
                   <Icon className="h-4 w-4" />
                 </div>
@@ -178,24 +164,50 @@ export function NotificationsList() {
                         {t(`type${notification.type.charAt(0).toUpperCase()}${notification.type.slice(1)}`)}
                       </Badge>
                       {!notification.isRead && (
-                        <Button variant="ghost" size="sm" onClick={() => markAsRead(notification.id)}>
+                        <Button variant="ghost" size="sm" onClick={() => markAsRead(notification._id)}>
                           <CheckCircle className="h-4 w-4" />
                         </Button>
                       )}
-                      <Button variant="ghost" size="sm" onClick={() => dismissNotification(notification.id)}>
+                      <Button variant="ghost" size="sm" onClick={() => dismissNotification(notification._id)}>
                         <X className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Clock className="h-3 w-3" />
-                    {notification.timestamp}
+                    {new Date(notification.createdAt).toLocaleString()}
                   </div>
                 </div>
               </div>
             )
-          })}
+            })
+          )}
         </div>
+        
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1 || loading}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="text-sm text-muted-foreground mx-2">
+              {currentPage} / {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages || loading}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   )

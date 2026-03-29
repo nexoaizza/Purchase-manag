@@ -8,6 +8,7 @@ import { deleteImage } from "../utils/Delete";
 import crypto from "crypto";
 import { uploadBufferToBlob } from "../utils/blob";
 import { sendPushNotification } from "../services/firebase.service";
+import { createLocalNotification } from "./notification.controller";
 // [ADDED] Import the WhatsApp service
 import { sendWhatsAppMessage } from "../services/whatsapp.service";
 
@@ -139,6 +140,15 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
 
     await order.save();
     const populated = await populateOrder(order);
+
+    // Trigger local notification for purchase list (order) generation
+    await createLocalNotification(
+        `A new purchase list (Order #${order.orderNumber}) has been generated.`,
+        "success",
+        "Purchase List Generated",
+        "orders"
+    );
+
     res
       .status(201)
       .json({ message: "Order created successfully", order: populated });
@@ -415,6 +425,16 @@ export const verifyOrder = async (req: Request, res: Response): Promise<void> =>
     await order.save();
 
     const populated = await populateOrder(order);
+    
+    // Notification for product arrival
+    const supplierName = (populated as any).supplierId?.name || "Supplier";
+    await createLocalNotification(
+      `Products from Order #${order.orderNumber} (${supplierName}) have been verified and added to stock.`,
+      "success",
+      "New Products Arrived",
+      "orders"
+    );
+
     res
       .status(200)
       .json({ message: "Order verified successfully", order: populated });
@@ -474,6 +494,15 @@ export const updateOrder = async (req: Request, res: Response): Promise<void> =>
       order.status = "paid";
       order.paidDate = new Date();
       pushStatusHistory(order, prevStatus, "paid", req.user?.userId);
+      
+      const populatedForNotification: any = await populateOrder(order);
+      const supplierName = populatedForNotification?.supplierId?.name || "Supplier";
+      await createLocalNotification(
+        `Order #${order.orderNumber} for ${supplierName} has been paid. Total: ${order.totalAmount}`,
+        "success",
+        "Payment Completed",
+        "orders"
+      );
     } else if (status === "canceled") {
       if (["verified", "paid"].includes(order.status)) {
         res

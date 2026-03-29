@@ -918,7 +918,8 @@
         "categoryInventory": "المخزون",
         "categoryOrders": "الأوامر",
         "categorySupliers": "الموردون",
-        "categorySystem": "النظام"
+        "categorySystem": "النظام",
+        "noNotifications": "لا توجد إشعارات"
     },
     "suppliers": {
         "title": "الموردون",

@@ -4,6 +4,7 @@ import crypto from "crypto";
 import { uploadBufferToBlob } from "../utils/blob";
 import { deleteImage } from "../utils/Delete";
 import { addProductToSupplier, removeProductFromSupplier } from "../utils/supplierSync";
+import { createLocalNotification } from "./notification.controller";
 import { Types } from "mongoose";
 import Product from "../models/product.model";
 
@@ -141,6 +142,14 @@ export const createSupplier = async (req: Request, res: Response): Promise<void>
       categoryIds: Array.isArray(categoryIds) ? categoryIds : [],
       image: imageUrl,
     });
+
+    // Trigger local notification for new supplier
+    await createLocalNotification(
+        `New supplier ${ supplier.name } has been added.`,
+        "info",
+        "New Supplier Added",
+        "suppliers"
+    );
 
     res.status(201).json({ message: "Supplier created successfully", supplier });
   } catch (e: any) {

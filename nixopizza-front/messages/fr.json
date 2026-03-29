@@ -919,7 +919,8 @@
         "categoryInventory": "inventaire",
         "categoryOrders": "commandes",
         "categorySupliers": "fournisseurs",
-        "categorySystem": "système"
+        "categorySystem": "système",
+        "noNotifications": "Aucune notification"
     },
     "suppliers": {
         "title": "Fournisseurs",

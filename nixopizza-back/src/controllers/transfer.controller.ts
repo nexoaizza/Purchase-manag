@@ -7,6 +7,7 @@ import User from "../models/user.model";
 import { Types } from "mongoose";
 import { pushNotification } from "../utils/PushNotification";
 import { sendPushNotification } from "../services/firebase.service";
+import { createLocalNotification } from "./notification.controller";
 
 // CREATE - Create a transfer request from one stock to another
 export const createTransfer = async (req: Request, res: Response): Promise<void> => {
@@ -390,6 +391,26 @@ export const updateTransfer = async (req: Request, res: Response): Promise<void>
           `Your transfer status has been updated to ${transfer.status}.`,
           { transferId: (transfer._id as Types.ObjectId).toString() }
         ).catch((err) => console.error("FCM push notification error for transfer status update:", err));
+      }
+
+      // Check for arrived status to trigger specific notifications
+      if (transfer.status === "arrived") {
+        const fromStock = (transfer as any).takenFrom?.name || "Source";
+        const toStock = (transfer as any).takenTo?.name || "Destination";
+        
+        await createLocalNotification(
+          `Transfer from ${fromStock} to ${toStock} completed.`,
+          "success",
+          "Transfer Completed",
+          "inventory"
+        );
+        
+        await createLocalNotification(
+          `New products have arrived at ${toStock} from ${fromStock}.`,
+          "info",
+          "New Stock Arrival",
+          "inventory"
+        );
       }
     }
 

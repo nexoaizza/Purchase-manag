@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import Waste from "../models/waste.model";
 import Product from "../models/product.model";
 import Stock from "../models/stock.model";
+import { createLocalNotification } from "./notification.controller";
 
 // CREATE - Add a record when stock is discarded or expired
 export const createWaste = async (req: Request, res: Response): Promise<void> => {
@@ -52,6 +53,16 @@ export const createWaste = async (req: Request, res: Response): Promise<void> =>
       .populate("product", "name description")
       .populate("stock", "name location")
       .populate("staff", "name email");
+
+    // Trigger local notification for waste/damage/expiry
+    const prodName = (populatedWaste as any).product?.name || "Product";
+    const stName = (populatedWaste as any).stock?.name || "Stock";
+    await createLocalNotification(
+        `Waste alert: ${quantity} units of ${prodName} recorded at ${stName}. Reason: ${reason}`,
+        "warning",
+        "Wastage/Damage Recorded",
+        "inventory"
+    );
 
     res.status(201).json({
       message: "Waste record created successfully",

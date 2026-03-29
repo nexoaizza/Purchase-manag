@@ -4,6 +4,7 @@ import User from "../models/user.model";
 import { deleteImage } from "../utils/Delete";
 import crypto from "crypto";
 import { uploadBufferToBlob } from "../utils/blob";
+import { createLocalNotification } from "./notification.controller";
 
 function buildBlobKey(originalName: string) {
   const ext = (originalName.match(/\.[^/.]+$/) || [".bin"])[0];
@@ -84,6 +85,15 @@ export const newStaffMember = async (
     }
 
     await staff.save();
+
+    // Trigger local notification for new staff
+    await createLocalNotification(
+        `New staff member ${ staff.fullname } has been added.`,
+        "info",
+        "New Staff Member Added",
+        "suppliers"
+    );
+
     res.status(201).json({ message: "Staff created successfully", staff });
   } catch (error: any) {
     console.error("newStaffMember error:", error);
