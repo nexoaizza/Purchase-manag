@@ -70,6 +70,7 @@ export const updateTransfer = async (
     quantity?: number;
     status?: "pending" | "arrived";
     assignedTo?: string;
+    startTime?: string;
   }
 ) => {
   try {
