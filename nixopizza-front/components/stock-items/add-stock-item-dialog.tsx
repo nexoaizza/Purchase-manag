@@ -18,6 +18,7 @@ import toast from "react-hot-toast";
 import { createStockItem } from "@/lib/apis/stock-items";
 import { getStocks } from "@/lib/apis/stocks";
 import { getProducts } from "@/lib/apis/products";
+import { getCategories } from "@/lib/apis/categories";
 import {
   Select,
   SelectContent,
@@ -25,6 +26,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+interface IProduct {
+  _id: string;
+  name: string;
+  category: {
+    _id: string;
+    name: string;
+  };
+  categoryId?: {
+    _id: string;
+    name: string;
+  };
+}
 
 interface AddStockItemDialogProps {
   open: boolean;
@@ -40,7 +54,9 @@ export function AddStockItemDialog({
   const t = useTranslations("stockItems");
   const [loading, setLoading] = useState(false);
   const [stocks, setStocks] = useState<any[]>([]);
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<IProduct[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [formData, setFormData] = useState({
     stock: "",
     product: "",
@@ -53,8 +69,16 @@ export function AddStockItemDialog({
     if (open) {
       fetchStocks();
       fetchProducts();
+      fetchCategories();
     }
   }, [open]);
+
+  const fetchCategories = async () => {
+    const { success, categories } = await getCategories();
+    if (success) {
+      setCategories(categories);
+    }
+  };
 
   const fetchStocks = async () => {
     const { success, stocks } = await getStocks({ limit: 100 });
@@ -64,11 +88,18 @@ export function AddStockItemDialog({
   };
 
   const fetchProducts = async () => {
-    const { success, products } = await getProducts({ limit: 100 });
+    const { success, products } = await getProducts({ limit: 1000 });
     if (success) {
       setProducts(products);
     }
   };
+
+  const filteredProducts = selectedCategory === "all" 
+    ? products 
+    : products.filter(p => {
+        const catId = typeof p.category === 'object' ? p.category?._id : (p.categoryId?._id || p.categoryId || p.category);
+        return catId === selectedCategory;
+      });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,25 +176,50 @@ export function AddStockItemDialog({
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="product">{t("product")}</Label>
-            <Select
-              value={formData.product}
-              onValueChange={(value) =>
-                setFormData({ ...formData, product: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={t("selectProduct")} />
-              </SelectTrigger>
-              <SelectContent>
-                {products.map((product) => (
-                  <SelectItem key={product._id} value={product._id}>
-                    {product.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>{t("category")}</Label>
+              <Select
+                value={selectedCategory}
+                onValueChange={(value) => {
+                  setSelectedCategory(value);
+                  setFormData({ ...formData, product: "" });
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t("selectCategory")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("allCategories")}</SelectItem>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat._id} value={cat._id}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="product">{t("product")}</Label>
+              <Select
+                value={formData.product}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, product: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t("selectProduct")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredProducts.map((product) => (
+                    <SelectItem key={product._id} value={product._id}>
+                      {product.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
