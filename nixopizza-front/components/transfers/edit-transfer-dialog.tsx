@@ -132,7 +132,16 @@ export function EditTransferDialog({
 
     const { success, stockItems: items, pages } = await getStockItems(params);
     if (success) {
-      const safeItems = items || [];
+      let safeItems = items || [];
+      
+      // Ensure the initially selected items are present in the list 
+      // so their names display correctly when the dialog opens
+      if (!append && transfer && Array.isArray(transfer.items)) {
+        const preloadedItems = transfer.items.filter((i: any) => typeof i === "object");
+        const missingItems = preloadedItems.filter((pre) => !safeItems.find((s: any) => s._id === pre._id));
+        safeItems = [...missingItems, ...safeItems];
+      }
+
       setStockItems((prev) => (append ? [...prev, ...safeItems] : safeItems));
       setItemsPage(page);
       setHasMoreItems(page < (pages || 1));
