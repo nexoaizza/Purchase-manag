@@ -1,7 +1,8 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { get_unread_notifications_count } from "@/lib/apis/notifications";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
@@ -48,6 +49,19 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const t = useTranslations("navigation");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (user) {
+      get_unread_notifications_count()
+        .then((data) => {
+          if (data && data.count !== undefined) {
+            setUnreadCount(data.count);
+          }
+        })
+        .catch((err) => console.log(err));
+    }
+  }, [user]);
 
   const navigation =
     user?.role === "admin"
@@ -161,7 +175,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                         )}
                         onClick={() => setSidebarOpen(false)}
                       >
-                        <item.icon className="h-5 w-5 shrink-0" />
+                        <div className="relative">
+                          <item.icon className="h-5 w-5 shrink-0" />
+                          {item.name === t("notifications") && unreadCount > 0 && (
+                            <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                              {unreadCount > 99 ? "99+" : unreadCount}
+                            </span>
+                          )}
+                        </div>
                         {item.name}
                       </Link>
                     </li>
