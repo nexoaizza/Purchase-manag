@@ -15,7 +15,7 @@ export const getCategoriesByFilter = async (req: Request, res: Response): Promis
     const query: any = {};
     if (name) query.name = { $regex: name, $options: "i" };
 
-    const categories = await Category.find(query).sort({ createdAt: -1 });
+    const categories = await Category.find(query).sort({ name: 1 });
     res.status(200).json({ categories });
   } catch (error: any) {
     console.error(error);
