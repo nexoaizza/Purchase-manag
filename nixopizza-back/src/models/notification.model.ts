@@ -36,7 +36,7 @@ const notificationSchema = new Schema<INotification>(
   {
     type: {
       type: String,
-      enum: ["low_stock", "budget_alert", "expiry_warning", "complited_task", "transfer"],
+      enum: ["critical", "success", "warning", "info"],
     },
     subject: String,
     title: String,

@@ -19,6 +19,21 @@ export const get_all_notifications = async (page: number = 1, limit: number = 10
   }
 };
 
+// get unread notifications count
+export const get_unread_notifications_count = async (): Promise<any> => {
+  try {
+    const res = await axiosAPI.get(`${apiURL}/unread-count`);
+    if (res.status === 200 && res.data) {
+      return res.data;
+    } else {
+      throw res;
+    }
+  } catch (err: any) {
+    console.log("GET UNREAD COUNT :", err);
+    throw Error("notification (Get-Unread-Count) : Something went wrong");
+  }
+};
+
 // get notification by id
 export const get_notification_by_id = async (id: string): Promise<any> => {
   try {

@@ -58,6 +58,16 @@ export const getNotifications = async (req: Request, res: Response) => {
       .json({ message: "Internal server error", err: error.message });
   }
 };
+export const getUnreadNotificationsCount = async (req: Request, res: Response) => {
+  try {
+    const totalUnread = await Notification.countDocuments({ isRead: false });
+    res.status(200).json({ count: totalUnread });
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ message: "Internal server error", err: error.message });
+  }
+};
 
 export const readNotification = async (req: Request, res: Response) => {
   try {
