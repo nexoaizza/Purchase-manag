@@ -58,13 +58,13 @@ export const newStaffMember = async (
 ): Promise<void> => {
   try {
     const { fullname, email, password, phone1, phone2, phone3, address } = req.body;
-    if (!fullname || !email || !password) {
-      res.status(400).json({ message: "fullname, email and password are required" });
+    if (!fullname || !phone1 || !password) {
+      res.status(400).json({ message: "fullname, phone number and password are required" });
       return;
     }
-    const existing = await User.findOne({ email });
+    const existing = await User.findOne({ phone1: String(phone1) });
     if (existing) {
-      res.status(409).json({ message: "Email already in use" });
+      res.status(409).json({ message: "Phone number already in use" });
       return;
     }
 

@@ -4,14 +4,14 @@ import { generateToken, verifyToken } from "../utils/Token";
 
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password }: { email: string; password: string } = req.body;
+    const { phone1, password }: { phone1: string; password: string } = req.body;
 
-    if (!email || !password) {
-      res.status(400).json({ message: "Email and password are required" });
+    if (!phone1 || !password) {
+      res.status(400).json({ message: "Phone number and password are required" });
       return;
     }
 
-    const user = await User.findOne({ email }).select("+password");
+    const user = await User.findOne({ phone1: String(phone1) }).select("+password");
 
     if (!user) {
       res.status(400).json({ message: "User not found" });

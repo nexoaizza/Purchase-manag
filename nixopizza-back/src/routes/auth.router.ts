@@ -8,9 +8,16 @@ import {
 } from "../controllers/auth.controller";
 import { upload } from "../middlewares/Multer";
 import { authenticate } from "../middlewares/Auth";
+import rateLimit from "express-rate-limit";
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { message: "Too many login attempts, please try again later" },
+});
 
 const authRouter = Router();
-authRouter.post("/login", login);
+authRouter.post("/login", loginLimiter, login);
 authRouter.post("/logout", logout);
 authRouter.post("/refresh", refreshTokens);
 authRouter.put("/profile", authenticate, updateUser);

@@ -3,12 +3,12 @@ import bcrypt from "bcryptjs";
 
 export interface IUser extends Document {
   fullname: string;
-  email: string;
+  email?: string;
   password: string;
   avatar?: string;
   role: "admin" | "staff";
   isActive: boolean;
-  phone1?: string;
+  phone1: string;
   phone2?: string;
   phone3?: string;
   address: string;
@@ -26,9 +26,10 @@ const userSchema = new Schema<IUser>(
     },
     email: {
       type: String,
-      required: [true, "User Email Is Required"],
-      trim: true,
+      required: false,
+      sparse: true,
       unique: true,
+      trim: true,
       lowercase: true,
       match: [
         /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
@@ -54,6 +55,10 @@ const userSchema = new Schema<IUser>(
     },
     phone1: {
       type: String,
+      required: [true, "Phone number is required"],
+      unique: true,
+      trim: true,
+      match: [/^\+?[\d\s\-().]{7,20}$/, "Please fill a valid phone number"],
     },
     phone2: {
       type: String,
