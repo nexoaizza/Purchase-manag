@@ -76,8 +76,8 @@ export function AddStuffDialog({ addNewStuff }: AddStuffDialogProps) {
   };
 
   const handleCreateStuff = async () => {
-    if (!formData.fullname || !formData.email || !formData.password) {
-      toast.error(t("fullnameEmailPasswordRequired"));
+    if (!formData.fullname || (!formData.email && !formData.phone1) || !formData.password) {
+      toast.error(t("fullnameEmailPhonePasswordRequired", { fallback: "Full name, Password, and either Email or Phone 1 are required" }));
       return;
     }
     const payload = new FormData();
@@ -167,12 +167,11 @@ export function AddStuffDialog({ addNewStuff }: AddStuffDialogProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label>{t("emailRequired")}</Label>
+              <Label>{t("emailRequired")} ({t("optionalIfPhone", { fallback: "Optional if Phone 1 is provided" })})</Label>
               <Input
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleInputChange("email", e.target.value)}
-                required
               />
             </div>
             <div className="space-y-2">
@@ -185,7 +184,7 @@ export function AddStuffDialog({ addNewStuff }: AddStuffDialogProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label>{t("phone1")}</Label>
+              <Label>{t("phone1")} ({t("optionalIfEmail", { fallback: "Optional if Email is provided" })})</Label>
               <Input
                 value={formData.phone1}
                 onChange={(e) => handleInputChange("phone1", e.target.value)}

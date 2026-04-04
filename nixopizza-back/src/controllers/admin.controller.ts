@@ -58,14 +58,23 @@ export const newStaffMember = async (
 ): Promise<void> => {
   try {
     const { fullname, email, password, phone1, phone2, phone3, address } = req.body;
-    if (!fullname || !email || !password) {
-      res.status(400).json({ message: "fullname, email and password are required" });
+    if (!fullname || (!email && !phone1) || !password) {
+      res.status(400).json({ message: "fullname, password, and either email or phone1 are required" });
       return;
     }
-    const existing = await User.findOne({ email });
-    if (existing) {
-      res.status(409).json({ message: "Email already in use" });
-      return;
+    if (email) {
+      const existing = await User.findOne({ email });
+      if (existing) {
+        res.status(409).json({ message: "Email already in use" });
+        return;
+      }
+    }
+    if (phone1) {
+      const existingPhone = await User.findOne({ phone1 });
+      if (existingPhone) {
+        res.status(409).json({ message: "Phone number already in use" });
+        return;
+      }
     }
 
     const staff = new User({
@@ -134,11 +143,27 @@ export const updateStaff = async (
         return;
       }
     }
+    // If phone changes, enforce uniqueness
+    if (phone1 && phone1 !== staff.phone1) {
+      const existingPhone = await User.findOne({ phone1, _id: { $ne: staffId } });
+      if (existingPhone) {
+        res.status(409).json({ message: "Phone number already in use" });
+        return;
+      }
+    }
+
+    // Prevent updating to a state where both email and phone1 are missing
+    const updatedEmail = email !== undefined ? email : staff.email;
+    const updatedPhone1 = phone1 !== undefined ? phone1 : staff.phone1;
+    if (!updatedEmail && !updatedPhone1) {
+      res.status(400).json({ message: "Either email or phone1 is required" });
+      return;
+    }
 
     // Update only provided fields (keep old values otherwise)
     if (fullname) staff.fullname = fullname;
-    if (email) staff.email = email;
-    staff.phone1 = phone1 ?? staff.phone1;
+    if (email !== undefined) staff.email = email;
+    if (phone1 !== undefined) staff.phone1 = phone1;
     staff.phone2 = phone2 ?? staff.phone2;
     staff.phone3 = phone3 ?? staff.phone3;
     staff.address = address ?? staff.address;

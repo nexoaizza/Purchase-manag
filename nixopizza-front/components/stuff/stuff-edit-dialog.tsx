@@ -189,19 +189,18 @@ export function StuffEditDialog({
 
           {/* Email */}
           <div className="space-y-2">
-            <Label>{t("emailRequired")}</Label>
+            <Label>{t("emailRequired")} ({t("optionalIfPhone", { fallback: "Optional if Phone 1 is provided" })})</Label>
             <Input
               type="email"
               value={formData.email}
               onChange={(e) => handleInputChange("email", e.target.value)}
-              required
             />
           </div>
 
           {/* Phone Numbers */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>{t("phone1")}</Label>
+              <Label>{t("phone1")} ({t("optionalIfEmail", { fallback: "Optional if Email is provided" })})</Label>
               <Input
                 value={formData.phone1}
                 onChange={(e) => handleInputChange("phone1", e.target.value)}
@@ -287,7 +286,7 @@ export function StuffEditDialog({
           </Button>
           <Button
             onClick={handleUpdate}
-            disabled={!formData.fullname || !formData.email}
+            disabled={!formData.fullname || (!formData.email && !formData.phone1)}
           >
             {t("updateStaff")}
           </Button>

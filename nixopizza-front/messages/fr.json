@@ -8,7 +8,9 @@
         "Forgot your password?": "Mot de passe oublié?",
         "Signing in...": "Connexion en cours...",
         "Enter your password": "Entrez votre mot de passe",
-        "Enter your email": "Entrez votre email"
+        "Enter your email": "Entrez votre email",
+        "EmailOrPhone": "E-mail ou numéro de téléphone",
+        "EnterEmailOrPhone": "Entrez votre e-mail ou numéro de téléphone"
     },
     "navigation": {
         "dashboard": "Tableau de Bord",
@@ -105,6 +107,9 @@
         "addStaff": "Ajouter du personnel",
         "assignTask": "Attribuer une tâche",
         "addNewStaff": "Ajouter un nouveau membre du personnel",
+        "fullnameEmailPhonePasswordRequired": "Le nom complet, le mot de passe et l'e-mail ou le numéro de téléphone 1 sont obligatoires",
+        "optionalIfPhone": "Facultatif si le téléphone 1 est fourni",
+        "optionalIfEmail": "Facultatif si l'e-mail est fourni",
         "fillDetails": "Remplissez les détails ci-dessous pour ajouter un nouveau membre d'équipe.",
         "profilePicture": "Photo de profil",
         "clickToUpload": "Cliquez pour télécharger",

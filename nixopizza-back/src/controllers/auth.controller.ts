@@ -7,11 +7,13 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const { email, password }: { email: string; password: string } = req.body;
 
     if (!email || !password) {
-      res.status(400).json({ message: "Email and password are required" });
+      res.status(400).json({ message: "Email/Phone and password are required" });
       return;
     }
 
-    const user = await User.findOne({ email }).select("+password");
+    const user = await User.findOne({
+      $or: [{ email: email.toLowerCase() }, { phone1: email }],
+    }).select("+password");
 
     if (!user) {
       res.status(400).json({ message: "User not found" });

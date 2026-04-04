@@ -26,9 +26,9 @@ const userSchema = new Schema<IUser>(
     },
     email: {
       type: String,
-      required: [true, "User Email Is Required"],
       trim: true,
       unique: true,
+      sparse: true,
       lowercase: true,
       match: [
         /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
@@ -54,6 +54,8 @@ const userSchema = new Schema<IUser>(
     },
     phone1: {
       type: String,
+      unique: true,
+      sparse: true,
     },
     phone2: {
       type: String,

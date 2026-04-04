@@ -8,7 +8,9 @@
         "Forgot your password?": "هل نسيت كلمة المرور؟",
         "Signing in...": "جاري تسجيل الدخول...",
         "Enter your password": "أدخل كلمة المرور الخاصة بك",
-        "Enter your email": "أدخل بريدك الإلكتروني"
+        "Enter your email": "أدخل بريدك الإلكتروني",
+        "EmailOrPhone": "البريد الإلكتروني أو رقم الهاتف",
+        "EnterEmailOrPhone": "أدخل بريدك الإلكتروني أو رقم هاتفك"
     },
     "navigation": {
         "dashboard": "لوحة التحكم",
@@ -105,6 +107,9 @@
         "addStaff": "إضافة موظف",
         "assignTask": "تعيين مهمة",
         "addNewStaff": "إضافة عضو موظف جديد",
+        "fullnameEmailPhonePasswordRequired": "الاسم الكامل وكلمة المرور والبريد الإلكتروني أو الهاتف 1 مطلوبون",
+        "optionalIfPhone": "اختياري إذا تم توفير الهاتف 1",
+        "optionalIfEmail": "اختياري إذا تم توفير البريد الإلكتروني",
         "fillDetails": "أملأ التفاصيل أدناه لإضافة عضو فريق جديد.",
         "profilePicture": "صورة الملف الشخصي",
         "clickToUpload": "انقر للتحميل",

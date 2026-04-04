@@ -8,7 +8,9 @@
         "Forgot your password?": "Forgot your password?",
         "Signing in...": "Signing in...",
         "Enter your password": "Enter your password",
-        "Enter your email": "Enter your email"
+        "Enter your email": "Enter your email",
+        "EmailOrPhone": "Email or Phone Number",
+        "EnterEmailOrPhone": "Enter your email or phone number"
     },
     "navigation": {
         "dashboard": "Dashboard",
@@ -105,6 +107,9 @@
         "assignTask": "Assign Task",
         "addStaff": "Add Staff",
         "addNewStaff": "Add New Staff Member",
+        "fullnameEmailPhonePasswordRequired": "Full name, Password, and either Email or Phone 1 are required",
+        "optionalIfPhone": "Optional if Phone 1 is provided",
+        "optionalIfEmail": "Optional if Email is provided",
         "fillDetails": "Fill in the details below to add a new team member.",
         "profilePicture": "Profile Picture",
         "clickToUpload": "Click to upload",
@@ -537,7 +542,7 @@
         "uploadBill": "Upload bill and set the final price for order",
         "totalAmountField": "Total Amount (DA) *",
         "enterTotalAmount": "Enter total amount",
-        "bill": "Bill (Bon) *",
+        "bill": "Bill (Bon) ",
         "changeBill": "Change Bill",
         "uploadBillLabel": "Upload Bill",
         "fileFormats": "PNG, JPG, PDF up to 5MB",
@@ -708,7 +713,7 @@
         "computedTotal": "Computed Total:",
         "overrideTotal": "Override Total (Optional)",
         "overrideTotalHint": "If the bill total differs due to rounding or external adjustments, enter it here. Otherwise leave blank.",
-        "billRequired": "Bill (Bon) *",
+        "billRequired": "Bill (Bon) ",
         "selectBill": "Select Bill",
         "previousBillPresent": "Previous bill present",
         "submittingReview": "Submitting...",

@@ -69,11 +69,11 @@ export function LoginForm() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email">{t("Email")}</Label>
+              <Label htmlFor="email">{t("EmailOrPhone", { fallback: "Email or Phone Number" })}</Label>
               <Input
                 id="email"
-                type="email"
-                placeholder={t("Enter your email")}
+                type="text"
+                placeholder={t("EnterEmailOrPhone", { fallback: "Enter your email or phone number" })}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
