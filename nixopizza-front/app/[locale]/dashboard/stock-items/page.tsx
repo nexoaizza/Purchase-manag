@@ -35,52 +35,13 @@ export default function StockItemsPage() {
     if (stock && stock !== "all") params.stock = stock;
     if (minPrice !== undefined && minPrice !== "") params.minPrice = minPrice;
     if (maxPrice !== undefined && maxPrice !== "") params.maxPrice = maxPrice;
+    if (productName) params.productName = productName;
+    if (expirationStatus && expirationStatus !== "all") params.expirationStatus = expirationStatus;
 
     const { stockItems: fetchedItems, pages, message, success } = await getStockItems(params);
 
     if (success) {
-      let filteredItems = fetchedItems;
-      
-      // Filter by product name
-      if (productName) {
-        filteredItems = filteredItems.filter(
-          (item: IStockItem) =>
-            item.product?.name.toLowerCase().includes(productName.toLowerCase())
-        );
-      }
-
-      // Filter by expiration status
-      if (expirationStatus && expirationStatus !== "all") {
-        const now = new Date();
-
-        filteredItems = filteredItems.filter((item: IStockItem) => {
-          // Skip items without expectedLifeTime
-          if (!item.product?.expectedLifeTime || item.product.expectedLifeTime <= 0) {
-            return expirationStatus === "fresh";
-          }
-          
-          const createdAt = item.createdAt ? new Date(item.createdAt) : new Date();
-          const expectedLifeTimeDays = item.product.expectedLifeTime;
-          const expirationDate = new Date(createdAt);
-          expirationDate.setDate(expirationDate.getDate() + expectedLifeTimeDays);
-          
-          // Calculate how much time has passed
-          const timeElapsedMs = now.getTime() - createdAt.getTime();
-          const totalLifetimeMs = expectedLifeTimeDays * 24 * 60 * 60 * 1000;
-          const percentagePassed = timeElapsedMs / totalLifetimeMs;
-          
-          if (expirationStatus === "expired") {
-            return now > expirationDate;
-          } else if (expirationStatus === "expiring-soon") {
-            return percentagePassed > 0.7 && now <= expirationDate;
-          } else if (expirationStatus === "fresh") {
-            return percentagePassed <= 0.7 && now <= expirationDate;
-          }
-          return true;
-        });
-      }
-
-      setStockItems(filteredItems);
+      setStockItems(fetchedItems);
       setTotalPages(pages);
     } else {
       toast.error(message);

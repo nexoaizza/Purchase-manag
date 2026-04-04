@@ -202,6 +202,8 @@ export const getAllStockItems = async (req: Request, res: Response): Promise<voi
       createdAtTo,
       expireAtFrom,
       expireAtTo,
+      productName,
+      expirationStatus,
       sortBy = "product",
       order = "asc",
       page = 1, 
@@ -269,9 +271,27 @@ export const getAllStockItems = async (req: Request, res: Response): Promise<voi
 
     // Filter by expireAt date range
     if (expireAtFrom !== undefined || expireAtTo !== undefined) {
-      query.expireAt = {};
+      if (!query.expireAt) query.expireAt = {};
       if (expireAtFrom) query.expireAt.$gte = new Date(expireAtFrom as string);
       if (expireAtTo) query.expireAt.$lte = new Date(expireAtTo as string);
+    }
+
+    // Filter by expirationStatus
+    if (expirationStatus && expirationStatus !== "all") {
+      const now = new Date();
+      const in7Days = new Date();
+      in7Days.setDate(in7Days.getDate() + 7);
+
+      if (!query.expireAt) query.expireAt = {};
+
+      if (expirationStatus === "expired") {
+        query.expireAt.$lt = now;
+      } else if (expirationStatus === "expiring-soon") {
+        query.expireAt.$gte = now;
+        query.expireAt.$lte = in7Days;
+      } else if (expirationStatus === "fresh") {
+        query.expireAt.$gt = in7Days;
+      }
     }
 
     const skip = (Number(page) - 1) * Number(limit);
@@ -291,6 +311,15 @@ export const getAllStockItems = async (req: Request, res: Response): Promise<voi
           preserveNullAndEmptyArrays: true,
         },
       },
+      ...(productName
+        ? [
+            {
+              $match: {
+                "product.name": { $regex: productName as string, $options: "i" },
+              },
+            },
+          ]
+        : []),
       ...(category
         ? [
             {
