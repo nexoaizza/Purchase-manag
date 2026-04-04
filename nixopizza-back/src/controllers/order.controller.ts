@@ -306,10 +306,13 @@ export const submitOrderForReview = async (
       pushStatusHistory(order, "not assigned", "assigned", req.user.userId);
     }
     
+    // req.file is now optional
+    /*
     if (!req.file) {
       res.status(400).json({ message: "Bill file is required" });
       return;
     }
+    */
 
     // Apply item updates
     if (itemsUpdates.length) {
@@ -348,20 +351,22 @@ export const submitOrderForReview = async (
       }
     }
 
-    // Replace legacy bill
-    if (order.bon && order.bon.startsWith("/uploads/orders/")) {
-      try {
-        deleteImage(order.bon);
-      } catch {}
-    }
+    if (req.file) {
+      // Replace legacy bill
+      if (order.bon && order.bon.startsWith("/uploads/orders/")) {
+        try {
+          deleteImage(order.bon);
+        } catch {}
+      }
 
-    const key = buildBlobKey(req.file.originalname);
-    const uploaded = await uploadBufferToBlob(
-      key,
-      req.file.buffer,
-      req.file.mimetype
-    );
-    order.bon = uploaded.url;
+      const key = buildBlobKey(req.file.originalname);
+      const uploaded = await uploadBufferToBlob(
+        key,
+        req.file.buffer,
+        req.file.mimetype
+      );
+      order.bon = uploaded.url;
+    }
 
     // Recompute total
     let computedTotal = 0;
@@ -412,10 +417,11 @@ export const verifyOrder = async (req: Request, res: Response): Promise<void> =>
         .json({ message: "Order must be pending_review to verify" });
       return;
     }
-    if (!order.bon) {
-      res.status(400).json({ message: "Bill missing" });
-      return;
-    }
+    // removed check for missing bill since it is now optional
+    // if (!order.bon) {
+    //   res.status(400).json({ message: "Bill missing" });
+    //   return;
+    // }
 
     const prevStatus = order.status;
     order.status = "verified";
