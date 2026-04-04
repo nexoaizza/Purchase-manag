@@ -128,6 +128,12 @@ export const createSupplier = async (req: Request, res: Response): Promise<void>
       imageUrl = uploaded.url;
     }
 
+    const parsedCategoryIds = Array.isArray(categoryIds) ? categoryIds : (categoryIds ? [categoryIds] : []);
+    
+    // Find all products that belong to the selected categories
+    const productsInCategories = await Product.find({ categoryId: { $in: parsedCategoryIds } }, '_id');
+    const productIdsToAdd = productsInCategories.map(p => p._id);
+
     const supplier = await Supplier.create({
       name,
       contactPerson,
@@ -139,7 +145,8 @@ export const createSupplier = async (req: Request, res: Response): Promise<void>
       city: city || undefined,
       notes: notes || undefined,
       isActive: isActive !== undefined ? isActive : true,
-      categoryIds: Array.isArray(categoryIds) ? categoryIds : [],
+      categoryIds: parsedCategoryIds,
+      productIds: productIdsToAdd,
       image: imageUrl,
     });
 
@@ -205,9 +212,35 @@ export const updateSupplier = async (req: Request, res: Response): Promise<void>
     if (isActive !== undefined) supplier.isActive = isActive === "true" || isActive === true;
 
     if (categoryIds !== undefined) {
-      supplier.categoryIds = Array.isArray(categoryIds)
+      const validCategoryIds = Array.isArray(categoryIds)
         ? categoryIds
         : [categoryIds].filter(Boolean);
+
+      const oldCategoryIds = supplier.categoryIds.map((id: any) => id.toString());
+      const newCategoryIds = validCategoryIds.map((id: any) => id.toString());
+      
+      const removedCategories = oldCategoryIds.filter((id: string) => !newCategoryIds.includes(id));
+      const addedCategories = newCategoryIds.filter((id: string) => !oldCategoryIds.includes(id));
+      
+      supplier.categoryIds = validCategoryIds;
+
+      if (removedCategories.length > 0) {
+        const productsToRemove = await Product.find({ categoryId: { $in: removedCategories } }, '_id');
+        const idsToRemove = productsToRemove.map(p => p._id.toString());
+        supplier.productIds = supplier.productIds.filter((pid: any) => !idsToRemove.includes(pid.toString()));
+      }
+      
+      if (addedCategories.length > 0) {
+        const productsToAdd = await Product.find({ categoryId: { $in: addedCategories } }, '_id');
+        const idsToAdd = productsToAdd.map(p => p._id.toString());
+        const currentProductIds = supplier.productIds.map((pid: any) => pid.toString());
+        
+        for (const newId of idsToAdd) {
+          if (!currentProductIds.includes(newId)) {
+            supplier.productIds.push(new Types.ObjectId(newId));
+          }
+        }
+      }
     }
 
     if (req.file) {
