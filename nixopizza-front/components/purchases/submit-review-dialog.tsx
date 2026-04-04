@@ -108,10 +108,6 @@ export function SubmitReviewDialog({
       toast.error(t("orderMustBeAssigned"));
       return;
     }
-    if (!billFile) {
-      toast.error(t("billFileRequired"));
-      return;
-    }
     // Basic validation
     if (items.some((i) => Number.isNaN(i.quantity) || Number.isNaN(i.unitCost) || i.quantity < 0 || i.unitCost < 0)) {
       toast.error(t("invalidItemValues"));
@@ -121,7 +117,9 @@ export function SubmitReviewDialog({
     setSaving(true);
     try {
       const fd = new FormData();
-      fd.append("image", billFile);
+      if (billFile) {
+        fd.append("image", billFile);
+      }
       // Provide updated items
       const itemsUpdates = items.map((i) => ({
         itemId: i.itemId,
@@ -279,7 +277,7 @@ export function SubmitReviewDialog({
 
           {/* Bill Upload */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">{t("billRequired")}</Label>
+            <Label className="text-sm font-medium">{t("billRequired")} ({t("optional", { fallback: "Optional" })})</Label>
             <div className="flex items-center gap-4">
               {billPreview ? (
                 <div className="relative w-24 h-24 rounded-xl overflow-hidden border">
@@ -364,7 +362,6 @@ export function SubmitReviewDialog({
             onClick={handleSubmit}
             disabled={
               saving ||
-              !billFile ||
               items.length === 0 ||
               items.some((i) => i.quantity < 0 || i.unitCost < 0)
             }

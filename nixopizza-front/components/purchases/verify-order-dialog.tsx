@@ -154,7 +154,7 @@ export function VerifyOrderDialog({
     }
   };
 
-  const canVerify = user?.role === "admin" && order.status === "pending_review" && !!order.bon && !!selectedStock;
+  const canVerify = user?.role === "admin" && order.status === "pending_review" && !!selectedStock;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
