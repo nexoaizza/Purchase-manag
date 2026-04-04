@@ -19,6 +19,7 @@ import stockItemRouter from "./routes/stock-item.router";
 import templateRouter from "./routes/template.router";
 import transferRouter from "./routes/transfer.router";
 import wasteRouter from "./routes/waste.router";
+import repitiveTaskRouter from "./routes/repetitive-tasks.router";
 
 import blobUploadRouter from "./routes/blobUpload.router";
 import User from "./models/user.model";
@@ -98,6 +99,7 @@ app.use("/api/stock-items", stockItemRouter);
 app.use("/api/templates", templateRouter);
 app.use("/api/transfers", transferRouter);
 app.use("/api/wastes", wasteRouter);
+app.use("/api/repetitive-tasks", repitiveTaskRouter);
 
 const PORT = process.env.PORT || 5000;
 

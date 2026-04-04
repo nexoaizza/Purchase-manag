@@ -14,6 +14,7 @@ import {
 import { Search, Filter, ArrowUpDown, Plus } from "lucide-react";
 import { useState } from "react";
 import { CreateTaskDialog } from "./create-task-dialog";
+import { AddRepetitiveTaskDialog } from "./add-repetitive-task-dialog";
 
 interface TasksHeaderProps {
   onSearchChange: (search: string) => void;
@@ -35,6 +36,7 @@ export function TasksHeader({
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("createdAt");
   const [order, setOrder] = useState("desc");
+  const [isRepetitiveDialogOpen, setIsRepetitiveDialogOpen] = useState(false);
 
   // Handle search change
   const handleSearchChange = (value: string) => {
@@ -68,13 +70,22 @@ export function TasksHeader({
             {t("subtitle")}
           </p>
         </div>
-        <Button
-          onClick={() => setIsCreateDialogOpen(true)}
-          className="rounded-full px-6 gap-2"
-        >
-          <Plus className="h-4 w-4" />
-          {t("createTask") || "Create Task"}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setIsRepetitiveDialogOpen(true)}
+            className="rounded-full px-6 gap-2"
+          >
+            Repetitive Tasks
+          </Button>
+          <Button
+            onClick={() => setIsCreateDialogOpen(true)}
+            className="rounded-full px-6 gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            {t("createTask") || "Create Task"}
+          </Button>
+        </div>
       </div>
 
       {/* Search and Filters */}
@@ -129,6 +140,10 @@ export function TasksHeader({
       <CreateTaskDialog
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
+      />
+      <AddRepetitiveTaskDialog
+        open={isRepetitiveDialogOpen}
+        onOpenChange={setIsRepetitiveDialogOpen}
       />
     </div>
   );

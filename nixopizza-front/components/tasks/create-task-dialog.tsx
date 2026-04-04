@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { getStuff } from "@/lib/apis/stuff";
 import { createTask } from "@/lib/apis/task";
+import { getRepetitiveTasks, IRepetitiveTask, selectRepetitiveTask } from "@/lib/apis/repetitive-tasks";
 import { ClipboardList, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { resolveImage } from "@/lib/resolveImage";
@@ -52,6 +53,8 @@ export function CreateTaskDialog({
   const [deadline, setDeadline] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingData, setIsFetchingData] = useState(false);
+  const [repetitiveTasks, setRepetitiveTasks] = useState<IRepetitiveTask[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -60,12 +63,20 @@ export function CreateTaskDialog({
       try {
         setIsFetchingData(true);
         
-        // Fetch staff
+        // Fetch staff and repetitive tasks
         const staffParams = { page: 1, limit: 1000 } as unknown as { name?: string };
-        const staffResponse = await getStuff(staffParams);
+        
+        const [staffResponse, repetitiveTasksResponse] = await Promise.all([
+          getStuff(staffParams),
+          getRepetitiveTasks()
+        ]);
         
         if (staffResponse.success && staffResponse.staffs) {
           setStaffList(staffResponse.staffs);
+        }
+        
+        if (repetitiveTasksResponse.success && repetitiveTasksResponse.tasks) {
+          setRepetitiveTasks(repetitiveTasksResponse.tasks);
         }
       } catch (error) {
         console.error("Failed to fetch data:", error);
@@ -172,17 +183,44 @@ export function CreateTaskDialog({
             </div>
 
             {/* Description (Optional) */}
-            <div className="space-y-2">
+            <div className="space-y-2 relative">
               <Label htmlFor="description" className="text-sm font-medium">
                 {t("description") || "Description"} <span className="text-muted-foreground text-xs">(Optional)</span>
               </Label>
-              <Textarea
-                id="description"
-                placeholder={t("taskDescriptionPlaceholder") || "Enter task description..."}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg min-h-[80px]"
-              />
+              <div className="relative">
+                <Textarea
+                  id="description"
+                  placeholder={t("taskDescriptionPlaceholder") || "Enter task description..."}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  onFocus={() => setShowDropdown(true)}
+                  onBlur={() => setShowDropdown(false)}
+                  className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg min-h-[80px]"
+                />
+                
+                {showDropdown && repetitiveTasks.length > 0 && (
+                  <div className="absolute z-10 w-full mt-1 bg-popover border border-border rounded-md shadow-lg max-h-[250px] overflow-y-auto top-[100%] left-0">
+                    {repetitiveTasks.map((task) => (
+                      <div
+                        key={task._id}
+                        className="px-3 py-2 text-sm cursor-pointer hover:bg-muted text-popover-foreground border-b last:border-0"
+                        onMouseDown={async (e) => {
+                          e.preventDefault(); // Prevent blur before click
+                          setDescription(task.description);
+                          setShowDropdown(false);
+                          try {
+                            await selectRepetitiveTask(task._id);
+                          } catch (error) {
+                            console.error("Failed to update task selection time", error);
+                          }
+                        }}
+                      >
+                        {task.description}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Deadline */}
