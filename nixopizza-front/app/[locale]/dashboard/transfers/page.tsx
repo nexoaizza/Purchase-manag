@@ -12,6 +12,7 @@ import { getStocks, IStock } from "@/lib/apis/stocks";
 export default function TransfersPage() {
   const [transfers, setTransfers] = useState<ITransfer[]>([]);
   const [stocks, setStocks] = useState<IStock[]>([]);
+  const [pendingTransfersCount, setPendingTransfersCount] = useState(0);
   const [statusFilter, setStatusFilter] = useState("all");
   const [fromStockFilter, setFromStockFilter] = useState("all");
   const [toStockFilter, setToStockFilter] = useState("all");
@@ -54,8 +55,23 @@ export default function TransfersPage() {
     if (success) {
       setTransfers(fetchedTransfers || []);
       setTotalPages(pages || 1);
+      fetchPendingTransfersCount();
     } else {
       toast.error(message);
+    }
+  };
+
+  const fetchPendingTransfersCount = async () => {
+    const { success, transfers: pendingTransfers } = await getTransfers({
+      status: "pending",
+      page: 1,
+      limit: 1000,
+      sortBy: "createdAt",
+      order: "desc",
+    });
+
+    if (success) {
+      setPendingTransfersCount((pendingTransfers || []).length);
     }
   };
 
@@ -99,6 +115,7 @@ export default function TransfersPage() {
           toStockFilter={toStockFilter}
           setToStockFilter={setToStockFilter}
           stocks={stocks}
+          pendingTransfersCount={pendingTransfersCount}
         />
 
         <TransferTable

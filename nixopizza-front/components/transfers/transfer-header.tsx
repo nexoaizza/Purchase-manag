@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Plus } from "lucide-react";
 import {
   Select,
@@ -21,6 +22,7 @@ interface TransferHeaderProps {
   toStockFilter: string;
   setToStockFilter: (stock: string) => void;
   stocks: IStock[];
+  pendingTransfersCount: number;
 }
 
 export function TransferHeader({
@@ -32,6 +34,7 @@ export function TransferHeader({
   toStockFilter,
   setToStockFilter,
   stocks,
+  pendingTransfersCount,
 }: TransferHeaderProps) {
   const t = useTranslations("transfers");
 
@@ -39,9 +42,12 @@ export function TransferHeader({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">
-            {t("title")}
-          </h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-3xl font-bold tracking-tight">{t("title")}</h2>
+            <Badge variant="secondary">
+              {t("pendingTransfers")} : {pendingTransfersCount}
+            </Badge>
+          </div>
           <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <Button onClick={onAddClick} size="default">
