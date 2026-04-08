@@ -62,16 +62,16 @@ export default function TransfersPage() {
   };
 
   const fetchPendingTransfersCount = async () => {
-    const { success, transfers: pendingTransfers } = await getTransfers({
+    const { success, total, transfers: pendingTransfers } = await getTransfers({
       status: "pending",
       page: 1,
-      limit: 1000,
+      limit: 1,
       sortBy: "createdAt",
       order: "desc",
     });
 
     if (success) {
-      setPendingTransfersCount((pendingTransfers || []).length);
+      setPendingTransfersCount(total || (pendingTransfers || []).length);
     }
   };
 
