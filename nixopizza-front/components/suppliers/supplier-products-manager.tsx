@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ISupplier } from "@/app/[locale]/dashboard/suppliers/page";
 import { getProducts } from "@/lib/apis/products";
 import { setSupplierProducts } from "@/lib/apis/suppliers";
@@ -123,13 +123,17 @@ export function SupplierProductsManager({
     return matchesSearch && matchesCategory;
   });
 
-  const categories = Array.from(
-    new Map(
-      allProducts
-        .filter((product) => product.categoryId?._id)
-        .map((product) => [product.categoryId._id, product.categoryId.name])
-    ).entries()
-  ).map(([id, name]) => ({ id, name }));
+  const categories = useMemo(
+    () =>
+      Array.from(
+        new Map(
+          allProducts
+            .filter((product) => product.categoryId?._id)
+            .map((product) => [product.categoryId._id, product.categoryId.name])
+        ).entries()
+      ).map(([id, name]) => ({ id, name })),
+    [allProducts]
+  );
 
   const assignedProducts = filteredProducts.filter((p) =>
     pendingProducts.includes(p._id)

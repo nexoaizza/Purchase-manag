@@ -71,7 +71,7 @@ export default function TransfersPage() {
     });
 
     if (success) {
-      setPendingTransfersCount(total || (pendingTransfers || []).length);
+      setPendingTransfersCount(total ?? (pendingTransfers || []).length);
     }
   };
 
