@@ -85,13 +85,23 @@ export function StockItemHeader({
   };
 
   const handleMinPriceChange = (value: string) => {
-    if (value !== "" && Number(value) < 0) return;
+    if (value === "") {
+      setMinPrice("");
+      onMinPriceChange("");
+      return;
+    }
+    if (Number(value) < 0) return;
     setMinPrice(value);
     onMinPriceChange(value);
   };
 
   const handleMaxPriceChange = (value: string) => {
-    if (value !== "" && Number(value) < 0) return;
+    if (value === "") {
+      setMaxPrice("");
+      onMaxPriceChange("");
+      return;
+    }
+    if (Number(value) < 0) return;
     setMaxPrice(value);
     onMaxPriceChange(value);
   };
