@@ -124,14 +124,19 @@ export function SupplierProductsManager({
   });
 
   const categories = useMemo(
-    () =>
-      Array.from(
-        new Map(
-          allProducts
-            .filter((product) => product.categoryId?._id)
-            .map((product) => [product.categoryId._id, product.categoryId.name])
-        ).entries()
-      ).map(([id, name]) => ({ id, name })),
+    () => {
+      const categoriesMap = new Map<string, string>();
+      for (const product of allProducts) {
+        if (product.categoryId?._id && product.categoryId?.name) {
+          categoriesMap.set(product.categoryId._id, product.categoryId.name);
+        }
+      }
+
+      return Array.from(categoriesMap.entries()).map(([id, name]) => ({
+        id,
+        name,
+      }));
+    },
     [allProducts]
   );
 

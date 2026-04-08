@@ -25,6 +25,7 @@ export default function TransfersPage() {
 
   useEffect(() => {
     fetchStocks();
+    fetchPendingTransfersCount();
   }, []);
 
   useEffect(() => {
@@ -55,7 +56,6 @@ export default function TransfersPage() {
     if (success) {
       setTransfers(fetchedTransfers || []);
       setTotalPages(pages || 1);
-      fetchPendingTransfersCount();
     } else {
       toast.error(message);
     }
@@ -87,6 +87,7 @@ export default function TransfersPage() {
     if (success) {
       toast.success("Transfer deleted successfully");
       fetchTransfers();
+      fetchPendingTransfersCount();
     } else {
       toast.error(message);
     }
@@ -95,12 +96,14 @@ export default function TransfersPage() {
   const handleTransferCreated = () => {
     setAddDialogOpen(false);
     fetchTransfers();
+    fetchPendingTransfersCount();
   };
 
   const handleTransferUpdated = () => {
     setEditDialogOpen(false);
     setSelectedTransfer(null);
     fetchTransfers();
+    fetchPendingTransfersCount();
   };
 
   return (
