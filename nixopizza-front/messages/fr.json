@@ -1018,7 +1018,7 @@
         "failedToRemoveProduct": "Échec de la suppression du produit",
         "searchProducts": "Rechercher des produits...",
         "filterByCategory": "Filtrer par catégorie",
-        "allCategories": "Toutes les catégories",
+        "allProductCategories": "Toutes les catégories",
         "assignedProducts": "Produits assignés",
         "availableProducts": "Produits disponibles",
         "noProductsAssigned": "Aucun produit assigné pour le moment",

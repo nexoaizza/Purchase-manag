@@ -176,7 +176,7 @@ export function SupplierProductsManager({
                 <SelectValue placeholder={t("filterByCategory")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t("allCategories")}</SelectItem>
+                <SelectItem value="all">{t("allProductCategories")}</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category.id} value={category.id}>
                     {category.name}
