@@ -4,9 +4,8 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Search } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { AddStockItemDialog } from "./add-stock-item-dialog";
-import { Slider } from "@/components/ui/slider";
 
 import {
   Select,
@@ -40,7 +39,8 @@ export function StockItemHeader({
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedStock, setSelectedStock] = useState("");
   const [expirationStatus, setExpirationStatus] = useState("");
-  const [priceRange, setPriceRange] = useState<number[]>([0, 1000]);
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
   const [stocks, setStocks] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -49,15 +49,6 @@ export function StockItemHeader({
     fetchStocks();
     fetchCategories();
   }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      onMinPriceChange(priceRange[0].toString());
-      onMaxPriceChange(priceRange[1].toString());
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [priceRange, onMinPriceChange, onMaxPriceChange]);
 
   const fetchStocks = async () => {
     const { success, stocks: fetchedStocks } = await getStocks({ limit: 1000 });
@@ -93,8 +84,26 @@ export function StockItemHeader({
     onExpirationStatusChange(value);
   };
 
-  const handlePriceRangeChange = (value: number[]) => {
-    setPriceRange(value);
+  const handleMinPriceChange = (value: string) => {
+    if (value === "") {
+      setMinPrice("");
+      onMinPriceChange("");
+      return;
+    }
+    if (Number(value) < 0) return;
+    setMinPrice(value);
+    onMinPriceChange(value);
+  };
+
+  const handleMaxPriceChange = (value: string) => {
+    if (value === "") {
+      setMaxPrice("");
+      onMaxPriceChange("");
+      return;
+    }
+    if (Number(value) < 0) return;
+    setMaxPrice(value);
+    onMaxPriceChange(value);
   };
 
   const handleStockItemCreated = () => {
@@ -166,17 +175,22 @@ export function StockItemHeader({
             <SelectItem value="expired">{t("expired")}</SelectItem>
           </SelectContent>
         </Select>
-        <div className="flex flex-col gap-2 w-full lg:w-48">
-          <div className="flex justify-between text-sm text-muted-foreground">
-            <span>Min: ${priceRange[0]}</span>
-            <span>Max: ${priceRange[1]}</span>
-          </div>
-          <Slider
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full lg:w-[18rem]">
+          <Input
+            type="number"
             min={0}
-            max={1000}
-            step={1}
-            value={priceRange}
-            onValueChange={handlePriceRangeChange}
+            placeholder={t("minPrice")}
+            value={minPrice}
+            onChange={(e) => handleMinPriceChange(e.target.value)}
+            className="border-2 border-input focus-visible:ring-2 focus-visible:ring-primary/30"
+          />
+          <Input
+            type="number"
+            min={0}
+            placeholder={t("maxPrice")}
+            value={maxPrice}
+            onChange={(e) => handleMaxPriceChange(e.target.value)}
+            className="border-2 border-input focus-visible:ring-2 focus-visible:ring-primary/30"
           />
         </div>
       </div>
