@@ -45,7 +45,7 @@ export function TransferHeader({
           <div className="flex items-center gap-3">
             <h2 className="text-3xl font-bold tracking-tight">{t("title")}</h2>
             <Badge variant="secondary">
-              {t("pendingTransfers")} : {pendingTransfersCount}
+              {t("pendingTransfers")}: {pendingTransfersCount}
             </Badge>
           </div>
           <p className="text-muted-foreground">{t("subtitle")}</p>
