@@ -14,6 +14,7 @@ export interface ISupplier {
   productIds: Types.ObjectId[]; // products this supplier provides
   image?: string;
   notes?: string;
+  telegramChatId?: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -42,6 +43,7 @@ const supplierSchema = new Schema<ISupplier>(
     city: { type: String, trim: true },
     image: { type: String },
     notes: { type: String },
+    telegramChatId: { type: String, trim: true },
     isActive: { type: Boolean, default: true },
     categoryIds: { type: [Schema.Types.ObjectId], ref: "Category", default: [] },
     productIds: { type: [Schema.Types.ObjectId], ref: "Product", default: [] },
