@@ -11,16 +11,20 @@ export const handleTelegramWebhook = async (
     const text: string | undefined = message?.text;
     const chatId = message?.chat?.id ? String(message.chat.id) : undefined;
 
+    // Ignore messages without text or chatId
     if (!text || !chatId) {
       return;
     }
 
+    // Only process the deep-link /start command
     if (!text.startsWith("/start ")) {
       return;
     }
 
-    const supplierId = text.slice(7).trim();
-    if (!supplierId) {
+    // Extract the phone number from the deep link
+    const phoneNumber = text.slice(7).trim();
+    
+    if (!phoneNumber) {
       await sendTelegramMessage(
         chatId,
         "❌ Connection failed. Please use the correct deep-link provided by Nexo Pizza."
@@ -28,27 +32,31 @@ export const handleTelegramWebhook = async (
       return;
     }
 
-    const supplier = await Supplier.findByIdAndUpdate(
-      supplierId,
-      { telegramChatId: chatId },
-      { new: true }
-    );
+    // Find the supplier by phone number instead of database ID
+    const supplier = await Supplier.findOne({ phone: phoneNumber });
 
     if (!supplier) {
       await sendTelegramMessage(
         chatId,
-        "❌ Connection failed. Supplier not found. Please use a valid deep-link."
+        `❌ Connection failed. We couldn't find a supplier with the phone number: ${phoneNumber}. Please check the number and try again.`
       );
       return;
     }
 
+    // Save the new Telegram Chat ID to the supplier
+    supplier.telegramChatId = chatId;
+    await supplier.save();
+
+    // Send a personalized success message
     await sendTelegramMessage(
       chatId,
-      "✅ You are now successfully connected to Nexo Pizza orders!"
+      `✅ Welcome! You are now successfully connected to Nexo Pizza orders as **${supplier.name}**.`
     );
+
   } catch (error: any) {
     console.error("Telegram webhook handling failed:", error?.message || error);
   } finally {
+    // Always return 200 OK so Telegram knows the webhook was received
     res.sendStatus(200);
   }
 };
