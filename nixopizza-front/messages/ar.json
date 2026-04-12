@@ -30,7 +30,8 @@
         "orders": "الطلبات",
         "templates": "القوالب",
         "signOut": "تسجيل الخروج",
-        "parameters": "الإعدادات"
+        "parameters": "الإعدادات",
+        "pendingTransfersAriaLabel": "{count} تحويلات معلقة"
     },
     "dashboard": {
         "title": "لوحة المعلومات",
@@ -507,7 +508,7 @@
         "selectStaffMember": "اختر عضو الفريق"
     },
     "purchases": {
-        "delete":"حذف",
+        "delete": "حذف",
         "title": "قوائم الشراء",
         "subtitle": "إدارة وتتبع أوامر الشراء",
         "generatePurchaseLists": "إنشاء قوائم الشراء",

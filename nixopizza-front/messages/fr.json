@@ -30,7 +30,8 @@
         "orders": "Commandes",
         "templates": "Modèles",
         "signOut": "Déconnexion",
-        "parameters": "Paramètres"
+        "parameters": "Paramètres",
+        "pendingTransfersAriaLabel": "{count} transferts en attente"
     },
     "dashboard": {
         "title": "Tableau de bord",
@@ -574,7 +575,6 @@
         "notAssignedStatus": "non assignée",
         "assignedStatus": "assignée",
         "confirmedStatus": "confirmée",
-        "paidStatus": "payée",
         "paidStatus": "payée",
         "assignButton": "Assigner",
         "assignmentTypeLabel": "Type d'assignation",

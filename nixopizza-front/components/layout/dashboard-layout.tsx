@@ -65,11 +65,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       getTransfers({ status: "pending", page: 1, limit: 1, sortBy: "createdAt", order: "desc" })
         .then((data) => {
-          if (data && data.total !== undefined) {
-            setPendingTransfersCount(data.total);
+          if (!data.success) {
+            console.error("Failed to fetch pending transfers count:", data.message);
+            return;
           }
-        })
-        .catch((err) => console.log("Failed to fetch pending transfers count:", err));
+          setPendingTransfersCount(data.total ?? 0);
+        });
     }
   }, [user]);
 
@@ -194,7 +195,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                           )}
                           {item.name === t("transfers") && pendingTransfersCount > 0 && (
                             <span
-                              aria-label={`${pendingTransfersCount} pending transfers`}
+                              aria-label={t("pendingTransfersAriaLabel", {
+                                count: pendingTransfersCount,
+                              })}
                               className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-yellow-500 text-[10px] font-bold text-white"
                             >
                               {pendingTransfersCount > 99 ? "99+" : pendingTransfersCount}
