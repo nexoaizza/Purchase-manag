@@ -148,14 +148,14 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
         .map((item: any) => {
           const productName = item?.productId?.name || "Product";
           const quantity = item?.quantity ?? 0;
-          return `- ${productName}: ${quantity}`;
+          return `- [${productName}]: [${quantity}]`;
         })
         .join("\n");
 
       const date = new Date().toISOString().split("T")[0];
       const messageBody =
         `*📦 New Order Request (Nexo Pizza)*\n` +
-        `Order No: ${String((populated as any)?.orderNumber || "")}\n` +
+        `Order No: \`${String((populated as any)?.orderNumber || "")}\`\n` +
         `Date: ${date}\n\n` +
         `*Items:*\n` +
         `${itemsList}\n\n` +
