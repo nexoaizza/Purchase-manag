@@ -30,7 +30,8 @@
         "orders": "Orders",
         "templates": "Templates",
         "signOut": "Sign Out",
-        "parameters": "Parameters"
+        "parameters": "Parameters",
+        "pendingTransfersAriaLabel": "{count} pending transfers"
     },
     "dashboard": {
         "title": "Dashboard",
