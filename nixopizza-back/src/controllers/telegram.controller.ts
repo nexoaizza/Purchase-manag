@@ -33,7 +33,7 @@ export const handleTelegramWebhook = async (
     }
 
     // Find the supplier by phone number instead of database ID
-    const supplier = await Supplier.findOne({ phone: phoneNumber });
+    const supplier = await Supplier.findOne({ phone1: phoneNumber });
 
     if (!supplier) {
       await sendTelegramMessage(
