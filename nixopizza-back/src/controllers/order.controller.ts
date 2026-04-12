@@ -11,6 +11,7 @@ import { sendPushNotification } from "../services/firebase.service";
 import { createLocalNotification } from "./notification.controller";
 // [ADDED] Import the WhatsApp service
 import { sendWhatsAppMessage } from "../services/whatsapp.service";
+import { sendTelegramMessage } from "../services/telegram.service";
 
 /**
  * Helper: generate order number like ORD-YYYYMMDD-RAND
@@ -58,7 +59,7 @@ async function populateOrder(orderDoc: any) {
     {
       path: "supplierId",
       // [NOTE] Ensure phone1 is selected to send the WhatsApp message
-      select: "email name image contactPerson address phone1 phone2 phone3 city",
+      select: "email name image contactPerson address phone1 phone2 phone3 city telegramChatId",
     },
     {
       path: "items",
@@ -140,6 +141,30 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
 
     await order.save();
     const populated = await populateOrder(order);
+
+    const supplier = (populated as any)?.supplierId;
+    if (supplier?.telegramChatId) {
+      const itemsList = ((populated as any)?.items || [])
+        .map((item: any) => {
+          const productName = item?.productId?.name || "Product";
+          const quantity = item?.quantity ?? 0;
+          return `- ${productName}: ${quantity}`;
+        })
+        .join("\n");
+
+      const date = new Date().toISOString().split("T")[0];
+      const messageBody =
+        `*📦 New Order Request (Nexo Pizza)*\n` +
+        `Order No: ${String((populated as any)?.orderNumber || "")}\n` +
+        `Date: ${date}\n\n` +
+        `*Items:*\n` +
+        `${itemsList}\n\n` +
+        `Please confirm availability.`;
+
+      void sendTelegramMessage(supplier.telegramChatId, messageBody).catch((error) => {
+        console.error("Failed to send Telegram order message:", error);
+      });
+    }
 
     // Trigger local notification for purchase list (order) generation
     await createLocalNotification(

@@ -20,6 +20,7 @@ import templateRouter from "./routes/template.router";
 import transferRouter from "./routes/transfer.router";
 import wasteRouter from "./routes/waste.router";
 import repitiveTaskRouter from "./routes/repetitive-tasks.router";
+import telegramRouter from "./routes/telegram.router";
 
 import blobUploadRouter from "./routes/blobUpload.router";
 import User from "./models/user.model";
@@ -100,6 +101,7 @@ app.use("/api/templates", templateRouter);
 app.use("/api/transfers", transferRouter);
 app.use("/api/wastes", wasteRouter);
 app.use("/api/repetitive-tasks", repitiveTaskRouter);
+app.use("/api/telegram", telegramRouter);
 
 const PORT = process.env.PORT || 5000;
 
