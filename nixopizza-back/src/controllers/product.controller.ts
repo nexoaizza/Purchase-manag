@@ -162,11 +162,41 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
     const sortOrder = order === "desc" ? -1 : 1;
     const skip = (Number(page) - 1) * Number(limit);
 
-    const products = await Product.find(query)
-      .populate("categoryId")
-      .sort({ [sortField]: sortOrder })
-      .skip(skip)
-      .limit(Number(limit));
+    const pipeline: any[] = [
+      { $match: query }
+    ];
+
+    if (name) {
+      pipeline.push({
+        $addFields: {
+          startsWithSearch: {
+            $cond: {
+              if: { $eq: [{ $indexOfCP: [{ $toLower: "$name" }, (name as string).toLowerCase()] }, 0] },
+              then: 1,
+              else: 0
+            }
+          }
+        }
+      });
+    }
+
+    let sortStage: any = {};
+    if (name) {
+      sortStage.startsWithSearch = -1;
+    }
+    sortStage[sortField] = sortOrder;
+    if (sortField !== "barcode") {
+      sortStage["barcode"] = 1;
+    }
+
+    pipeline.push(
+      { $sort: sortStage },
+      { $skip: skip },
+      { $limit: Number(limit) }
+    );
+
+    const products = await Product.aggregate(pipeline);
+    await Product.populate(products, { path: "categoryId" });
 
     const total = await Product.countDocuments(query);
 

@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import { Types } from "mongoose";
 import StockItem from "../models/stock-item.model";
 import Stock from "../models/stock.model";
-import Product from "../models/product.model";
 import { createLocalNotification } from "./notification.controller";
 
 // CREATE
@@ -318,6 +317,17 @@ export const getAllStockItems = async (req: Request, res: Response): Promise<voi
                 "product.name": { $regex: productName as string, $options: "i" },
               },
             },
+            {
+              $addFields: {
+                startsWithSearch: {
+                  $cond: {
+                    if: { $eq: [{ $indexOfCP: [{ $toLower: "$product.name" }, (productName as string).toLowerCase()] }, 0] },
+                    then: 1,
+                    else: 0
+                  }
+                }
+              }
+            }
           ]
         : []),
       ...(category
@@ -377,12 +387,18 @@ export const getAllStockItems = async (req: Request, res: Response): Promise<voi
       });
     }
 
-    let sortStage: any = { "product.name": 1 };
+    let sortStage: any = {};
+    if (productName) {
+      sortStage.startsWithSearch = -1;
+    }
+    
     if (sortBy === "product") {
-      sortStage = { "product.name": order === "desc" ? -1 : 1 };
+      sortStage["product.name"] = order === "desc" ? -1 : 1;
     } else if (sortBy === "expiration") {
       // Sorting by expireAt directly; if product doesn't have an expiration it will likely sink/float based on 1/-1
-      sortStage = { expireAt: order === "desc" ? -1 : 1 };
+      sortStage.expireAt = order === "desc" ? -1 : 1;
+    } else {
+      sortStage["product.name"] = 1;
     }
 
     pipeline.push(
