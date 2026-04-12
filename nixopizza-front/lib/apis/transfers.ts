@@ -37,9 +37,10 @@ export const createTransfer = async (data: {
 // Get transfers
 export const getTransfers = async (params?: any) => {
   try {
-    const {
-      data: { transfers, total, pages },
-    } = await api.get("/transfers", { params });
+    const { data } = await api.get("/transfers", { params });
+    const transfers = data?.transfers || [];
+    const total = data?.total ?? data?.pagination?.totalItems ?? 0;
+    const pages = data?.pages ?? data?.pagination?.totalPages ?? 1;
     return { success: true, transfers, total, pages };
   } catch (error: any) {
     const message = error.response?.data?.message || "Failed to fetch transfers";

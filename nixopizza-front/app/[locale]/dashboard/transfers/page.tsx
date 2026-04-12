@@ -12,6 +12,7 @@ import { getStocks, IStock } from "@/lib/apis/stocks";
 export default function TransfersPage() {
   const [transfers, setTransfers] = useState<ITransfer[]>([]);
   const [stocks, setStocks] = useState<IStock[]>([]);
+  const [pendingTransfersCount, setPendingTransfersCount] = useState(0);
   const [statusFilter, setStatusFilter] = useState("all");
   const [fromStockFilter, setFromStockFilter] = useState("all");
   const [toStockFilter, setToStockFilter] = useState("all");
@@ -24,6 +25,7 @@ export default function TransfersPage() {
 
   useEffect(() => {
     fetchStocks();
+    fetchPendingTransfersCount();
   }, []);
 
   useEffect(() => {
@@ -59,6 +61,20 @@ export default function TransfersPage() {
     }
   };
 
+  const fetchPendingTransfersCount = async () => {
+    const { success, total } = await getTransfers({
+      status: "pending",
+      page: 1,
+      limit: 1,
+      sortBy: "createdAt",
+      order: "desc",
+    });
+
+    if (success) {
+      setPendingTransfersCount(total);
+    }
+  };
+
   const handleEdit = (transfer: ITransfer) => {
     setSelectedTransfer(transfer);
     setEditDialogOpen(true);
@@ -71,6 +87,7 @@ export default function TransfersPage() {
     if (success) {
       toast.success("Transfer deleted successfully");
       fetchTransfers();
+      fetchPendingTransfersCount();
     } else {
       toast.error(message);
     }
@@ -79,12 +96,14 @@ export default function TransfersPage() {
   const handleTransferCreated = () => {
     setAddDialogOpen(false);
     fetchTransfers();
+    fetchPendingTransfersCount();
   };
 
   const handleTransferUpdated = () => {
     setEditDialogOpen(false);
     setSelectedTransfer(null);
     fetchTransfers();
+    fetchPendingTransfersCount();
   };
 
   return (
@@ -99,6 +118,7 @@ export default function TransfersPage() {
           toStockFilter={toStockFilter}
           setToStockFilter={setToStockFilter}
           stocks={stocks}
+          pendingTransfersCount={pendingTransfersCount}
         />
 
         <TransferTable

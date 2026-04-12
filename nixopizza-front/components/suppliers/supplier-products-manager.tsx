@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ISupplier } from "@/app/[locale]/dashboard/suppliers/page";
 import { getProducts } from "@/lib/apis/products";
 import { setSupplierProducts } from "@/lib/apis/suppliers";
@@ -15,6 +15,13 @@ import { Input } from "@/components/ui/input";
 import { Package, Plus, X, Search, Save } from "lucide-react";
 import { useTranslations } from "next-intl";
 import toast from "react-hot-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface SupplierProductsManagerProps {
   supplier: ISupplier | null;
@@ -39,6 +46,7 @@ export function SupplierProductsManager({
   const t = useTranslations("suppliers");
   const [allProducts, setAllProducts] = useState<IProduct[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   /** Local copy — changes are NOT sent to the backend until Save is clicked */
@@ -47,6 +55,7 @@ export function SupplierProductsManager({
   useEffect(() => {
     if (open && supplier) {
       fetchProducts();
+      setCategoryFilter("all");
       setPendingProducts(
         supplier.productIds?.map((p: any) =>
           typeof p === "string" ? p : p._id
@@ -104,8 +113,31 @@ export function SupplierProductsManager({
     }
   };
 
-  const filteredProducts = allProducts.filter((product) =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredProducts = allProducts.filter((product) => {
+    const matchesSearch = product.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      categoryFilter === "all" || product.categoryId?._id === categoryFilter;
+
+    return matchesSearch && matchesCategory;
+  });
+
+  const categories = useMemo(
+    () => {
+      const categoriesMap = new Map<string, string>();
+      for (const product of allProducts) {
+        if (product.categoryId?._id && product.categoryId?.name) {
+          categoriesMap.set(product.categoryId._id, product.categoryId.name);
+        }
+      }
+
+      return Array.from(categoriesMap.entries()).map(([id, name]) => ({
+        id,
+        name,
+      }));
+    },
+    [allProducts]
   );
 
   const assignedProducts = filteredProducts.filter((p) =>
@@ -128,15 +160,30 @@ export function SupplierProductsManager({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder={t("searchProducts")}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+          {/* Search and Category Filter */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder={t("searchProducts")}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder={t("filterByCategory")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("allProductCategories")}</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Assigned Products */}

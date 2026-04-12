@@ -3,6 +3,7 @@
 import type React from "react";
 import { useState, useEffect } from "react";
 import { get_unread_notifications_count } from "@/lib/apis/notifications";
+import { getTransfers } from "@/lib/apis/transfers";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
@@ -50,6 +51,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [pendingTransfersCount, setPendingTransfersCount] = useState(0);
 
   useEffect(() => {
     if (user) {
@@ -60,6 +62,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           }
         })
         .catch((err) => console.log(err));
+
+      getTransfers({ status: "pending", page: 1, limit: 1, sortBy: "createdAt", order: "desc" })
+        .then((data) => {
+          if (!data.success) {
+            console.error("Failed to fetch pending transfers count:", data.message);
+            return;
+          }
+          setPendingTransfersCount(data.total ?? 0);
+        });
     }
   }, [user]);
 
@@ -180,6 +191,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                           {item.name === t("notifications") && unreadCount > 0 && (
                             <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
                               {unreadCount > 99 ? "99+" : unreadCount}
+                            </span>
+                          )}
+                          {item.name === t("transfers") && pendingTransfersCount > 0 && (
+                            <span
+                              aria-label={t("pendingTransfersAriaLabel", {
+                                count: pendingTransfersCount,
+                              })}
+                              className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-yellow-500 text-[10px] font-bold text-white"
+                            >
+                              {pendingTransfersCount > 99 ? "99+" : pendingTransfersCount}
                             </span>
                           )}
                         </div>

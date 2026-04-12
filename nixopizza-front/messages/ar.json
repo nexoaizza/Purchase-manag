@@ -30,7 +30,8 @@
         "orders": "الطلبات",
         "templates": "القوالب",
         "signOut": "تسجيل الخروج",
-        "parameters": "الإعدادات"
+        "parameters": "الإعدادات",
+        "pendingTransfersAriaLabel": "{count} تحويلات معلقة"
     },
     "dashboard": {
         "title": "لوحة المعلومات",
@@ -487,6 +488,8 @@
         "allCategories": "جميع الفئات",
         "expirationStatus": "حالة الانتهاء",
         "allItems": "جميع العناصر",
+        "minPrice": "أقل سعر",
+        "maxPrice": "أعلى سعر",
         "transferDescription": "نقل عناصر المخزون من موقع إلى آخر",
         "utiliseDescription": "وضع علامة على العناصر كمستخدمة وتقليل الكمية في المخزون",
         "wasteDescription": "تسجيل هذا العنصر كنفايات. سيؤدي هذا الإجراء إلى إزالته من المخزون.",
@@ -505,7 +508,7 @@
         "selectStaffMember": "اختر عضو الفريق"
     },
     "purchases": {
-        "delete":"حذف",
+        "delete": "حذف",
         "title": "قوائم الشراء",
         "subtitle": "إدارة وتتبع أوامر الشراء",
         "generatePurchaseLists": "إنشاء قوائم الشراء",
@@ -1014,6 +1017,8 @@
         "productRemovedSuccess": "تمت إزالة المنتج بنجاح",
         "failedToRemoveProduct": "فشل في إزالة المنتج",
         "searchProducts": "البحث عن المنتجات...",
+        "filterByCategory": "تصفية حسب الفئة",
+        "allProductCategories": "كل الفئات",
         "assignedProducts": "المنتجات المعينة",
         "availableProducts": "المنتجات المتاحة",
         "noProductsAssigned": "لم يتم تعيين أي منتجات بعد",
@@ -1114,6 +1119,7 @@
         "quantityPlaceholder": "أدخل الكمية",
         "status": "الحالة",
         "pending": "قيد الانتظار",
+        "pendingTransfers": "التحويلات المعلقة",
         "arrived": "وصل",
         "from": "من",
         "to": "إلى",
