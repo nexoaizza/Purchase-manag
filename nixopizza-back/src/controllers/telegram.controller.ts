@@ -11,12 +11,20 @@ export const handleTelegramWebhook = async (
     const text: string | undefined = message?.text;
     const chatId = message?.chat?.id ? String(message.chat.id) : undefined;
 
-    if (!text || !chatId || !text.startsWith("/start ")) {
+    if (!text || !chatId) {
+      return;
+    }
+
+    if (!text.startsWith("/start ")) {
       return;
     }
 
     const supplierId = text.slice(7).trim();
     if (!supplierId) {
+      await sendTelegramMessage(
+        chatId,
+        "❌ Connection failed. Please use the correct deep-link provided by Nexo Pizza."
+      );
       return;
     }
 
@@ -27,6 +35,10 @@ export const handleTelegramWebhook = async (
     );
 
     if (!supplier) {
+      await sendTelegramMessage(
+        chatId,
+        "❌ Connection failed. Supplier not found. Please use a valid deep-link."
+      );
       return;
     }
 
