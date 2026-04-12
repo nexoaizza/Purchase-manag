@@ -162,7 +162,12 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
         `Please confirm availability.`;
 
       void sendTelegramMessage(supplier.telegramChatId, messageBody).catch((error) => {
-        console.error("Failed to send Telegram order message:", error);
+        console.error(
+          `Failed to send Telegram order message for order ${String(
+            (populated as any)?.orderNumber || order._id
+          )} to supplier ${String(supplier?._id || "unknown")}:`,
+          error
+        );
       });
     }
 
