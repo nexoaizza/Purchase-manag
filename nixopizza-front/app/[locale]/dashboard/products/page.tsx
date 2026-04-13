@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { getProducts, deleteProduct } from "@/lib/apis/products"; // ensure deleteProduct exists
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 export interface IProduct {
   _id: string;
@@ -35,6 +36,7 @@ interface ProductsTableProps {
 }
 
 export default function ProductsPage() {
+  const t = useTranslations("products");
   const [products, setProducts] = useState<IProduct[]>([]);
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
@@ -93,10 +95,10 @@ export default function ProductsPage() {
             }}
             className="h-10 rounded-md border bg-background px-3 text-sm"
           >
-            <option value="">All</option>
-            <option value="Available">Available</option>
-            <option value="Shortage">Shortage</option>
-            <option value="Rupture">Rupture</option>
+            <option value="">{t("allStatuses")}</option>
+            <option value="Available">{t("availableStatus")}</option>
+            <option value="Shortage">{t("shortageStatus")}</option>
+            <option value="Rupture">{t("ruptureStatus")}</option>
           </select>
         </div>
         {/* You can later add pagination controls using currentPage/totalPages */}

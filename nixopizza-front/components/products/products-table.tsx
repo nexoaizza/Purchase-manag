@@ -54,6 +54,11 @@ export function ProductsTable({
     if (status === "Shortage") return "bg-amber-100 text-amber-800 hover:bg-amber-100";
     return "bg-green-100 text-green-800 hover:bg-green-100";
   };
+  const getInventoryStatusLabel = (status?: IProduct["inventoryStatus"]) => {
+    if (status === "Rupture") return t("ruptureStatus");
+    if (status === "Shortage") return t("shortageStatus");
+    return t("availableStatus");
+  };
 
   if (products.length === 0) {
     return (
@@ -83,9 +88,9 @@ export function ProductsTable({
                 <TableHead>{t("unit")}</TableHead>
                 <TableHead>{t("minQty")}</TableHead>
                 <TableHead>{t("recommendedQty")}</TableHead>
-                <TableHead>In Stock</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Stock Locations</TableHead>
+                <TableHead>{t("inStockHeader")}</TableHead>
+                <TableHead>{t("statusHeader")}</TableHead>
+                <TableHead>{t("stockLocationsHeader")}</TableHead>
                 <TableHead className="text-right">{t("actions")}</TableHead>
               </TableRow>
             </TableHeader>
@@ -148,7 +153,7 @@ export function ProductsTable({
 
                     <TableCell>
                       <Badge className={getInventoryStatusClass(product.inventoryStatus)}>
-                        {product.inventoryStatus || "Available"}
+                        {getInventoryStatusLabel(product.inventoryStatus)}
                       </Badge>
                     </TableCell>
 
