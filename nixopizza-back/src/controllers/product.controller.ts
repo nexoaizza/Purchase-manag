@@ -141,7 +141,7 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
 // GET ALL
 export const getAllProducts = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, categoryId, sortBy, order, page = 1, limit = 10 } = req.query;
+    const { name, categoryId, sortBy, order, page = 1, limit = 10, status } = req.query;
 
     if (Number(page) < 1 || Number(limit) < 1) {
       res.status(400).json({ message: "Page and limit must be greater than 0" });
@@ -162,12 +162,78 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
     const sortOrder = order === "desc" ? -1 : 1;
     const skip = (Number(page) - 1) * Number(limit);
 
-    const pipeline: any[] = [
-      { $match: query }
+    const basePipeline: any[] = [
+      { $match: query },
+      {
+        $lookup: {
+          from: "stockitems",
+          localField: "_id",
+          foreignField: "product",
+          as: "stockItems",
+        },
+      },
+      {
+        $addFields: {
+          totalQuantity: { $sum: "$stockItems.quantity" },
+        },
+      },
+      {
+        $lookup: {
+          from: "stocks",
+          localField: "stockItems.stock",
+          foreignField: "_id",
+          as: "stocks",
+        },
+      },
+      {
+        $addFields: {
+          storedIn: {
+            $setUnion: [
+              {
+                $map: {
+                  input: "$stocks",
+                  as: "stock",
+                  in: {
+                    $cond: [
+                      {
+                        $and: [
+                          { $ne: ["$$stock.location", null] },
+                          { $ne: ["$$stock.location", ""] },
+                        ],
+                      },
+                      { $concat: ["$$stock.name", " (", "$$stock.location", ")"] },
+                      "$$stock.name",
+                    ],
+                  },
+                },
+              },
+              [],
+            ],
+          },
+          inventoryStatus: {
+            $cond: [
+              { $lte: ["$totalQuantity", "$minQty"] },
+              "Rupture",
+              {
+                $cond: [
+                  {
+                    $and: [
+                      { $gt: ["$totalQuantity", "$minQty"] },
+                      { $lt: ["$totalQuantity", "$recommendedQty"] },
+                    ],
+                  },
+                  "Shortage",
+                  "Available",
+                ],
+              },
+            ],
+          },
+        },
+      },
     ];
 
     if (name) {
-      pipeline.push({
+      basePipeline.push({
         $addFields: {
           startsWithSearch: {
             $cond: {
@@ -180,6 +246,10 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
       });
     }
 
+    if (status && ["Rupture", "Shortage", "Available"].includes(status.toString())) {
+      basePipeline.push({ $match: { inventoryStatus: status.toString() } });
+    }
+
     let sortStage: any = {};
     if (name) {
       sortStage.startsWithSearch = -1;
@@ -189,6 +259,7 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
       sortStage["barcode"] = 1;
     }
 
+    const pipeline = [...basePipeline];
     pipeline.push(
       { $sort: sortStage },
       { $skip: skip },
@@ -198,7 +269,9 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
     const products = await Product.aggregate(pipeline);
     await Product.populate(products, { path: "categoryId" });
 
-    const total = await Product.countDocuments(query);
+    const totalCountPipeline = [...basePipeline, { $count: "total" }];
+    const totalCountResult = await Product.aggregate(totalCountPipeline);
+    const total = totalCountResult[0]?.total || 0;
 
     res.status(200).json({
       total,
