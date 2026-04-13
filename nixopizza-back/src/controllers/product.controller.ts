@@ -212,14 +212,14 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
           },
           inventoryStatus: {
             $cond: [
-              { $lte: ["$totalQuantity", "$minQty"] },
+              { $lte: ["$totalQuantity", { $ifNull: ["$minQty", 0] }] },
               "Rupture",
               {
                 $cond: [
                   {
                     $and: [
-                      { $gt: ["$totalQuantity", "$minQty"] },
-                      { $lt: ["$totalQuantity", "$recommendedQty"] },
+                      { $gt: ["$totalQuantity", { $ifNull: ["$minQty", 0] }] },
+                      { $lt: ["$totalQuantity", { $ifNull: ["$recommendedQty", 0] }] },
                     ],
                   },
                   "Shortage",
