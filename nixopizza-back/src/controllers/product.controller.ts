@@ -219,7 +219,12 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
                   {
                     $and: [
                       { $gt: ["$totalQuantity", { $ifNull: ["$minQty", 0] }] },
-                      { $lt: ["$totalQuantity", { $ifNull: ["$recommendedQty", 0] }] },
+                      {
+                        $lt: [
+                          "$totalQuantity",
+                          { $ifNull: ["$recommendedQty", { $ifNull: ["$minQty", 0] }] },
+                        ],
+                      },
                     ],
                   },
                   "Shortage",
