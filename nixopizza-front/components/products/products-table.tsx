@@ -1,8 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -19,15 +18,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  AlertTriangle,
   MoreHorizontal,
   Edit,
   Trash2,
   Package,
 } from "lucide-react";
 import { resolveImage } from "@/lib/resolveImage";
-import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
 import { IProduct } from "@/app/[locale]/dashboard/products/page";
 import { Pagination } from "../ui/pagination";
 
@@ -53,6 +49,16 @@ export function ProductsTable({
   setLimit,
 }: ProductsTableProps) {
   const t = useTranslations("products");
+  const getInventoryStatusClass = (status?: IProduct["inventoryStatus"]) => {
+    if (status === "Rupture") return "bg-red-100 text-red-800 hover:bg-red-100";
+    if (status === "Shortage") return "bg-amber-100 text-amber-800 hover:bg-amber-100";
+    return "bg-green-100 text-green-800 hover:bg-green-100";
+  };
+  const getInventoryStatusLabel = (status?: IProduct["inventoryStatus"]) => {
+    if (status === "Rupture") return t("ruptureStatus");
+    if (status === "Shortage") return t("shortageStatus");
+    return t("availableStatus");
+  };
 
   if (products.length === 0) {
     return (
@@ -82,6 +88,9 @@ export function ProductsTable({
                 <TableHead>{t("unit")}</TableHead>
                 <TableHead>{t("minQty")}</TableHead>
                 <TableHead>{t("recommendedQty")}</TableHead>
+                <TableHead>{t("inStockHeader")}</TableHead>
+                <TableHead>{t("statusHeader")}</TableHead>
+                <TableHead>{t("stockLocationsHeader")}</TableHead>
                 <TableHead className="text-right">{t("actions")}</TableHead>
               </TableRow>
             </TableHeader>
@@ -136,6 +145,30 @@ export function ProductsTable({
 
                     <TableCell>
                       <span>{product.recommendedQty}</span>
+                    </TableCell>
+
+                    <TableCell>
+                      <span>{product.totalQuantity ?? 0}</span>
+                    </TableCell>
+
+                    <TableCell>
+                      <Badge className={getInventoryStatusClass(product.inventoryStatus)}>
+                        {getInventoryStatusLabel(product.inventoryStatus)}
+                      </Badge>
+                    </TableCell>
+
+                    <TableCell>
+                      {product.storedIn && product.storedIn.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {product.storedIn.map((location) => (
+                            <Badge key={location} variant="outline">
+                              {location}
+                            </Badge>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
                     </TableCell>
 
                     <TableCell className="text-right">

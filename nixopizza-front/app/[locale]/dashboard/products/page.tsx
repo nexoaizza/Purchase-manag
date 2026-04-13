@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { getProducts, deleteProduct } from "@/lib/apis/products"; // ensure deleteProduct exists
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 export interface IProduct {
   _id: string;
@@ -23,6 +24,9 @@ export interface IProduct {
   createdAt?: Date;
   updatedAt?: Date;
   recommendedQty?: number;
+  totalQuantity?: number;
+  storedIn?: string[];
+  inventoryStatus?: "Rupture" | "Shortage" | "Available";
 }
 
 interface ProductsTableProps {
@@ -32,12 +36,14 @@ interface ProductsTableProps {
 }
 
 export default function ProductsPage() {
+  const t = useTranslations("products");
   const [products, setProducts] = useState<IProduct[]>([]);
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [limit, setLimit] = useState(10);
+  const [status, setStatus] = useState<"" | "Available" | "Shortage" | "Rupture">("");
   const router = useRouter();
 
   useEffect(() => {
@@ -47,6 +53,7 @@ export default function ProductsPage() {
         page: currentPage,
         categoryId,
         name: search,
+        status: status || undefined,
       });
       if (success) {
         setProducts(products);
@@ -56,7 +63,7 @@ export default function ProductsPage() {
       }
     };
     fetchProducts();
-  }, [limit, currentPage, search, categoryId]);
+  }, [limit, currentPage, search, categoryId, status]);
 
   const handleEdit = (p: any) => {
     router.push(`/dashboard/products/edit/${p._id}`);
@@ -79,6 +86,21 @@ export default function ProductsPage() {
           onSearchChange={setSearch}
           onCategoryChange={setCategoryId}
         />
+        <div className="flex justify-end">
+          <select
+            value={status}
+            onChange={(e) => {
+              setStatus(e.target.value as "" | "Available" | "Shortage" | "Rupture");
+              setCurrentPage(1);
+            }}
+            className="h-10 rounded-md border bg-background px-3 text-sm"
+          >
+            <option value="">{t("allStatuses")}</option>
+            <option value="Available">{t("availableStatus")}</option>
+            <option value="Shortage">{t("shortageStatus")}</option>
+            <option value="Rupture">{t("ruptureStatus")}</option>
+          </select>
+        </div>
         {/* You can later add pagination controls using currentPage/totalPages */}
         <ProductsTable
           products={products}
