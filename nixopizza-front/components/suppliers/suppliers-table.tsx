@@ -108,7 +108,7 @@ export function SuppliersTable({
 
   const handleCopyTelegramLink = async (phone: string) => {
     try {
-      const inviteUrl = `https://t.me/NexoPizza_Commands_bot?start=${phone}`;
+      const inviteUrl = `https://t.me/NexoPizza_Commands_bot?start=${encodeURIComponent(phone)}`;
       await navigator.clipboard.writeText(inviteUrl);
       toast.success(
         t.has("linkCopied") ? t("linkCopied") : "Telegram link copied!"
