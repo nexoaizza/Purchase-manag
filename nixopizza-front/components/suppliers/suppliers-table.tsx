@@ -31,6 +31,7 @@ import {
   MapPin,
   Eye,
   Package,
+  Send,
 } from "lucide-react";
 import { SupplierEditDialog } from "./supplier-edit-dialog";
 import { SupplierDetailsDialog } from "./supplier-details-dialog";
@@ -103,6 +104,20 @@ export function SuppliersTable({
   const handleManageProducts = (supplier: any) => {
     setSelectedSupplier(supplier);
     setIsProductsDialogOpen(true);
+  };
+
+  const handleCopyTelegramLink = async (phone: string) => {
+    try {
+      const inviteUrl = `https://t.me/NexoPizza_Commands_bot?start=${phone}`;
+      await navigator.clipboard.writeText(inviteUrl);
+      toast.success(
+        t.has("linkCopied") ? t("linkCopied") : "Telegram link copied!"
+      );
+    } catch (error) {
+      toast.error(
+        t.has("copyFailed") ? t("copyFailed") : "Failed to copy Telegram link"
+      );
+    }
   };
 
   if (suppliers.length === 0) {
@@ -212,6 +227,16 @@ export function SuppliersTable({
                           >
                             <Eye className="h-4 w-4 mr-2" />
                             {t("viewDetails")}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleCopyTelegramLink(supplier.phone1)
+                            }
+                          >
+                            <Send className="h-4 w-4 mr-2 text-blue-500" />
+                            {t.has("copyTelegramLink")
+                              ? t("copyTelegramLink")
+                              : "Copy Telegram Invite"}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleManageProducts(supplier)}
