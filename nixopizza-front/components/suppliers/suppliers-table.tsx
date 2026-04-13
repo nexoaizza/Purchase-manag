@@ -107,6 +107,13 @@ export function SuppliersTable({
   };
 
   const handleCopyTelegramLink = async (phone: string) => {
+    if (!phone?.trim()) {
+      toast.error(
+        t.has("invalidPhone") ? t("invalidPhone") : "Invalid phone number"
+      );
+      return;
+    }
+
     try {
       const inviteUrl = `https://t.me/NexoPizza_Commands_bot?start=${encodeURIComponent(phone)}`;
       await navigator.clipboard.writeText(inviteUrl);
