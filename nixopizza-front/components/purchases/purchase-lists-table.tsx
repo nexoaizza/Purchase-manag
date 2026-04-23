@@ -273,7 +273,7 @@ export function PurchaseListsTable({
               setIsMarkPaidDialogOpen(true);
             }}
           >
-            <DollarSign className="h-3 w-3" />
+            <span className="text-xs font-bold">DA</span>
             {t("markPaidButton")}
           </Button>
         );

@@ -23,7 +23,6 @@ import {
   Trash2,
   Package,
   MapPin,
-  DollarSign,
   Calendar,
   AlertCircle,
   ArrowRightLeft,
@@ -215,8 +214,8 @@ export function StockItemTable({
 
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <DollarSign className="h-4 w-4 text-muted-foreground" />
                         <span className="font-medium">{item.price.toFixed(2)}</span>
+                        <span className="text-xs font-bold text-muted-foreground">DA</span>
                       </div>
                     </TableCell>
 

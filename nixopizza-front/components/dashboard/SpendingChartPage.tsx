@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { ResponsiveBar } from "@nivo/bar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, ShoppingCart, TrendingUp, BarChart3 } from "lucide-react";
+import { ShoppingCart, TrendingUp, BarChart3 } from "lucide-react";
 import { getMonthAnalytics } from "@/lib/apis/analytics";
 import toast from "react-hot-toast";
 

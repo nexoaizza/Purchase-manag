@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { Building2, Package, DollarSign } from "lucide-react"
+import { Building2, Package } from "lucide-react"
 
 const suppliers = [
   {
