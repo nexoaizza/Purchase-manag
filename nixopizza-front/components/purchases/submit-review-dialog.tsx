@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Upload, X, Package, Receipt, DollarSign, Download } from "lucide-react";
+import { Upload, X, Package, Receipt, Download } from "lucide-react";
 import toast from "react-hot-toast";
 import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
 import { submitForReview } from "@/lib/apis/purchase-list";
@@ -247,7 +247,7 @@ export function SubmitReviewDialog({
             </div>
             <div className="pt-3 border-t flex justify-between items-center">
               <div className="text-sm font-medium flex items-center gap-1">
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                <span className="text-xs font-bold text-muted-foreground">DA</span>
                 {t("computedTotal")}
               </div>
               <div className="text-lg font-semibold">

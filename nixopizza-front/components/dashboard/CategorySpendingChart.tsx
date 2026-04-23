@@ -212,7 +212,7 @@ const CategorySpendingChart = () => {
                 <CardTitle className="text-sm font-medium">
                   Total Spent
                 </CardTitle>
-                DZA
+                DA
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">

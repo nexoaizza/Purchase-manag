@@ -68,7 +68,7 @@ export interface IOrder {
 }
 import { resolveImage } from "@/lib/resolveImage";
 import { getStocks } from "@/lib/apis/stocks";
-import { ShieldCheck, Package, Receipt, DollarSign, User, Building2, Warehouse } from "lucide-react";
+import { ShieldCheck, Package, Receipt, User, Building2, Warehouse } from "lucide-react";
 
 interface VerifyOrderDialogProps {
   order: IOrder | null;
@@ -193,7 +193,7 @@ export function VerifyOrderDialog({
               </div>
             </div>
             <div className="border rounded-lg p-3 flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <span className="text-xs font-bold text-muted-foreground">DA</span>
               <div>
                 <div className="text-xs text-muted-foreground">{t("total")}</div>
                 <div className="text-sm">

@@ -2,7 +2,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Package, Building2 } from "lucide-react";
+import { Package, Building2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { resolveImage } from "@/lib/resolveImage";
 import { useTranslations } from "next-intl";
@@ -85,7 +85,7 @@ export function SupplierCards({ suppliers, weekStart, weekEnd }: SupplierCardsPr
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <DollarSign className="h-4 w-4" />
+                  <span className="text-xs font-bold text-muted-foreground">DA</span>
                   {t("totalAmount")}
                 </div>
                 <div className="text-lg font-bold text-orange-600">

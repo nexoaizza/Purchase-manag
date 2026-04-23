@@ -142,7 +142,7 @@ const SpendingChartPage = () => {
                 <CardTitle className="text-sm font-medium">
                   Total Spent
                 </CardTitle>
-                DZA
+                DA
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
@@ -231,13 +231,13 @@ const SpendingChartPage = () => {
                         tickRotation: 0,
                         legend:
                           chartType === "totalSpent"
-                            ? "Amount (DZA)"
+                            ? "Amount (DA)"
                             : "Number of Orders",
                         legendPosition: "middle",
                         legendOffset: -60,
                         format:
                           chartType === "totalSpent"
-                            ? (value) => `$${value}`
+                            ? (value) => `${value} DA`
                             : undefined,
                       }}
                       labelSkipWidth={12}

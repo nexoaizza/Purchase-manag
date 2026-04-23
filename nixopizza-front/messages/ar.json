@@ -292,7 +292,7 @@
         "initialStock": "المخزون الأولي",
         "currentStock": "المخزون الحالي",
         "minimumStock": "الحد الأدنى للمخزون",
-        "price": "السعر (DZA)",
+        "price": "السعر (DA)",
         "description": "الوصف (اختياري)",
         "descriptionPlaceholder": "أدخل وصف المنتج",
         "cancel": "إلغاء",

@@ -61,7 +61,7 @@ export function TopSuppliers() {
                       {supplier.products} orders
                     </div>
                     <div className="flex items-center gap-1">
-                      {supplier.totalValue.toLocaleString()} DZA
+                      {supplier.totalValue.toLocaleString()} DA
                     </div>
                   </div>
                 </div>

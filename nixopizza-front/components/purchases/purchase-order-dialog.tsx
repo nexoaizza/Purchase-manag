@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import {
   Building2,
   Calendar,
-  DollarSign,
   Package,
   Download,
   Mail,
@@ -443,12 +442,12 @@ export function PurchaseOrderDialog({
                 >
                   {paidLoading ? (
                     <>
-                      <DollarSign className="h-4 w-4 animate-spin" />
+                      <span className="text-xs font-bold">DA</span>
                       {t("markingPaid")}
                     </>
                   ) : (
                     <>
-                      <DollarSign className="h-4 w-4" />
+                      <span className="text-xs font-bold">DA</span>
                       {t("markPaidButton")}
                     </>
                   )}

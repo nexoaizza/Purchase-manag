@@ -22,7 +22,6 @@ import {
   Package,
   UserPlus,
   CheckCircle,
-  DollarSign,
   XCircle,
 } from "lucide-react";
 import { PurchaseOrderDialog } from "@/components/purchases/purchase-order-dialog";
@@ -403,7 +402,7 @@ export function PurchaseListsTable({
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-xs font-bold text-muted-foreground">DA</span>
                         <span className="font-medium">
                           {order.totalAmount.toFixed(2)} {t("da")}
                         </span>

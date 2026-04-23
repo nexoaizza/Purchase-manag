@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
 import { markOrderPaid } from "@/lib/apis/purchase-list";
 import { resolveImage } from "@/lib/resolveImage";
-import { DollarSign, Package, Receipt, Building2, User } from "lucide-react";
+import { Package, Receipt, Building2, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslations } from "next-intl";
 
@@ -60,7 +60,7 @@ export function MarkPaidDialog({
       <DialogContent className="sm:max-w-[820px]">
         <DialogHeader>
           <DialogTitle className="font-heading flex items-center gap-2">
-            <DollarSign className="h-5 w-5" />
+            <span className="text-xs font-bold text-muted-foreground">DA</span>
             {t("markPaidTitle")}
           </DialogTitle>
           <DialogDescription>
