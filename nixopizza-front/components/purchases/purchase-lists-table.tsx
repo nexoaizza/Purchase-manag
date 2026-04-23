@@ -273,7 +273,6 @@ export function PurchaseListsTable({
               setIsMarkPaidDialogOpen(true);
             }}
           >
-            <span className="text-xs font-bold">DA</span>
             {t("markPaidButton")}
           </Button>
         );
