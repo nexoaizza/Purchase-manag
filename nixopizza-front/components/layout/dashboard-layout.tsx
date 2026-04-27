@@ -4,6 +4,8 @@ import type React from "react";
 import { useState, useEffect } from "react";
 import { get_unread_notifications_count } from "@/lib/apis/notifications";
 import { getTransfers } from "@/lib/apis/transfers";
+import { getTasks } from "@/lib/apis/task";
+import { getOrders } from "@/lib/apis/purchase-list";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
@@ -23,6 +25,8 @@ import {
   FileText,
   ArrowRightLeft,
   Trash2,
+  Gauge,
+  Download,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -43,6 +47,8 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
+const PENDING_PURCHASE_STATUSES = ["not assigned", "assigned", "pending_review"];
+
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user } = useAuth();
   const locale = useLocale();
@@ -52,6 +58,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
   const [unreadCount, setUnreadCount] = useState(0);
   const [pendingTransfersCount, setPendingTransfersCount] = useState(0);
+  const [pendingOperationsCount, setPendingOperationsCount] = useState(0);
 
   useEffect(() => {
     if (user) {
@@ -63,6 +70,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         })
         .catch((err) => console.log(err));
 
+      // Fetch pending transfers
       getTransfers({ status: "pending", page: 1, limit: 1, sortBy: "createdAt", order: "desc" })
         .then((data) => {
           if (!data.success) {
@@ -71,6 +79,21 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           }
           setPendingTransfersCount(data.total ?? 0);
         });
+
+      // Fetch pending operations count (tasks + transfers + purchases)
+      Promise.all([
+        getTasks({ status: "pending", page: 1, limit: 1, sortBy: "createdAt", order: "desc" }),
+        getTransfers({ status: "pending", page: 1, limit: 1, sortBy: "createdAt", order: "desc" }),
+        getOrders({ page: 1, limit: 1000, sortBy: "createdAt", order: "desc" }),
+      ]).then(([tasksRes, transfersRes, ordersRes]) => {
+        // When limit=1, pages = total count
+        const pendingTasks = tasksRes.success ? (tasksRes.pages ?? 0) : 0;
+        const pendingTransfers = transfersRes.success ? transfersRes.total ?? 0 : 0;
+        const pendingPurchases = ordersRes.success
+          ? (ordersRes.orders || []).filter((o: any) => PENDING_PURCHASE_STATUSES.includes(o.status)).length
+          : 0;
+        setPendingOperationsCount(pendingTasks + pendingTransfers + pendingPurchases);
+      }).catch(() => {});
     }
   }, [user]);
 
@@ -78,6 +101,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     user?.role === "admin"
       ? [
           { name: t("dashboard"), href: "/dashboard", icon: BarChart3 },
+          { name: t("quickAccess"), href: "/dashboard/quick-access", icon: Gauge },
           { name: t("categories"), href: "/dashboard/categories", icon: Shapes },
           { name: t("products"), href: "/dashboard/products", icon: Package },
           { name: t("stocks"), href: "/dashboard/stocks", icon: Warehouse },
@@ -99,6 +123,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             href: "/dashboard/notifications",
             icon: Bell,
           },
+          { name: t("exportData"), href: "/dashboard/export-data", icon: Download },
         ]
       : [
           { name: t("dashboard"), href: "/dashboardstaff", icon: BarChart3 },
@@ -201,6 +226,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                               className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-yellow-500 text-[10px] font-bold text-white"
                             >
                               {pendingTransfersCount > 99 ? "99+" : pendingTransfersCount}
+                            </span>
+                          )}
+                          {item.name === t("quickAccess") && pendingOperationsCount > 0 && (
+                            <span
+                              aria-label={t("pendingOperationsAriaLabel", {
+                                count: pendingOperationsCount,
+                              })}
+                              className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white"
+                            >
+                              {pendingOperationsCount > 99 ? "99+" : pendingOperationsCount}
                             </span>
                           )}
                         </div>

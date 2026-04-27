@@ -14,6 +14,7 @@
     },
     "navigation": {
         "dashboard": "Tableau de Bord",
+        "quickAccess": "Accès Rapide",
         "categories": "Catégories",
         "products": "Produits",
         "stocks": "Stocks",
@@ -31,7 +32,9 @@
         "templates": "Modèles",
         "signOut": "Déconnexion",
         "parameters": "Paramètres",
-        "pendingTransfersAriaLabel": "{count} transferts en attente"
+        "pendingTransfersAriaLabel": "{count} transferts en attente",
+        "exportData": "Exporter les Données",
+        "pendingOperationsAriaLabel": "{count} opérations en attente"
     },
     "dashboard": {
         "title": "Tableau de bord",
@@ -1212,7 +1215,10 @@
         "wasteCreated": "Enregistrement de déchet créé avec succès",
         "wasteUpdated": "Enregistrement de déchet mis à jour avec succès",
         "fillAllFields": "Veuillez remplir tous les champs obligatoires",
-        "noStock": "Aucun entrepôt spécifié"
+        "noStock": "Aucun entrepôt spécifié",
+        "filterByDate": "Filtrer par date",
+        "selectDateRange": "Sélectionner une période",
+        "clearDate": "Effacer la date"
     },
     "purchaseStats": {
         "pendingTotal": "En attente (Non assigné + Assigné)",
@@ -1279,5 +1285,48 @@
         "ordersCount": "Commandes",
         "totalAmount": "Montant total",
         "viewOrders": "Voir les commandes"
+    },
+    "quickAccess": {
+        "title": "Accès Rapide",
+        "subtitle": "Aperçu des tâches, transferts et achats en attente",
+        "tasks": "Tâches",
+        "transfers": "Transferts",
+        "purchases": "Achats",
+        "pending": "En attente",
+        "viewAll": "Voir tout",
+        "noItems": "Aucun élément",
+        "markCompleted": "Marquer terminé",
+        "cancelTask": "Annuler",
+        "markArrived": "Marquer arrivé",
+        "taskNumber": "Tâche #",
+        "assignedTo": "Assigné à",
+        "deadline": "Délai",
+        "orderNumber": "Commande #",
+        "supplier": "Fournisseur",
+        "status": "Statut",
+        "from": "De",
+        "to": "À",
+        "pendingTasks": "Tâches en attente",
+        "pendingTransfers": "Transferts en attente",
+        "pendingPurchases": "Achats en attente"
+    },
+    "exportData": {
+        "title": "Exporter les Données",
+        "subtitle": "Sélectionnez les catégories à télécharger en CSV",
+        "selectCategories": "Sélectionner les catégories",
+        "exportButton": "Exporter en CSV",
+        "exporting": "Exportation...",
+        "tasks": "Tâches",
+        "transfers": "Transferts",
+        "purchases": "Commandes d'achat",
+        "waste": "Enregistrements de déchets",
+        "products": "Produits",
+        "stocks": "Stocks",
+        "suppliers": "Fournisseurs",
+        "staff": "Personnel",
+        "selectAtLeastOne": "Veuillez sélectionner au moins une catégorie",
+        "exportSuccess": "Données exportées avec succès",
+        "exportFailed": "Échec de l'exportation",
+        "noData": "Aucune donnée disponible pour les catégories sélectionnées"
     }
 }

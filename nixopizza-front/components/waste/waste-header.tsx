@@ -2,8 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, X } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Plus, Search, X, Calendar as CalendarIcon } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -14,6 +13,14 @@ import {
 import { IStock } from "@/lib/apis/stocks";
 import { useState, useEffect, useRef } from "react";
 import { getProducts } from "@/lib/apis/products";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 
 interface IProduct {
   _id: string;
@@ -28,6 +35,8 @@ interface WasteHeaderProps {
   stockFilter: string;
   setStockFilter: (stock: string) => void;
   stocks: IStock[];
+  dateRange: { from: Date | null; to: Date | null };
+  setDateRange: (range: { from: Date | null; to: Date | null }) => void;
 }
 
 export function WasteHeader({
@@ -37,6 +46,8 @@ export function WasteHeader({
   stockFilter,
   setStockFilter,
   stocks,
+  dateRange,
+  setDateRange,
 }: WasteHeaderProps) {
   const t = useTranslations("waste");
   const [products, setProducts] = useState<IProduct[]>([]);
@@ -82,6 +93,16 @@ export function WasteHeader({
     setProductSearch("");
   };
 
+  const clearDateRange = () => {
+    setDateRange({ from: null, to: null });
+  };
+
+  const dateLabel = dateRange.from
+    ? dateRange.to
+      ? `${format(dateRange.from, "dd/MM/yyyy")} – ${format(dateRange.to, "dd/MM/yyyy")}`
+      : format(dateRange.from, "dd/MM/yyyy")
+    : t("selectDateRange");
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -97,8 +118,9 @@ export function WasteHeader({
         </Button>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1" ref={dropdownRef}>
+      <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
+        {/* Product filter */}
+        <div className="relative flex-1 min-w-[180px]" ref={dropdownRef}>
           <div
             className="flex items-center justify-between rounded-md border bg-background px-3 py-2 text-sm cursor-text hover:border-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors"
             onClick={() => setIsProductDropdownOpen(true)}
@@ -170,8 +192,10 @@ export function WasteHeader({
             </div>
           )}
         </div>
+
+        {/* Stock filter */}
         <Select value={stockFilter} onValueChange={setStockFilter}>
-          <SelectTrigger className="flex-1">
+          <SelectTrigger className="flex-1 min-w-[180px]">
             <SelectValue placeholder={t("filterByStock")} />
           </SelectTrigger>
           <SelectContent>
@@ -183,6 +207,41 @@ export function WasteHeader({
             ))}
           </SelectContent>
         </Select>
+
+        {/* Date range filter */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "flex-1 min-w-[220px] justify-start text-left font-normal",
+                !dateRange.from && !dateRange.to && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              <span className="truncate">{dateLabel}</span>
+              {(dateRange.from || dateRange.to) && (
+                <X
+                  className="ml-auto h-4 w-4 shrink-0 opacity-50 hover:opacity-100"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    clearDateRange();
+                  }}
+                />
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="range"
+              selected={{ from: dateRange.from ?? undefined, to: dateRange.to ?? undefined }}
+              onSelect={(range) =>
+                setDateRange({ from: range?.from ?? null, to: range?.to ?? null })
+              }
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
       </div>
     </div>
   );

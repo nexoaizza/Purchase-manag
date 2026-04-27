@@ -14,6 +14,7 @@
     },
     "navigation": {
         "dashboard": "Dashboard",
+        "quickAccess": "Quick Access",
         "categories": "Categories",
         "products": "Products",
         "stocks": "Stocks",
@@ -31,7 +32,9 @@
         "templates": "Templates",
         "signOut": "Sign Out",
         "parameters": "Parameters",
-        "pendingTransfersAriaLabel": "{count} pending transfers"
+        "pendingTransfersAriaLabel": "{count} pending transfers",
+        "exportData": "Export Data",
+        "pendingOperationsAriaLabel": "{count} pending operations"
     },
     "dashboard": {
         "title": "Dashboard",
@@ -1221,7 +1224,10 @@
         "wasteCreated": "Waste record created successfully",
         "wasteUpdated": "Waste record updated successfully",
         "fillAllFields": "Please fill in all required fields",
-        "noStock": "No stock specified"
+        "noStock": "No stock specified",
+        "filterByDate": "Filter by date",
+        "selectDateRange": "Select date range",
+        "clearDate": "Clear date"
     },
     "purchaseStats": {
         "pendingTotal": "Pending (Not Assigned + Assigned)",
@@ -1288,5 +1294,48 @@
         "ordersCount": "Orders",
         "totalAmount": "Total Amount",
         "viewOrders": "View Orders"
+    },
+    "quickAccess": {
+        "title": "Quick Access",
+        "subtitle": "Overview of pending tasks, transfers and purchases",
+        "tasks": "Tasks",
+        "transfers": "Transfers",
+        "purchases": "Purchases",
+        "pending": "Pending",
+        "viewAll": "View All",
+        "noItems": "No items",
+        "markCompleted": "Mark Completed",
+        "cancelTask": "Cancel",
+        "markArrived": "Mark Arrived",
+        "taskNumber": "Task #",
+        "assignedTo": "Assigned to",
+        "deadline": "Deadline",
+        "orderNumber": "Order #",
+        "supplier": "Supplier",
+        "status": "Status",
+        "from": "From",
+        "to": "To",
+        "pendingTasks": "Pending Tasks",
+        "pendingTransfers": "Pending Transfers",
+        "pendingPurchases": "Pending Purchases"
+    },
+    "exportData": {
+        "title": "Export Data",
+        "subtitle": "Select categories to download as CSV",
+        "selectCategories": "Select data categories",
+        "exportButton": "Export as CSV",
+        "exporting": "Exporting...",
+        "tasks": "Tasks",
+        "transfers": "Transfers",
+        "purchases": "Purchase Orders",
+        "waste": "Waste Records",
+        "products": "Products",
+        "stocks": "Stocks",
+        "suppliers": "Suppliers",
+        "staff": "Staff",
+        "selectAtLeastOne": "Please select at least one category",
+        "exportSuccess": "Data exported successfully",
+        "exportFailed": "Failed to export data",
+        "noData": "No data available for selected categories"
     }
 }

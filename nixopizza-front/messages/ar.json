@@ -14,6 +14,7 @@
     },
     "navigation": {
         "dashboard": "لوحة التحكم",
+        "quickAccess": "الوصول السريع",
         "categories": "الفئات",
         "products": "المنتجات",
         "stocks": "المخازن",
@@ -31,7 +32,9 @@
         "templates": "القوالب",
         "signOut": "تسجيل الخروج",
         "parameters": "الإعدادات",
-        "pendingTransfersAriaLabel": "{count} تحويلات معلقة"
+        "pendingTransfersAriaLabel": "{count} تحويلات معلقة",
+        "exportData": "تصدير البيانات",
+        "pendingOperationsAriaLabel": "{count} عمليات معلقة"
     },
     "dashboard": {
         "title": "لوحة المعلومات",
@@ -1212,7 +1215,10 @@
         "wasteCreated": "تم إنشاء سجل الهدر بنجاح",
         "wasteUpdated": "تم تحديث سجل الهدر بنجاح",
         "fillAllFields": "يرجى ملء جميع الحقول المطلوبة",
-        "noStock": "لم يتم تحديد مستودع"
+        "noStock": "لم يتم تحديد مستودع",
+        "filterByDate": "تصفية حسب التاريخ",
+        "selectDateRange": "اختر نطاقاً زمنياً",
+        "clearDate": "مسح التاريخ"
     },
     "purchaseStats": {
         "pendingTotal": "قيد الانتظار (غير معين + معين)",
@@ -1279,5 +1285,48 @@
         "ordersCount": "الطلبات",
         "totalAmount": "المبلغ الإجمالي",
         "viewOrders": "عرض الطلبات"
+    },
+    "quickAccess": {
+        "title": "الوصول السريع",
+        "subtitle": "نظرة عامة على المهام والتحويلات والمشتريات المعلقة",
+        "tasks": "المهام",
+        "transfers": "التحويلات",
+        "purchases": "المشتريات",
+        "pending": "معلق",
+        "viewAll": "عرض الكل",
+        "noItems": "لا توجد عناصر",
+        "markCompleted": "وضع علامة مكتمل",
+        "cancelTask": "إلغاء",
+        "markArrived": "وضع علامة وصل",
+        "taskNumber": "مهمة #",
+        "assignedTo": "مخصص لـ",
+        "deadline": "الموعد النهائي",
+        "orderNumber": "طلب #",
+        "supplier": "المورد",
+        "status": "الحالة",
+        "from": "من",
+        "to": "إلى",
+        "pendingTasks": "المهام المعلقة",
+        "pendingTransfers": "التحويلات المعلقة",
+        "pendingPurchases": "المشتريات المعلقة"
+    },
+    "exportData": {
+        "title": "تصدير البيانات",
+        "subtitle": "اختر الفئات للتنزيل بتنسيق CSV",
+        "selectCategories": "اختر فئات البيانات",
+        "exportButton": "تصدير كـ CSV",
+        "exporting": "جاري التصدير...",
+        "tasks": "المهام",
+        "transfers": "التحويلات",
+        "purchases": "أوامر الشراء",
+        "waste": "سجلات الهدر",
+        "products": "المنتجات",
+        "stocks": "المخازن",
+        "suppliers": "الموردون",
+        "staff": "الموظفون",
+        "selectAtLeastOne": "يرجى اختيار فئة واحدة على الأقل",
+        "exportSuccess": "تم تصدير البيانات بنجاح",
+        "exportFailed": "فشل تصدير البيانات",
+        "noData": "لا توجد بيانات متاحة للفئات المحددة"
     }
 }
