@@ -1327,6 +1327,10 @@
         "selectAtLeastOne": "Veuillez sélectionner au moins une catégorie",
         "exportSuccess": "Données exportées avec succès",
         "exportFailed": "Échec de l'exportation",
-        "noData": "Aucune donnée disponible pour les catégories sélectionnées"
+        "noData": "Aucune donnée disponible pour les catégories sélectionnées",
+        "selectAll": "Tout sélectionner",
+        "clearAll": "Effacer",
+        "categoriesSelected": "{count} catégories sélectionnées",
+        "categorySelected": "{count} catégorie sélectionnée"
     }
 }

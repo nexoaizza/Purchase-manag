@@ -1327,6 +1327,10 @@
         "selectAtLeastOne": "يرجى اختيار فئة واحدة على الأقل",
         "exportSuccess": "تم تصدير البيانات بنجاح",
         "exportFailed": "فشل تصدير البيانات",
-        "noData": "لا توجد بيانات متاحة للفئات المحددة"
+        "noData": "لا توجد بيانات متاحة للفئات المحددة",
+        "selectAll": "تحديد الكل",
+        "clearAll": "مسح",
+        "categoriesSelected": "{count} فئات محددة",
+        "categorySelected": "فئة واحدة محددة"
     }
 }

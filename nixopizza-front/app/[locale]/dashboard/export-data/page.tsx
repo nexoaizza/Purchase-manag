@@ -177,10 +177,10 @@ export default function ExportDataPage() {
               </CardTitle>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={selectAll}>
-                  Select All
+                  {t("selectAll")}
                 </Button>
                 <Button variant="outline" size="sm" onClick={clearAll}>
-                  Clear
+                  {t("clearAll")}
                 </Button>
               </div>
             </div>
@@ -213,7 +213,7 @@ export default function ExportDataPage() {
 
             <div className="mt-6 flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
-                {selected.size} {selected.size === 1 ? "category" : "categories"} selected
+                {selected.size === 1 ? t("categorySelected", { count: 1 }) : t("categoriesSelected", { count: selected.size })}
               </p>
               <Button
                 onClick={handleExport}

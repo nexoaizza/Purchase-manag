@@ -1336,6 +1336,10 @@
         "selectAtLeastOne": "Please select at least one category",
         "exportSuccess": "Data exported successfully",
         "exportFailed": "Failed to export data",
-        "noData": "No data available for selected categories"
+        "noData": "No data available for selected categories",
+        "selectAll": "Select All",
+        "clearAll": "Clear",
+        "categoriesSelected": "{count} categories selected",
+        "categorySelected": "{count} category selected"
     }
 }
