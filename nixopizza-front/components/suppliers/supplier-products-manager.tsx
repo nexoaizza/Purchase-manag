@@ -67,8 +67,8 @@ export function SupplierProductsManager({
   const fetchProducts = async () => {
     setIsLoading(true);
     try {
-      const { success, products } = await getProducts({ limit: 1000 });
-      if (success) setAllProducts(products);
+      const data = await getProducts({ limit: 1000 });
+      if (data.success) setAllProducts(data.products);
     } catch {
       toast.error(t("failedToLoadProducts"));
     } finally {
