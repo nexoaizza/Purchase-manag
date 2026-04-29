@@ -1,7 +1,7 @@
 import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getOrdersStats } from "@/lib/apis/purchase-list";
-import { Clock, CheckCircle, DollarSign, Eye } from "lucide-react";
+import { Clock, CheckCircle, Eye } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import toast from "react-hot-toast";
 import { useTranslations } from "next-intl";
@@ -141,7 +141,7 @@ export function PurchaseStats({ filteredOrders, filtersActive }: PurchaseStatsPr
               ? t("filteredTotalValue")
               : t("totalPaidValueMonth")}
           </CardTitle>
-          <DollarSign className="h-4 w-4 text-muted-foreground" />
+          <span className="text-xs font-bold text-muted-foreground">DA</span>
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{displayTotalValue} {t("da")}</div>

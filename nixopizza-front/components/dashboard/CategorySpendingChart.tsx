@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { ResponsivePie } from "@nivo/pie";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PieChart, DollarSign, ShoppingCart, TrendingUp } from "lucide-react";
+import { PieChart, ShoppingCart, TrendingUp } from "lucide-react";
 
 const CategorySpendingChart = () => {
   // Your actual data
@@ -212,7 +212,7 @@ const CategorySpendingChart = () => {
                 <CardTitle className="text-sm font-medium">
                   Total Spent
                 </CardTitle>
-                DZA
+                DA
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">

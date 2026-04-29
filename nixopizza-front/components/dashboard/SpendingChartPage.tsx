@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { ResponsiveBar } from "@nivo/bar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, ShoppingCart, TrendingUp, BarChart3 } from "lucide-react";
+import { ShoppingCart, TrendingUp, BarChart3 } from "lucide-react";
 import { getMonthAnalytics } from "@/lib/apis/analytics";
 import toast from "react-hot-toast";
 
@@ -142,7 +142,7 @@ const SpendingChartPage = () => {
                 <CardTitle className="text-sm font-medium">
                   Total Spent
                 </CardTitle>
-                DZA
+                DA
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
@@ -231,13 +231,13 @@ const SpendingChartPage = () => {
                         tickRotation: 0,
                         legend:
                           chartType === "totalSpent"
-                            ? "Amount (DZA)"
+                            ? "Amount (DA)"
                             : "Number of Orders",
                         legendPosition: "middle",
                         legendOffset: -60,
                         format:
                           chartType === "totalSpent"
-                            ? (value) => `$${value}`
+                            ? (value) => `${value} DA`
                             : undefined,
                       }}
                       labelSkipWidth={12}

@@ -8,7 +8,6 @@ import {
   TrendingUp,
   AlertCircle,
   CheckCircle,
-  DollarSign,
   Zap,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -130,7 +129,7 @@ export function ShortcutsGrid() {
     {
       title: t("lastWeekPaid"),
       description: t("lastWeekPaidDesc"),
-      icon: DollarSign,
+      icon: CheckCircle,
       iconColor: "text-green-600",
       bgColor: "bg-green-50",
       count: t("paid"),

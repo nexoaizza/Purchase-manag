@@ -295,7 +295,7 @@
         "initialStock": "Initial Stock",
         "currentStock": "Current Stock",
         "minimumStock": "Minimum Stock",
-        "price": "Price (DZA)",
+        "price": "Price (DA)",
         "description": "Description (Optional)",
         "descriptionPlaceholder": "Enter product description",
         "cancel": "Cancel",

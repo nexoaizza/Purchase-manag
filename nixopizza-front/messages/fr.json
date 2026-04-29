@@ -293,7 +293,7 @@
         "initialStock": "Stock initial",
         "currentStock": "Stock actuel",
         "minimumStock": "Stock minimum",
-        "price": "Prix (DZA)",
+        "price": "Prix (DA)",
         "description": "Description (Facultatif)",
         "descriptionPlaceholder": "Entrez la description du produit",
         "cancel": "Annuler",
