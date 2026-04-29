@@ -28,7 +28,9 @@
     "orders": "الطلبات",
     "templates": "القوالب",
     "signOut": "تسجيل الخروج",
-    "parameters": "الإعدادات"
+    "parameters": "الإعدادات",
+    "reports": "التقارير",
+    "quickAccess": "وصول سريع"
   },
   "dashboard": {
     "title": "لوحة المعلومات",
@@ -432,6 +434,8 @@
     "selectStock": "اختر مستودع مخزون",
     "product": "المنتج",
     "selectProduct": "اختر منتج",
+    "selectCategory": "اختر الفئة",
+    "allCategories": "جميع الفئات",
     "price": "السعر",
     "pricePlaceholder": "أدخل السعر",
     "quantity": "الكمية",
@@ -1172,7 +1176,10 @@
     "wasteCreated": "تم إنشاء سجل الهدر بنجاح",
     "wasteUpdated": "تم تحديث سجل الهدر بنجاح",
     "fillAllFields": "يرجى ملء جميع الحقول المطلوبة",
-    "noStock": "لم يتم تحديد مستودع"
+    "noStock": "لم يتم تحديد مستودع",
+    "dateFrom": "من تاريخ",
+    "dateTo": "إلى تاريخ",
+    "clearDates": "مسح التواريخ"
   },
   "purchaseStats": {
     "pendingTotal": "قيد الانتظار (غير معين + معين)",
@@ -1239,5 +1246,63 @@
     "ordersCount": "الطلبات",
     "totalAmount": "المبلغ الإجمالي",
     "viewOrders": "عرض الطلبات"
+  },
+  "reports": {
+    "title": "التقارير",
+    "subtitle": "اختر أنواع البيانات والفترة الزمنية، ثم قم بتنزيل تقرير Excel منظم",
+    "selectData": "اختر البيانات للتصدير",
+    "selectAll": "تحديد الكل",
+    "deselectAll": "إلغاء تحديد الكل",
+    "types": {
+      "orders": "أوامر الشراء",
+      "waste": "سجلات الهدر",
+      "stockItems": "عناصر المخزون",
+      "transfers": "التحويلات",
+      "products": "المنتجات",
+      "suppliers": "الموردون"
+    },
+    "typesDesc": {
+      "orders": "الطلبات، المبالغ، الموردون والحالة",
+      "waste": "المنتجات المهدرة والأسباب",
+      "stockItems": "كميات المخزون والصلاحية",
+      "transfers": "حركات المخزون بين المواقع",
+      "products": "كتالوج المنتجات والحدود",
+      "suppliers": "دليل الموردين وجهات الاتصال"
+    },
+    "dateRange": "الفترة الزمنية (اختياري)",
+    "dateRangeHint": "تصفية البيانات الزمنية (الطلبات، الهدر، عناصر المخزون، التحويلات). يتم تصدير المنتجات والموردين دائماً بالكامل.",
+    "fromDate": "من تاريخ",
+    "toDate": "إلى تاريخ",
+    "download": "تنزيل تقرير Excel",
+    "generating": "جاري الإنشاء",
+    "downloaded": "تم التنزيل!",
+    "downloadSuccess": "تم تنزيل التقرير بنجاح",
+    "downloadError": "فشل إنشاء التقرير. يرجى المحاولة مرة أخرى.",
+    "selectAtLeast": "يرجى تحديد نوع بيانات واحد على الأقل",
+    "sheetsSelected": "ورقة(أوراق) سيتم إنشاؤها"
+  },
+  "quickAccess": {
+    "title": "وصول سريع",
+    "subtitle": "نظرة عامة على جميع العناصر المعلقة التي تحتاج انتباهك",
+    "refresh": "تحديث",
+    "pending": "معلق",
+    "pendingTasks": "المهام المعلقة",
+    "pendingTransfers": "التحويلات المعلقة",
+    "pendingOrders": "الطلبات المعلقة",
+    "totalPending": "إجمالي المعلق",
+    "noTasks": "لا توجد مهام معلقة",
+    "noTransfers": "لا توجد تحويلات معلقة",
+    "noOrders": "لا توجد طلبات معلقة",
+    "noDescription": "لا يوجد وصف",
+    "markComplete": "إكمال",
+    "taskCompleted": "تم وضع علامة على المهمة كمكتملة",
+    "taskCompleteFailed": "فشل إكمال المهمة",
+    "view": "عرض",
+    "process": "معالجة",
+    "viewAll": "عرض الكل",
+    "assigned": "مُعين",
+    "notAssigned": "غير مُعين",
+    "items": "عناصر",
+    "transfer": "تحويل"
   }
 }

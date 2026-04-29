@@ -14,6 +14,8 @@ export default function WastePage() {
   const [stocks, setStocks] = useState<IStock[]>([]);
   const [productFilter, setProductFilter] = useState("all");
   const [stockFilter, setStockFilter] = useState("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -27,7 +29,7 @@ export default function WastePage() {
 
   useEffect(() => {
     fetchWastes();
-  }, [currentPage, limit, productFilter, stockFilter]);
+  }, [currentPage, limit, productFilter, stockFilter, dateFrom, dateTo]);
 
   const fetchStocks = async () => {
     const { stocks: fetchedStocks, success } = await getStocks();
@@ -46,6 +48,8 @@ export default function WastePage() {
 
     if (productFilter && productFilter !== "all") params.product = productFilter;
     if (stockFilter && stockFilter !== "all") params.stock = stockFilter;
+    if (dateFrom) params.dateFrom = dateFrom;
+    if (dateTo) params.dateTo = dateTo;
 
     const { wastes: fetchedWastes, pages, message, success } = await getWastes(params);
     
@@ -95,6 +99,10 @@ export default function WastePage() {
           stockFilter={stockFilter}
           setStockFilter={setStockFilter}
           stocks={stocks}
+          dateFrom={dateFrom}
+          setDateFrom={setDateFrom}
+          dateTo={dateTo}
+          setDateTo={setDateTo}
         />
 
         <WasteTable

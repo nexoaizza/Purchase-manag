@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, X } from "lucide-react";
+import { Plus, Search, X, CalendarDays } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -28,6 +28,10 @@ interface WasteHeaderProps {
   stockFilter: string;
   setStockFilter: (stock: string) => void;
   stocks: IStock[];
+  dateFrom: string;
+  setDateFrom: (date: string) => void;
+  dateTo: string;
+  setDateTo: (date: string) => void;
 }
 
 export function WasteHeader({
@@ -37,6 +41,10 @@ export function WasteHeader({
   stockFilter,
   setStockFilter,
   stocks,
+  dateFrom,
+  setDateFrom,
+  dateTo,
+  setDateTo,
 }: WasteHeaderProps) {
   const t = useTranslations("waste");
   const [products, setProducts] = useState<IProduct[]>([]);
@@ -183,6 +191,50 @@ export function WasteHeader({
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      {/* Date range filters */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex-1">
+          <label className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+            <CalendarDays className="h-3 w-3" />
+            {t("dateFrom")}
+          </label>
+          <Input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="border-2 border-input"
+          />
+        </div>
+        <div className="flex-1">
+          <label className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+            <CalendarDays className="h-3 w-3" />
+            {t("dateTo")}
+          </label>
+          <Input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="border-2 border-input"
+          />
+        </div>
+        {(dateFrom || dateTo) && (
+          <div className="flex items-end">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setDateFrom("");
+                setDateTo("");
+              }}
+              className="text-xs"
+            >
+              <X className="h-3 w-3 mr-1" />
+              {t("clearDates")}
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

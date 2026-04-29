@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import StockItem from "../models/stock-item.model";
 import Stock from "../models/stock.model";
+import Product from "../models/product.model";
 
 // CREATE
 export const createStockItem = async (req: Request, res: Response): Promise<void> => {
@@ -151,6 +152,7 @@ export const getAllStockItems = async (req: Request, res: Response): Promise<voi
       location, 
       product, 
       stock,
+      category,
       minQuantity, 
       maxQuantity,
       createdAtFrom,
@@ -173,6 +175,23 @@ export const getAllStockItems = async (req: Request, res: Response): Promise<voi
     // Filter by product
     if (product) {
       query.product = product;
+    }
+
+    // Filter by category (lookup products in the category first)
+    if (category && !product) {
+      const productsInCategory = await Product.find({ categoryId: category }).select("_id");
+      const productIds = productsInCategory.map((p) => p._id);
+      if (productIds.length > 0) {
+        query.product = { $in: productIds };
+      } else {
+        // No products in this category — return empty result
+        res.status(200).json({
+          total: 0,
+          pages: 0,
+          stockItems: [],
+        });
+        return;
+      }
     }
 
     // Filter by stock

@@ -16,33 +16,47 @@ import {
 } from "@/components/ui/select";
 import { useEffect } from "react";
 import { getStocks } from "@/lib/apis/stocks";
+import { getCategories } from "@/lib/apis/categories";
 
 export function StockItemHeader({
   onProductNameChange,
   onStockChange,
   onExpirationStatusChange,
   onStockItemCreated,
+  categoryFilter,
+  setCategoryFilter,
 }: {
   onProductNameChange: (productName: string) => void;
   onStockChange: (stock: string) => void;
   onExpirationStatusChange: (status: string) => void;
   onStockItemCreated: () => void;
+  categoryFilter: string;
+  setCategoryFilter: (category: string) => void;
 }) {
   const t = useTranslations("stockItems");
   const [productName, setProductName] = useState("");
   const [selectedStock, setSelectedStock] = useState("");
   const [expirationStatus, setExpirationStatus] = useState("");
   const [stocks, setStocks] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchStocks();
+    fetchCategories();
   }, []);
 
   const fetchStocks = async () => {
     const { success, stocks: fetchedStocks } = await getStocks({ limit: 1000 });
     if (success) {
       setStocks(fetchedStocks);
+    }
+  };
+
+  const fetchCategories = async () => {
+    const { success, categories: fetchedCategories } = await getCategories({ limit: 1000 } as any);
+    if (success) {
+      setCategories(fetchedCategories || []);
     }
   };
 
@@ -102,6 +116,19 @@ export function StockItemHeader({
             {stocks.map((stock) => (
               <SelectItem key={stock._id} value={stock._id}>
                 {stock.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <SelectTrigger className="flex-1 border-2 border-input focus:ring-2 focus:ring-primary/30">
+            <SelectValue placeholder={t("selectCategory")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("allCategories")}</SelectItem>
+            {categories.map((category) => (
+              <SelectItem key={category._id} value={category._id}>
+                {category.name}
               </SelectItem>
             ))}
           </SelectContent>

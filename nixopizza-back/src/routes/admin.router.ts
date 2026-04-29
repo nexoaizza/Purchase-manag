@@ -5,6 +5,7 @@ import {
   getAllStaff,
   getCategoryAnalytics,
   getMonthlySpendingAnalytics,
+  getPendingSummary,
   newStaffMember,
   updateStaff,
   deleteStaff,
@@ -22,5 +23,6 @@ adminRouter.delete("/staffs/:staffId", deleteStaff);
 
 adminRouter.get("/analytics/category", getCategoryAnalytics);
 adminRouter.get("/analytics/monthly", getMonthlySpendingAnalytics);
+adminRouter.get("/pending-summary", getPendingSummary);
 
 export default adminRouter;
