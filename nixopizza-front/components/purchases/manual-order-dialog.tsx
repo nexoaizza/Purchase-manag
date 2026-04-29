@@ -41,7 +41,6 @@ interface IOrderItem {
   productId: string;
   quantity: number;
   unitCost: number;
-  expirationDate: Date;
   remainingQte?: number;
   isExpired?: boolean;
   expiredQuantity?: number;
@@ -60,7 +59,7 @@ export function ManualOrderDialog({
     null
   );
   const [orderItems, setOrderItems] = useState<IOrderItem[]>([
-    { productId: "", quantity: 1, unitCost: 0, expirationDate: new Date() },
+    { productId: "", quantity: 1, unitCost: 0 },
   ]);
   const [notes, setNotes] = useState("");
   const [expectedDate, setExpectedDate] = useState<string>("");
@@ -103,7 +102,7 @@ export function ManualOrderDialog({
   const addOrderItem = () => {
     setOrderItems((items) => [
       ...items,
-      { productId: "", quantity: 1, unitCost: 0, expirationDate: new Date() },
+      { productId: "", quantity: 1, unitCost: 0 },
     ]);
     setSelectedProducts((prev) => [...prev, null]);
   };
@@ -215,10 +214,6 @@ export function ManualOrderDialog({
         dataToSend.append(`items[${index}][productId]`, item.productId);
         dataToSend.append(`items[${index}][quantity]`, item.quantity.toString());
         dataToSend.append(`items[${index}][unitCost]`, item.unitCost.toString());
-        dataToSend.append(
-          `items[${index}][expirationDate]`,
-          new Date(item.expirationDate).toISOString()
-        );
       });
 
       const { success, message, order } = await createOrder(dataToSend);
@@ -241,7 +236,7 @@ export function ManualOrderDialog({
   const resetForm = () => {
     setSelectedSupplier(null);
     setOrderItems([
-      { productId: "", quantity: 1, unitCost: 0, expirationDate: new Date() },
+      { productId: "", quantity: 1, unitCost: 0 },
     ]);
     setSelectedProducts([null]);
     setFilteredProducts([]);
@@ -411,29 +406,7 @@ export function ManualOrderDialog({
                         />
                       </div> */}
 
-                      <div className="w-full sm:w-28 space-y-2">
-                        <Label className="text-sm font-medium">
-                          {t("expiryDateRequired")}
-                        </Label>
-                        <Input
-                          type="date"
-                          value={
-                            item.expirationDate
-                              ? new Date(item.expirationDate)
-                                  .toISOString()
-                                  .split("T")[0]
-                              : ""
-                          }
-                          onChange={(e) =>
-                            updateOrderItem(
-                              index,
-                              "expirationDate",
-                              new Date(e.target.value)
-                            )
-                          }
-                          className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg py-5"
-                        />
-                      </div>
+
                       <Button
                         type="button"
                         variant="outline"
@@ -530,7 +503,6 @@ export function ManualOrderDialog({
                 productId: typeof it.productId === "string" ? it.productId : it.productId?._id,
                 quantity: it.quantity,
                 unitCost: 0,
-                expirationDate: new Date(),
               }));
             if (!mapped.length) { toast.error(t("noTemplateItems")); return; }
             setOrderItems(mapped);

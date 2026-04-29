@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { Types } from "mongoose";
 import Product from "../models/product.model";
 import { deleteImage } from "../utils/Delete";
 import crypto from "crypto";
@@ -156,7 +157,13 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
         { barcode: { $regex: name, $options: "i" } },
       ];
     }
-    if (categoryId) query.categoryId = categoryId;
+    if (categoryId) {
+      if (!Types.ObjectId.isValid(categoryId as string)) {
+        res.status(400).json({ message: "Invalid category id" });
+        return;
+      }
+      query.categoryId = new Types.ObjectId(categoryId as string);
+    }
 
     const sortField = sortBy?.toString() || "name";
     const sortOrder = order === "desc" ? -1 : 1;

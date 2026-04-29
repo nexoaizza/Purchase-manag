@@ -68,7 +68,8 @@ export interface IOrder {
 }
 import { resolveImage } from "@/lib/resolveImage";
 import { getStocks } from "@/lib/apis/stocks";
-import { ShieldCheck, Package, Receipt, DollarSign, User, Building2, Warehouse } from "lucide-react";
+import { ShieldCheck, Package, Receipt, DollarSign, User, Building2, Warehouse, Calendar } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 interface VerifyOrderDialogProps {
   order: IOrder | null;
@@ -87,12 +88,14 @@ export function VerifyOrderDialog({
   const [loading, setLoading] = useState(false);
   const [stocks, setStocks] = useState<any[]>([]);
   const [selectedStock, setSelectedStock] = useState<string>("");
+  const [expireDates, setExpireDates] = useState<Record<number, string>>({});
   const { user } = useAuth();
 
   useEffect(() => {
     if (open) {
       fetchStocks();
       setSelectedStock("");
+      setExpireDates({});
     }
   }, [open]);
 
@@ -106,23 +109,18 @@ export function VerifyOrderDialog({
   if (!order) return null;
 
   const handleVerify = async () => {
-    if (user?.role !== "admin") {
-      return;
-    }
-    if (order.status !== "pending_review") {
-      return;
-    }
-    if (!selectedStock) {
-      return;
-    }
+    if (user?.role !== "admin") return;
+    if (order.status !== "pending_review") return;
+    if (!selectedStock) return;
+
     setLoading(true);
     try {
-      // Prepare stock items from order items
-      const stockItems = order.items.map((item: any) => ({
+      // Prepare stock items — use the expiration date entered at arrival time
+      const stockItems = order.items.map((item: any, idx: number) => ({
         product: item.productId._id,
         price: item.unitCost,
         quantity: item.quantity,
-        expireAt: item.expirationDate || undefined,
+        expireAt: expireDates[idx] ? new Date(expireDates[idx]) : undefined,
       }));
 
       // Create stock items
@@ -203,19 +201,39 @@ export function VerifyOrderDialog({
             </div>
           </div>
 
-          {/* Items brief */}
+          {/* Items with per-item expiration date */}
           <div className="border rounded-lg p-3">
-            <div className="text-xs text-muted-foreground mb-2">{t("items")}</div>
-            <div className="max-h-48 overflow-auto space-y-2 pr-1">
+            <div className="flex items-center gap-2 mb-3">
+              <Calendar className="h-4 w-4" />
+              <div className="text-sm font-medium">
+                {t("items")} — {t("setExpirationOnArrival") || "Set expiration dates on arrival"}
+              </div>
+            </div>
+            <div className="space-y-3 max-h-64 overflow-auto pr-1">
               {order.items.map((it: any, idx: number) => (
-                <div key={idx} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <Package className="h-4 w-4 text-muted-foreground" />
-                    <span>{it.productId?.name}</span>
+                <div key={idx} className="flex items-center gap-3 rounded-lg border p-2.5">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <Package className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium truncate">{it.productId?.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {it.quantity} × {it.unitCost} {t("da")} = {(it.quantity * it.unitCost).toFixed(2)} {t("da")}
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    {it.quantity} × {it.unitCost} {t("da")} ={" "}
-                    {(it.quantity * it.unitCost).toFixed(2)} {t("da")}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <Label className="text-xs text-muted-foreground whitespace-nowrap">
+                      {t("expirationDate") || "Exp. date"}
+                    </Label>
+                    <Input
+                      type="date"
+                      className="w-36 h-8 text-xs"
+                      value={expireDates[idx] || ""}
+                      min={new Date().toISOString().slice(0, 10)}
+                      onChange={(e) =>
+                        setExpireDates((prev) => ({ ...prev, [idx]: e.target.value }))
+                      }
+                    />
                   </div>
                 </div>
               ))}
