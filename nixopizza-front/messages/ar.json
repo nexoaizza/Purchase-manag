@@ -1353,6 +1353,15 @@
         "assigned": "مُعين",
         "notAssigned": "غير مُعين",
         "items": "عناصر",
-        "transfer": "تحويل"
+        "transfer": "تحويل",
+        "cancelTask": "إلغاء المهمة",
+        "markInProgress": "تحديد قيد التنفيذ",
+        "markArrived": "تحديد كوصل",
+        "cancelTransfer": "إلغاء النقل",
+        "assignToMe": "تعيين لي",
+        "cancelOrder": "إلغاء الطلب",
+        "transferUpdated": "تم تحديث النقل بنجاح",
+        "orderUpdated": "تم تحديث الطلب بنجاح",
+        "actionFailed": "فشل الإجراء"
     }
 }

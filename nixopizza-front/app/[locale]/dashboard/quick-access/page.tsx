@@ -19,15 +19,31 @@ import {
   Loader2,
   ExternalLink,
   AlertCircle,
+  MoreHorizontal,
+  XCircle,
+  Truck,
+  PackageCheck,
+  UserPlus,
+  Trash2,
 } from "lucide-react";
 import {
   getPendingSummary,
   PendingSummaryData,
 } from "@/lib/apis/pending-summary";
 import { updateTaskStatus } from "@/lib/apis/task";
+import { updateTransfer } from "@/lib/apis/transfers";
+import { updateOrder, assignOrder } from "@/lib/apis/purchase-list";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { useLocale } from "next-intl";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 /* ──────────────────── helpers ──────────────────── */
 
@@ -50,11 +66,12 @@ function timeAgo(date: string | Date | undefined): string {
 export default function QuickAccessPage() {
   const t = useTranslations("quickAccess");
   const locale = useLocale();
+  const { user } = useAuth();
 
   const [data, setData] = useState<PendingSummaryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [completingTask, setCompletingTask] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const fetchData = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -73,16 +90,51 @@ export default function QuickAccessPage() {
     fetchData();
   }, [fetchData]);
 
-  const handleCompleteTask = async (taskId: string) => {
-    setCompletingTask(taskId);
-    const res = await updateTaskStatus(taskId, "completed");
+  const handleTaskAction = async (taskId: string, action: "completed" | "canceled") => {
+    setActionLoading(`task-${taskId}`);
+    const res = await updateTaskStatus(taskId, action);
     if (res.success) {
-      toast.success(t("taskCompleted"));
+      toast.success(t(action === "completed" ? "taskCompleted" : "taskCanceled"));
       fetchData(true);
     } else {
-      toast.error(res.message || t("taskCompleteFailed"));
+      toast.error(res.message || t("actionFailed"));
     }
-    setCompletingTask(null);
+    setActionLoading(null);
+  };
+
+  const handleTransferAction = async (transferId: string, action: "in_progress" | "arrived" | "canceled") => {
+    setActionLoading(`transfer-${transferId}`);
+    const res = await updateTransfer(transferId, { status: action });
+    if (res.success) {
+      toast.success(t("transferUpdated"));
+      fetchData(true);
+    } else {
+      toast.error(res.message || t("actionFailed"));
+    }
+    setActionLoading(null);
+  };
+
+  const handleOrderAction = async (orderId: string, action: "assign" | "canceled") => {
+    setActionLoading(`order-${orderId}`);
+    let res;
+    if (action === "assign") {
+      if (!user?._id) {
+        toast.error("User not found");
+        setActionLoading(null);
+        return;
+      }
+      res = await assignOrder(orderId, user._id);
+    } else {
+      res = await updateOrder(orderId, { status: action });
+    }
+    
+    if (res.success) {
+      toast.success(t("orderUpdated"));
+      fetchData(true);
+    } else {
+      toast.error(res.message || t("actionFailed"));
+    }
+    setActionLoading(null);
   };
 
   /* ──────────────────── render ──────────────────── */
@@ -219,20 +271,34 @@ export default function QuickAccessPage() {
                           <Clock className="h-3 w-3" />
                           <span>{timeAgo(task.createdAt)}</span>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-7 text-xs text-green-600 hover:text-green-700 hover:bg-green-50"
-                          disabled={completingTask === task._id}
-                          onClick={() => handleCompleteTask(task._id)}
-                        >
-                          {completingTask === task._id ? (
-                            <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                          ) : (
-                            <CheckCircle2 className="h-3 w-3 mr-1" />
-                          )}
-                          {t("markComplete")}
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" disabled={actionLoading === `task-${task._id}`}>
+                              {actionLoading === `task-${task._id}` ? (
+                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                              ) : (
+                                <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                              )}
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleTaskAction(task._id, "completed")}>
+                              <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
+                              {t("markComplete")}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleTaskAction(task._id, "canceled")} className="text-destructive focus:text-destructive">
+                              <XCircle className="h-4 w-4 mr-2" />
+                              {t("cancelTask") || "Cancel Task"}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem asChild>
+                              <Link href={`/${locale}/dashboard/tasks`} className="cursor-pointer w-full">
+                                <ExternalLink className="h-4 w-4 mr-2" />
+                                {t("view")}
+                              </Link>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </div>
                   ))
@@ -322,16 +388,38 @@ export default function QuickAccessPage() {
                           <Clock className="h-3 w-3" />
                           <span>{timeAgo(tr.createdAt)}</span>
                         </div>
-                        <Link href={`/${locale}/dashboard/transfers`}>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-7 text-xs text-purple-600 hover:text-purple-700 hover:bg-purple-50"
-                          >
-                            <ExternalLink className="h-3 w-3 mr-1" />
-                            {t("view")}
-                          </Button>
-                        </Link>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" disabled={actionLoading === `transfer-${tr._id}`}>
+                              {actionLoading === `transfer-${tr._id}` ? (
+                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                              ) : (
+                                <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                              )}
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleTransferAction(tr._id, "in_progress")}>
+                              <Truck className="h-4 w-4 mr-2 text-blue-600" />
+                              {t("markInProgress") || "Mark In Progress"}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleTransferAction(tr._id, "arrived")}>
+                              <PackageCheck className="h-4 w-4 mr-2 text-green-600" />
+                              {t("markArrived") || "Mark Arrived"}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleTransferAction(tr._id, "canceled")} className="text-destructive focus:text-destructive">
+                              <XCircle className="h-4 w-4 mr-2" />
+                              {t("cancelTransfer") || "Cancel Transfer"}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem asChild>
+                              <Link href={`/${locale}/dashboard/transfers`} className="cursor-pointer w-full">
+                                <ExternalLink className="h-4 w-4 mr-2" />
+                                {t("view")}
+                              </Link>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </div>
                   ))
@@ -425,16 +513,36 @@ export default function QuickAccessPage() {
                           <Clock className="h-3 w-3" />
                           <span>{timeAgo(order.createdAt)}</span>
                         </div>
-                        <Link href={`/${locale}/dashboard/purchases`}>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-7 text-xs text-orange-600 hover:text-orange-700 hover:bg-orange-50"
-                          >
-                            <ExternalLink className="h-3 w-3 mr-1" />
-                            {t("process")}
-                          </Button>
-                        </Link>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" disabled={actionLoading === `order-${order._id}`}>
+                              {actionLoading === `order-${order._id}` ? (
+                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                              ) : (
+                                <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                              )}
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {(!order.staffId || order.status === "not assigned" || order.status === "not_assigned") && (
+                              <DropdownMenuItem onClick={() => handleOrderAction(order._id, "assign")}>
+                                <UserPlus className="h-4 w-4 mr-2 text-blue-600" />
+                                {t("assignToMe") || "Assign to me"}
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem onClick={() => handleOrderAction(order._id, "canceled")} className="text-destructive focus:text-destructive">
+                              <XCircle className="h-4 w-4 mr-2" />
+                              {t("cancelOrder") || "Cancel Order"}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem asChild>
+                              <Link href={`/${locale}/dashboard/purchases`} className="cursor-pointer w-full">
+                                <ExternalLink className="h-4 w-4 mr-2" />
+                                {t("process")}
+                              </Link>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </div>
                   ))

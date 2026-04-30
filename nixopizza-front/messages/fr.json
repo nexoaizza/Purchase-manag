@@ -1354,6 +1354,15 @@
         "assigned": "Assignée",
         "notAssigned": "Non assignée",
         "items": "articles",
-        "transfer": "Transfert"
+        "transfer": "Transfert",
+        "cancelTask": "Annuler la tâche",
+        "markInProgress": "Marquer En Cours",
+        "markArrived": "Marquer Arrivé",
+        "cancelTransfer": "Annuler le Transfert",
+        "assignToMe": "M'assigner",
+        "cancelOrder": "Annuler la Commande",
+        "transferUpdated": "Transfert mis à jour avec succès",
+        "orderUpdated": "Commande mise à jour avec succès",
+        "actionFailed": "L'action a échoué"
     }
 }

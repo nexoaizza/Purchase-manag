@@ -1363,6 +1363,15 @@
         "assigned": "Assigned",
         "notAssigned": "Not Assigned",
         "items": "items",
-        "transfer": "Transfer"
+        "transfer": "Transfer",
+        "cancelTask": "Cancel Task",
+        "markInProgress": "Mark In Progress",
+        "markArrived": "Mark Arrived",
+        "cancelTransfer": "Cancel Transfer",
+        "assignToMe": "Assign to me",
+        "cancelOrder": "Cancel Order",
+        "transferUpdated": "Transfer updated successfully",
+        "orderUpdated": "Order updated successfully",
+        "actionFailed": "Action failed"
     }
 }
