@@ -102,14 +102,14 @@ export function TaskDetailDialog({
             </h4>
             <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 border border-muted transition-all hover:bg-muted/50">
               <img
-                src={resolveImage(task.staffId.avatar)}
-                alt={task.staffId.fullname}
+                src={task.staffId?.avatar ? resolveImage(task.staffId.avatar) : "/default-avatar.png"}
+                alt={task.staffId?.fullname || "Unknown Staff"}
                 className="w-12 h-12 rounded-full object-cover shadow-md ring-2 ring-primary/10"
               />
               <div className="space-y-0.5">
-                <div className="font-bold text-foreground">{task.staffId.fullname}</div>
+                <div className="font-bold text-foreground">{task.staffId?.fullname || "Unknown Staff"}</div>
                 <div className="text-sm text-muted-foreground select-all">
-                  {task.staffId.email}
+                  {task.staffId?.email || "No email"}
                 </div>
               </div>
             </div>
