@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ArrowRightLeft } from "lucide-react";
+import { TimePickerInput } from "@/components/ui/time-picker-input";
 import toast from "react-hot-toast";
 import { createTransfer } from "@/lib/apis/transfers";
 import { getStocks, IStock } from "@/lib/apis/stocks";
@@ -350,13 +351,9 @@ export function AddTransferDialog({
 
           <div className="space-y-2">
             <Label htmlFor="startTime">{t("startTime")}</Label>
-            <Input
-              id="startTime"
-              type="datetime-local"
+            <TimePickerInput
               value={formData.startTime}
-              onChange={(e) =>
-                setFormData({ ...formData, startTime: e.target.value })
-              }
+              onChange={(val) => setFormData({ ...formData, startTime: val })}
               required
             />
           </div>
