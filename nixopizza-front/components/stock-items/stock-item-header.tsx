@@ -62,15 +62,9 @@ export function StockItemHeader({
   };
 
   const fetchCategories = async () => {
-<<<<<<< HEAD
-    const { success, categories: fetchedCategories } = await getCategories();
-    if (success) {
-      setCategories(fetchedCategories);
-=======
     const { success, categories: fetchedCategories } = await getCategories({ limit: 1000 } as any);
     if (success) {
       setCategories(fetchedCategories || []);
->>>>>>> development
     }
   };
 
@@ -161,11 +155,7 @@ export function StockItemHeader({
             ))}
           </SelectContent>
         </Select>
-<<<<<<< HEAD
-        <Select value={selectedCategory} onValueChange={handleCategoryChange}>
-=======
-        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
->>>>>>> development
+        <Select value={categoryFilter || selectedCategory} onValueChange={(val) => { setCategoryFilter(val); handleCategoryChange(val); }}>
           <SelectTrigger className="flex-1 border-2 border-input focus:ring-2 focus:ring-primary/30">
             <SelectValue placeholder={t("selectCategory")} />
           </SelectTrigger>

@@ -22,8 +22,7 @@ import {
 } from "@/components/ui/select";
 import { ArrowRightLeft } from "lucide-react";
 import toast from "react-hot-toast";
-<<<<<<< HEAD
-import { updateTransfer, ITransfer } from "@/lib/apis/transfers";
+import { updateTransfer, ITransfer, TransferStatus } from "@/lib/apis/transfers";
 import { getStocks, IStock } from "@/lib/apis/stocks";
 import { getStockItems } from "@/lib/apis/stock-items";
 import { getStuff } from "@/lib/apis/stuff";
@@ -39,10 +38,6 @@ interface ICategory {
   _id: string;
   name: string;
 }
-=======
-import { updateTransfer, ITransfer, TransferStatus } from "@/lib/apis/transfers";
-import { getStuff } from "@/lib/apis/stuff";
->>>>>>> development
 
 interface EditTransferDialogProps {
   open: boolean;
@@ -59,7 +54,6 @@ export function EditTransferDialog({
 }: EditTransferDialogProps) {
   const t = useTranslations("transfers");
   const [loading, setLoading] = useState(false);
-<<<<<<< HEAD
   const [stocks, setStocks] = useState<IStock[]>([]);
   const [stockItems, setStockItems] = useState<any[]>([]);
   const [categories, setCategories] = useState<ICategory[]>([]);
@@ -68,20 +62,12 @@ export function EditTransferDialog({
   const [itemsPage, setItemsPage] = useState(1);
   const [hasMoreItems, setHasMoreItems] = useState(true);
   const [loadingMoreItems, setLoadingMoreItems] = useState(false);
-=======
-  const [staffList, setStaffList] = useState<any[]>([]);
->>>>>>> development
   const [formData, setFormData] = useState({
     items: [] as string[],
     quantity: 1,
-<<<<<<< HEAD
-    status: "pending" as "pending" | "arrived",
-    assignedTo: "",
-    startTime: "",
-=======
     status: "pending" as TransferStatus,
     assignedTo: "",
->>>>>>> development
+    startTime: "",
   });
 
   useEffect(() => {
@@ -96,17 +82,12 @@ export function EditTransferDialog({
         items: transfer.items?.map((item: any) => typeof item === "object" ? item._id : item) || [],
         quantity: transfer.quantity,
         status: transfer.status,
-<<<<<<< HEAD
         assignedTo: typeof transfer.assignedTo === "object" ? transfer.assignedTo?._id : transfer.assignedTo || "",
         startTime: transfer.startTime ? new Date(transfer.startTime).toISOString().slice(0, 16) : "",
-=======
-        assignedTo: transfer.assignedTo?._id || transfer.assignedTo || "",
->>>>>>> development
       });
     }
   }, [transfer]);
 
-<<<<<<< HEAD
   useEffect(() => {
     if (open) {
       fetchStocks();
@@ -179,16 +160,6 @@ export function EditTransferDialog({
     if (!fromId || loadingMoreItems || !hasMoreItems) return;
     await fetchStockItems(fromId, itemsPage + 1, true, selectedCategory);
   };
-
-=======
-  const fetchStaff = async () => {
-    const { success, staffs } = await getStuff();
-    if (success) {
-      setStaffList(staffs || []);
-    }
-  };
-
->>>>>>> development
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -250,7 +221,6 @@ export function EditTransferDialog({
           </div>
 
           <div className="space-y-2">
-<<<<<<< HEAD
             <Label htmlFor="items">{t("selectItems")}</Label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               <Select
@@ -303,26 +273,6 @@ export function EditTransferDialog({
                 </SelectContent>
               </Select>
             </div>
-=======
-            <Label htmlFor="assignedTo">{t("assignedTo")}</Label>
-            <Select
-              value={formData.assignedTo}
-              onValueChange={(value) =>
-                setFormData({ ...formData, assignedTo: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={t("selectStaff")} />
-              </SelectTrigger>
-              <SelectContent>
-                {staffList.map((staff) => (
-                  <SelectItem key={staff._id} value={staff._id}>
-                    {staff.fullname} - {staff.email}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
->>>>>>> development
           </div>
 
           <div className="space-y-2">

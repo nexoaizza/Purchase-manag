@@ -2,11 +2,8 @@
 
 import type React from "react";
 import { useState, useEffect } from "react";
-<<<<<<< HEAD
 import { get_unread_notifications_count } from "@/lib/apis/notifications";
 import { getTransfers } from "@/lib/apis/transfers";
-=======
->>>>>>> development
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
@@ -26,12 +23,9 @@ import {
   FileText,
   ArrowRightLeft,
   Trash2,
-<<<<<<< HEAD
   History,
-=======
   FileSpreadsheet,
   LayoutDashboard,
->>>>>>> development
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -218,7 +212,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                         )}
                         onClick={() => setSidebarOpen(false)}
                       >
-<<<<<<< HEAD
                         <div className="relative">
                           <item.icon className="h-5 w-5 shrink-0" />
                           {item.name === t("notifications") && unreadCount > 0 && (
@@ -237,9 +230,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                             </span>
                           )}
                         </div>
-                        {item.name}
-=======
-                        <item.icon className="h-5 w-5 shrink-0" />
                         <span className="flex-1">{item.name}</span>
                         {(item as any).badge > 0 && (
                           <Badge
@@ -249,7 +239,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                             {(item as any).badge}
                           </Badge>
                         )}
->>>>>>> development
                       </Link>
                     </li>
                   );

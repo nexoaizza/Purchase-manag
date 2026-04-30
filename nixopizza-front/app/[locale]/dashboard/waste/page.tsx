@@ -14,13 +14,8 @@ export default function WastePage() {
   const [stocks, setStocks] = useState<IStock[]>([]);
   const [productFilter, setProductFilter] = useState("all");
   const [stockFilter, setStockFilter] = useState("all");
-<<<<<<< HEAD
-  const [dateFrom, setDateFrom] = useState(""); // <-- ADDED
-  const [dateTo, setDateTo] = useState(""); // <-- ADDED
-=======
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
->>>>>>> development
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -34,11 +29,7 @@ export default function WastePage() {
 
   useEffect(() => {
     fetchWastes();
-<<<<<<< HEAD
-  }, [currentPage, limit, productFilter, stockFilter, dateFrom, dateTo]); // <-- UPDATED
-=======
   }, [currentPage, limit, productFilter, stockFilter, dateFrom, dateTo]);
->>>>>>> development
 
   const fetchStocks = async () => {
     const { stocks: fetchedStocks, success } = await getStocks();
@@ -57,13 +48,8 @@ export default function WastePage() {
 
     if (productFilter && productFilter !== "all") params.product = productFilter;
     if (stockFilter && stockFilter !== "all") params.stock = stockFilter;
-<<<<<<< HEAD
-    if (dateFrom) params.dateFrom = dateFrom; // <-- ADDED
-    if (dateTo) params.dateTo = dateTo; // <-- ADDED
-=======
     if (dateFrom) params.dateFrom = dateFrom;
     if (dateTo) params.dateTo = dateTo;
->>>>>>> development
 
     const { wastes: fetchedWastes, pages, message, success } = await getWastes(params);
     
@@ -113,17 +99,10 @@ export default function WastePage() {
           stockFilter={stockFilter}
           setStockFilter={setStockFilter}
           stocks={stocks}
-<<<<<<< HEAD
-          dateFrom={dateFrom} // <-- ADDED
-          setDateFrom={setDateFrom} // <-- ADDED
-          dateTo={dateTo} // <-- ADDED
-          setDateTo={setDateTo} // <-- ADDED
-=======
           dateFrom={dateFrom}
           setDateFrom={setDateFrom}
           dateTo={dateTo}
           setDateTo={setDateTo}
->>>>>>> development
         />
 
         <WasteTable

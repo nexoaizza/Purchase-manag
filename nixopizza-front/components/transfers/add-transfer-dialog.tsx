@@ -26,7 +26,6 @@ import { createTransfer } from "@/lib/apis/transfers";
 import { getStocks, IStock } from "@/lib/apis/stocks";
 import { getStockItems } from "@/lib/apis/stock-items";
 import { getStuff } from "@/lib/apis/stuff";
-<<<<<<< HEAD
 import { getCategories } from "@/lib/apis/categories";
 
 interface IStaff {
@@ -39,8 +38,6 @@ interface ICategory {
   _id: string;
   name: string;
 }
-=======
->>>>>>> development
 
 interface AddTransferDialogProps {
   open: boolean;
@@ -57,40 +54,26 @@ export function AddTransferDialog({
   const [loading, setLoading] = useState(false);
   const [stocks, setStocks] = useState<IStock[]>([]);
   const [stockItems, setStockItems] = useState<any[]>([]);
-<<<<<<< HEAD
   const [categories, setCategories] = useState<ICategory[]>([]);
   const [staffList, setStaffList] = useState<IStaff[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [itemsPage, setItemsPage] = useState(1);
   const [hasMoreItems, setHasMoreItems] = useState(true);
   const [loadingMoreItems, setLoadingMoreItems] = useState(false);
-=======
-  const [staffList, setStaffList] = useState<any[]>([]);
->>>>>>> development
   const [formData, setFormData] = useState({
     items: [] as string[],
     takenFrom: "",
     takenTo: "",
     quantity: 1,
-<<<<<<< HEAD
-    status: "pending" as "pending" | "arrived",
-    assignedTo: "",
-    startTime: "",
-=======
     assignedTo: "",
     startTime: "",
     status: "pending" as "pending" | "in_progress" | "arrived" | "canceled",
->>>>>>> development
   });
 
   useEffect(() => {
     if (open) {
       fetchStocks();
-<<<<<<< HEAD
       fetchCategories();
-=======
-      fetchStaff();
->>>>>>> development
     }
   }, [open]);
 
@@ -115,20 +98,8 @@ export function AddTransferDialog({
     }
   };
 
-<<<<<<< HEAD
   const fetchCategories = async () => {
     const { success, categories: fetchedCategories } = await getCategories();
-=======
-  const fetchStaff = async () => {
-    const { success, staffs } = await getStuff();
-    if (success) {
-      setStaffList(staffs || []);
-    }
-  };
-
-  const fetchStockItems = async (stockId: string) => {
-    const { success, stockItems: items } = await getStockItems({ stock: stockId });
->>>>>>> development
     if (success) {
       setCategories(fetchedCategories || []);
     }
@@ -203,15 +174,9 @@ export function AddTransferDialog({
         takenFrom: "", 
         takenTo: "", 
         quantity: 1,
-<<<<<<< HEAD
-        status: "pending",
+        status: "pending" as any,
         assignedTo: "",
         startTime: "",
-=======
-        assignedTo: "",
-        startTime: "",
-        status: "pending" 
->>>>>>> development
       });
       setSelectedCategory("all");
       setStockItems([]);

@@ -34,14 +34,11 @@ export default function StockItemsPage() {
 
     if (category && category !== "all") params.category = category;
     if (stock && stock !== "all") params.stock = stock;
-<<<<<<< HEAD
     if (minPrice !== undefined && minPrice !== "") params.minPrice = minPrice;
     if (maxPrice !== undefined && maxPrice !== "") params.maxPrice = maxPrice;
     if (productName) params.productName = productName;
     if (expirationStatus && expirationStatus !== "all") params.expirationStatus = expirationStatus;
-=======
     if (categoryFilter && categoryFilter !== "all") params.category = categoryFilter;
->>>>>>> development
 
     const { stockItems: fetchedItems, pages, message, success } = await getStockItems(params);
 
@@ -55,11 +52,7 @@ export default function StockItemsPage() {
 
   useEffect(() => {
     fetchStockItems();
-<<<<<<< HEAD
-  }, [limit, currentPage, productName, category, stock, expirationStatus, sortBy, order, minPrice, maxPrice]);
-=======
-  }, [limit, currentPage, productName, stock, expirationStatus, categoryFilter]);
->>>>>>> development
+  }, [limit, currentPage, productName, category, categoryFilter, stock, expirationStatus, sortBy, order, minPrice, maxPrice]);
 
   const handleEdit = (stockItem: IStockItem) => {
     setSelectedStockItem(stockItem);
