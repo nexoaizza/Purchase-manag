@@ -1,0 +1,345 @@
+"use client";
+
+import type React from "react";
+import { useState, useEffect } from "react";
+<<<<<<< HEAD
+import { get_unread_notifications_count } from "@/lib/apis/notifications";
+import { getTransfers } from "@/lib/apis/transfers";
+=======
+>>>>>>> development
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Package,
+  Users,
+  ShoppingCart,
+  BarChart3,
+  Menu,
+  LogOut,
+  Bell,
+  Shapes,
+  Zap,
+  MoreVertical,
+  Cog,
+  Warehouse,
+  Box,
+  FileText,
+  ArrowRightLeft,
+  Trash2,
+<<<<<<< HEAD
+  History,
+=======
+  FileSpreadsheet,
+  LayoutDashboard,
+>>>>>>> development
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
+import { logoutUser } from "@/lib/apis/auth";
+import { getProfile, useAuth } from "@/hooks/useAuth";
+import { Badge } from "@/components/ui/badge";
+import { getPendingSummary } from "@/lib/apis/pending-summary";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+interface DashboardLayoutProps {
+  children: React.ReactNode;
+}
+
+export function DashboardLayout({ children }: DashboardLayoutProps) {
+  const { user } = useAuth();
+  const locale = useLocale();
+  const isRTL = locale === "ar";
+  const t = useTranslations("navigation");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [pendingTotal, setPendingTotal] = useState(0);
+  const pathname = usePathname();
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [pendingTransfersCount, setPendingTransfersCount] = useState(0);
+
+  useEffect(() => {
+    if (user) {
+      get_unread_notifications_count()
+        .then((data) => {
+          if (data && data.count !== undefined) {
+            setUnreadCount(data.count);
+          }
+        })
+        .catch((err) => console.log(err));
+
+      getTransfers({ status: "pending", page: 1, limit: 1, sortBy: "createdAt", order: "desc" })
+        .then((data) => {
+          if (!data.success) {
+            console.error("Failed to fetch pending transfers count:", data.message);
+            return;
+          }
+          setPendingTransfersCount(data.total ?? 0);
+        });
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user?.role !== "admin") return;
+    getPendingSummary().then((res) => {
+      if (res.success && res.data) setPendingTotal(res.data.total);
+    });
+  }, [user?.role]);
+
+  const navigation =
+    user?.role === "admin"
+      ? [
+          {
+            name: t("quickAccess"),
+            href: "/dashboard/quick-access",
+            icon: LayoutDashboard,
+            badge: pendingTotal,
+          },
+          { name: t("dashboard"), href: "/dashboard", icon: BarChart3 },
+          { name: t("categories"), href: "/dashboard/categories", icon: Shapes },
+          { name: t("products"), href: "/dashboard/products", icon: Package },
+          { name: t("stocks"), href: "/dashboard/stocks", icon: Warehouse },
+          { name: t("stockItems"), href: "/dashboard/stock-items", icon: Box },
+          { name: t("itemsUsage"), href: "/dashboard/stock-usage", icon: History },
+          { name: t("transfers"), href: "/dashboard/transfers", icon: ArrowRightLeft },
+          { name: t("waste"), href: "/dashboard/waste", icon: Trash2 },
+          { name: t("suppliers"), href: "/dashboard/suppliers", icon: Users },
+          {
+            name: t("purchaseLists"),
+            href: "/dashboard/purchases",
+            icon: ShoppingCart,
+          },
+          { name: t("templates"), href: "/dashboard/purchases/templates", icon: FileText },
+          { name: t("shortcuts"), href: "/dashboard/shortcuts", icon: Zap },
+          { name: t("staff"), href: "/dashboard/stuff", icon: Users },
+          { name: t("tasks"), href: "/dashboard/tasks", icon: Users },
+          {
+            name: t("notifications"),
+            href: "/dashboard/notifications",
+            icon: Bell,
+          },
+          {
+            name: t("reports"),
+            href: "/dashboard/reports",
+            icon: FileSpreadsheet,
+          },
+        ]
+      : [
+          { name: t("dashboard"), href: "/dashboardstaff", icon: BarChart3 },
+          { name: t("orders"), href: "/dashboardstaff/orders", icon: Users },
+          { name: t("transfers"), href: "/dashboardstaff/transfers", icon: ArrowRightLeft },
+        ];
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Mobile sidebar */}
+      <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+        <SheetTrigger asChild>
+          <Button
+            variant="outline"
+            className={cn(
+              "fixed top-4 z-40 md:hidden",
+              isRTL ? "right-4" : "left-4"
+            )}
+            size="icon"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side={isRTL ? "right" : "left"} className="p-0 w-64">
+          <Sidebar />
+        </SheetContent>
+      </Sheet>
+
+      {/* Desktop sidebar */}
+      <div
+        className={cn(
+          "hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col",
+          isRTL ? "md:right-0" : "md:left-0"
+        )}
+      >
+        <Sidebar />
+      </div>
+
+      {/* Main content */}
+      <div
+        className={cn(
+          "md:w-[calc(100%-16rem)]",
+          isRTL ? "md:mr-64" : "md:ml-64"
+        )}
+      >
+        <main className="py-6">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            {children}
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+
+  /************************************
+   *            SIDEBAR
+   ************************************/
+  function Sidebar() {
+    return (
+      <div
+        className={cn(
+          "flex grow flex-col gap-y-5 overflow-y-auto bg-card border-r border-border px-6 pb-4",
+          isRTL && "border-r-0 border-l"
+        )}
+      >
+        <div className="flex h-16 shrink-0 items-center">
+          <img src="/nexo-logo.png" alt="Logo" className="w-[150px]" />
+        </div>
+
+        <nav className="flex flex-1 flex-col">
+          <ul role="list" className="flex flex-1 flex-col gap-y-7">
+            <li>
+              <ul role="list" className="-mx-2 space-y-1">
+                {navigation.map((item) => {
+                  const isActive = pathname === item.href;
+
+                  return (
+                    <li key={item.name}>
+                      <Link
+                        href={item.href}
+                        className={cn(
+                          "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-medium transition-colors",
+                          isActive
+                            ? "bg-primary text-primary-foreground"
+                            : "text-foreground hover:bg-muted hover:text-foreground"
+                        )}
+                        onClick={() => setSidebarOpen(false)}
+                      >
+<<<<<<< HEAD
+                        <div className="relative">
+                          <item.icon className="h-5 w-5 shrink-0" />
+                          {item.name === t("notifications") && unreadCount > 0 && (
+                            <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                              {unreadCount > 99 ? "99+" : unreadCount}
+                            </span>
+                          )}
+                          {item.name === t("transfers") && pendingTransfersCount > 0 && (
+                            <span
+                              aria-label={t("pendingTransfersAriaLabel", {
+                                count: pendingTransfersCount,
+                              })}
+                              className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-yellow-500 text-[10px] font-bold text-white"
+                            >
+                              {pendingTransfersCount > 99 ? "99+" : pendingTransfersCount}
+                            </span>
+                          )}
+                        </div>
+                        {item.name}
+=======
+                        <item.icon className="h-5 w-5 shrink-0" />
+                        <span className="flex-1">{item.name}</span>
+                        {(item as any).badge > 0 && (
+                          <Badge
+                            variant="destructive"
+                            className="ml-auto h-5 min-w-5 px-1.5 text-[10px] font-bold"
+                          >
+                            {(item as any).badge}
+                          </Badge>
+                        )}
+>>>>>>> development
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </li>
+
+            {/* ⭐ USER MENU (new section) */}
+            <li className="mt-auto">
+              <UserMenu />
+            </li>
+          </ul>
+        </nav>
+      </div>
+    );
+  }
+}
+
+/************************************
+ *      USER MENU COMPONENT
+ ************************************/
+function UserMenu() {
+  const [langIndex, setLangIndex] = useState(0);
+  const languages = [
+    { code: "fr", label: "FR", flag: "🇫🇷" },
+    { code: "ar", label: "AR", flag: "🇩🇿" },
+    { code: "en", label: "EN", flag: "🇬🇧" },
+  ];
+
+  const locale = useLocale();
+  const t = useTranslations("navigation");
+  const user = getProfile();
+  
+  const handleLogout = async () => {
+    await logoutUser();
+    window.location.href = "/";
+  };
+  
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+       <div className="w-full cursor-pointer rounded-md hover:bg-muted relative">
+  <div className="flex items-center gap-2">
+    <Avatar className="h-8 w-8">
+      <AvatarImage
+        src={user?.avatar ?? undefined}
+        alt={user?.fullname}
+        className="object-cover"
+      />
+      <AvatarFallback
+        className="bg-orange-500 text-white font-semibold"
+      >
+        {(user?.fullname?.[0] || "N").toUpperCase()}
+      </AvatarFallback>
+    </Avatar>
+
+    {
+      (() => {
+        const full = user?.fullname || "";
+        const display = full.length > 18 ? `${full.slice(0, 18)}...` : full;
+        return (
+          <span className="text-sm font-medium" title={full}>
+            {display}
+          </span>
+        );
+      })()
+    }
+  </div>
+
+  <MoreVertical className={`w-4 h-4 absolute ${locale === "ar" ? "left-[-8px]" : "right-[-8px]"} top-0`} />
+</div>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent align="end" className="w-44">
+        <DropdownMenuItem
+          onClick={handleLogout}
+          className="flex items-center gap-2"
+        >
+          <LogOut className="h-4 w-4" />
+          {t("signOut")}
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          onClick={() => (window.location.href = `/${locale}/dashboard/parameters`) }
+          className="flex items-center gap-2"
+        >
+          <Cog className="h-4 w-4" />
+          {t("parameters")}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}

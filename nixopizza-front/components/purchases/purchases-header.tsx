@@ -1,0 +1,280 @@
+// components/purchases/purchases-header.tsx
+"use client";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Search, Filter, ArrowUpDown, Calendar as CalendarIcon, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { GeneratePurchaseListDialog } from "./generate-purchase-list-dialog";
+import { ManualOrderDialog } from "./manual-order-dialog";
+import { MultiSupplierSelect } from "@/components/ui/multi-supplier-select";
+import { ISupplier } from "@/app/[locale]/dashboard/suppliers/page";
+import { get_all_suppliers } from "@/lib/apis/suppliers";
+import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { useTranslations } from "next-intl";
+
+export function PurchasesHeader({
+  onSearchChange,
+  onStatusChange,
+  onSupplierChange,
+  onSortChange,
+  onDateRangeChange,
+  addNewOrder,
+  onRefresh,
+  initialStatus = "all",
+  initialDateRange = { from: null, to: null },
+  initialSupplierIds = [],
+}: {
+  onSearchChange: (search: string) => void;
+  onStatusChange: (status: string) => void;
+  onSupplierChange: (supplierIds: string[]) => void;
+  onSortChange: (sort: { sortBy: string; order: string }) => void;
+  onDateRangeChange: (range: { from: Date | null; to: Date | null }) => void;
+  addNewOrder: (newOrder: IOrder) => void;
+  onRefresh?: () => void;
+  initialStatus?: string;
+  initialDateRange?: { from: Date | null; to: Date | null };
+  initialSupplierIds?: string[];
+}) {
+  const t = useTranslations("purchases");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState(initialStatus);
+  const [selectedSuppliers, setSelectedSuppliers] = useState<ISupplier[]>([]);
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [order, setOrder] = useState("desc");
+  const [dateRange, setDateRange] = useState<{ from: Date | null; to: Date | null }>(initialDateRange);
+
+  // Sync with initial values when they change (from URL params)
+  useEffect(() => {
+    setStatusFilter(initialStatus);
+  }, [initialStatus]);
+
+  useEffect(() => {
+    setDateRange(initialDateRange);
+  }, [initialDateRange]);
+
+  useEffect(() => {
+    const fetchInitialSuppliers = async () => {
+      if (initialSupplierIds && initialSupplierIds.length > 0) {
+        try {
+          // We can fetch all suppliers and filter or if there's an API for multiple IDs
+          const data = await get_all_suppliers({ limit: 1000 });
+          if (data && data.suppliers) {
+            const filtered = data.suppliers.filter((s: ISupplier) => 
+              initialSupplierIds.includes(s._id)
+            );
+            setSelectedSuppliers(filtered);
+          }
+        } catch (error) {
+          console.error("Error fetching initial suppliers:", error);
+        }
+      } else {
+        setSelectedSuppliers([]);
+      }
+    };
+    fetchInitialSuppliers();
+  }, [initialSupplierIds]);
+
+  // Handle search change
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    onSearchChange(value);
+  };
+
+  // Handle status change
+  const handleStatusChange = (value: string) => {
+    setStatusFilter(value);
+    onStatusChange(value);
+  };
+
+  // Handle supplier change
+  const handleSupplierChange = (suppliers: ISupplier[]) => {
+    setSelectedSuppliers(suppliers);
+    onSupplierChange(suppliers.map((supplier) => supplier._id));
+  };
+
+  // Handle sort change
+  const handleSortChange = (value: string) => {
+    setSortBy(value);
+    onSortChange({ sortBy: value, order });
+  };
+
+  // Handle date range change
+  const handleDateRangeChange = (range: { from: Date | null; to: Date | null }) => {
+    setDateRange(range);
+    onDateRangeChange(range);
+  };
+
+  // Clear date range
+  const clearDateRange = () => {
+    const emptyRange = { from: null, to: null };
+    setDateRange(emptyRange);
+    onDateRangeChange(emptyRange);
+  };
+
+  const handleNewOrder = (newOrder: IOrder) => {
+    addNewOrder(newOrder);
+    // Trigger refresh if callback provided
+    if (onRefresh) {
+      onRefresh();
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-heading font-bold text-foreground">
+            {t("title")}
+          </h1>
+          <p className="text-muted-foreground">
+            {t("subtitle")}
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <ManualOrderDialog addNewOrder={handleNewOrder} />
+        </div>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="flex flex-col lg:flex-row gap-4 items-start">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder={t("searchPlaceholder")}
+            value={searchQuery}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="pl-10 border-2 border-input focus-visible:ring-2 focus-visible:ring-primary/30"
+          />
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {/* Status Filter */}
+          <Select value={statusFilter} onValueChange={handleStatusChange}>
+            <SelectTrigger className="w-[180px] border-2 border-input focus:ring-2 focus:ring-primary/30">
+              <SelectValue placeholder={t("status")} />
+            </SelectTrigger>
+            <SelectContent>
+  <SelectItem value="all">{t("allOrdersFilter")}</SelectItem>
+  <SelectItem value="not assigned">{t("notAssignedFilterOption")}</SelectItem>
+  <SelectItem value="assigned">{t("assignedFilterOption")}</SelectItem>
+  <SelectItem value="pending_review">{t("pendingReviewFilter")}</SelectItem>
+  <SelectItem value="verified">{t("verifiedFilter")}</SelectItem>
+  <SelectItem value="paid">{t("paidFilterOption")}</SelectItem>
+  <SelectItem value="canceled">{t("canceledFilter")}</SelectItem>
+</SelectContent>
+          </Select>
+
+          {/* Supplier Filter */}
+          <MultiSupplierSelect
+            selectedSuppliers={selectedSuppliers}
+            onSuppliersChange={handleSupplierChange}
+            placeholder={t("selectSuppliers")}
+            className="min-w-[200px] max-w-[400px] border-2 border-input focus:ring-2 focus:ring-primary/30"
+          />
+
+          {/* Date Range Filter */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-[280px] justify-start text-left font-normal border-2 border-input",
+                  !dateRange.from && !dateRange.to && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dateRange.from && dateRange.to ? (
+                  <>
+                    {format(dateRange.from, "dd/MM/yyyy")} - {format(dateRange.to, "dd/MM/yyyy")}
+                  </>
+                ) : (
+                  <span>{t("pickDateRange")}</span>
+                )}
+                {(dateRange.from || dateRange.to) && (
+                  <X
+                    className="ml-auto h-4 w-4"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      clearDateRange();
+                    }}
+                  />
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <div className="p-3 space-y-3">
+                <div>
+                  <p className="text-sm font-medium mb-2">{t("fromDate")}</p>
+                  <Calendar
+                    mode="single"
+                    selected={dateRange.from || undefined}
+                    onSelect={(date) =>
+                      handleDateRangeChange({ ...dateRange, from: date || null })
+                    }
+                    initialFocus
+                  />
+                </div>
+                <div>
+                  <p className="text-sm font-medium mb-2">{t("toDate")}</p>
+                  <Calendar
+                    mode="single"
+                    selected={dateRange.to || undefined}
+                    onSelect={(date) =>
+                      handleDateRangeChange({ ...dateRange, to: date || null })
+                    }
+                    disabled={(date) =>
+                      dateRange.from ? date < dateRange.from : false
+                    }
+                  />
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Sort Filter */}
+          <Select value={sortBy} onValueChange={handleSortChange}>
+            <SelectTrigger className="w-[180px] border-2 border-input focus:ring-2 focus:ring-primary/30">
+              <SelectValue placeholder={t("sortBy")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="createdAt">{t("dateAdded")}</SelectItem>
+              <SelectItem value="orderNumber">{t("orderNumber")}</SelectItem>
+              <SelectItem value="totalAmount">{t("totalAmountSort")}</SelectItem>
+              <SelectItem value="supplierId.name">{t("supplierSort")}</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Sort Order Button */}
+          <Button
+            variant="outline"
+            size="icon"
+            className="border-2 border-input"
+            onClick={() => {
+              const newOrder = order === "asc" ? "desc" : "asc";
+              setOrder(newOrder);
+              onSortChange({ sortBy, order: newOrder });
+            }}
+          >
+            <ArrowUpDown className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}

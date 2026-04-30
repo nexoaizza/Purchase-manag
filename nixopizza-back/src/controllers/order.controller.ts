@@ -1,0 +1,947 @@
+// controllers/order.controller.ts
+import { Request, Response } from "express";
+import Product from "../models/product.model";
+import Order from "../models/order.model";
+import ProductOrder from "../models/productOrder.model";
+import User from "../models/user.model";
+import { deleteImage } from "../utils/Delete";
+import crypto from "crypto";
+import { uploadBufferToBlob } from "../utils/blob";
+import { sendPushNotification } from "../services/firebase.service";
+import { createLocalNotification } from "./notification.controller";
+// [ADDED] Import the WhatsApp service
+import { sendWhatsAppMessage } from "../services/whatsapp.service";
+import { sendTelegramMessage } from "../services/telegram.service";
+
+/**
+ * Helper: generate order number like ORD-YYYYMMDD-RAND
+ */
+const generateOrderNumber = (): string => {
+  const date = new Date().toISOString().split("T")[0].replace(/-/g, "");
+  const rand = Math.floor(1000 + Math.random() * 9000);
+  return `ORD-${date}-${rand}`;
+};
+
+/**
+ * Helper: build unique blob key for uploads
+ */
+const buildBlobKey = (originalName: string): string => {
+  const ext = (originalName.match(/\.[^/.]+$/) || [".bin"])[0];
+  const unique = crypto.randomBytes(8).toString("hex");
+  return `${Date.now()}-${unique}${ext}`;
+};
+
+/**
+ * Push a status transition entry to history
+ */
+function pushStatusHistory(
+  order: any,
+  from: string | null,
+  to: string,
+  userId?: string
+) {
+  order.statusHistory = order.statusHistory || [];
+  order.statusHistory.push({
+    from,
+    to,
+    at: new Date(),
+    by: userId || null,
+  });
+}
+
+/**
+ * Populate related docs
+ */
+async function populateOrder(orderDoc: any) {
+  if (!orderDoc) return orderDoc;
+  await orderDoc.populate([
+    { path: "staffId", select: "avatar email fullname" },
+    {
+      path: "supplierId",
+      // [NOTE] Ensure phone1 is selected to send the WhatsApp message
+      select: "email name image contactPerson address phone1 phone2 phone3 city telegramChatId",
+    },
+    {
+      path: "items",
+      populate: {
+        path: "productId",
+        select: "name imageUrl barcode unit", // Added 'unit' for better message details
+      },
+    },
+  ]);
+  return orderDoc;
+}
+
+/* ------------------------- CREATE ORDER ------------------------- */
+export const createOrder = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const {
+      items,
+      supplierId,
+      notes,
+      expectedDate,
+    }: {
+      items: { productId: string; quantity: number; unitCost: number; expirationDate: Date }[];
+      supplierId: string;
+      notes?: string;
+      expectedDate?: Date;
+    } = req.body;
+
+    if (!supplierId || !Array.isArray(items) || items.length === 0) {
+      res.status(400).json({ message: "supplierId and items are required" });
+      return;
+    }
+
+    const productOrdersIds: string[] = [];
+    for (const { productId, quantity, unitCost, expirationDate } of items) {
+      const product = await Product.findById(productId);
+      if (!product) {
+        res.status(404).json({ message: `Product not found: ${productId}` });
+        return;
+      }
+
+      const productOrder = await ProductOrder.create({
+        productId,
+        quantity,
+        unitCost,
+        expirationDate,
+        remainingQte: quantity,
+      });
+      productOrdersIds.push(productOrder._id.toString());
+    }
+
+    const totalAmount = items.reduce(
+      (sum, item) => sum + item.unitCost * item.quantity,
+      0
+    );
+
+    const order = new Order({
+      items: productOrdersIds,
+      supplierId,
+      status: "not assigned",
+      totalAmount,
+      notes,
+      expectedDate,
+      orderNumber: generateOrderNumber(),
+      statusHistory: [],
+    });
+
+    // Initial history entry
+    pushStatusHistory(order, null, "not assigned", req.user?.userId);
+
+    if (req.file) {
+      const key = buildBlobKey(req.file.originalname);
+      const uploaded = await uploadBufferToBlob(
+        key,
+        req.file.buffer,
+        req.file.mimetype
+      );
+      order.bon = uploaded.url;
+    }
+
+    await order.save();
+    const populated = await populateOrder(order);
+
+    const supplier = (populated as any)?.supplierId;
+    if (supplier?.telegramChatId) {
+      const itemsList = ((populated as any)?.items || [])
+        .map((item: any) => {
+          const productName = item?.productId?.name || "Product";
+          const quantity = item?.quantity ?? 0;
+          return `- [${productName}]: [${quantity}]`;
+        })
+        .join("\n");
+
+      const date = new Date().toISOString().split("T")[0];
+      const messageBody =
+        `*📦 New Order Request (Nexo Pizza)*\n` +
+        `Order No: \`${String((populated as any)?.orderNumber || "")}\`\n` +
+        `Date: ${date}\n\n` +
+        `*Items:*\n` +
+        `${itemsList}\n\n` +
+        `Please confirm availability.`;
+
+      void sendTelegramMessage(supplier.telegramChatId, messageBody).catch((error) => {
+        console.error(
+          `Failed to send Telegram order message for order ${String(
+            (populated as any)?.orderNumber || order._id
+          )} to supplier ${String(supplier?._id || "unknown")}:`,
+          error
+        );
+      });
+    }
+
+    // Trigger local notification for purchase list (order) generation
+    await createLocalNotification(
+        `A new purchase list (Order #${order.orderNumber}) has been generated.`,
+        "success",
+        "Purchase List Generated",
+        "orders"
+    );
+
+    res
+      .status(201)
+      .json({ message: "Order created successfully", order: populated });
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
+  }
+};
+
+/* ------------------------- ASSIGN ORDER ------------------------- */
+export const assignOrder = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const orderId = req.params.orderId;
+    const { staffId, assignmentType } = req.body;
+
+    if (!staffId) {
+      res.status(400).json({ message: "Staff ID is required" });
+      return;
+    }
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      res.status(404).json({ message: "Order not found" });
+      return;
+    }
+
+    if (order.status !== "not assigned") {
+      res
+        .status(400)
+        .json({ message: "Order is already assigned or progressed" });
+      return;
+    }
+
+    const prevStatus = order.status;
+    order.staffId = staffId;
+    order.assignmentType = assignmentType || "make";
+    order.status = "assigned";
+    order.assignedDate = new Date();
+    pushStatusHistory(order, prevStatus, "assigned", req.user?.userId);
+
+    await order.save();
+    
+    // We cast to any here to easily access populated fields without strict TS errors
+    const populated: any = await populateOrder(order);
+
+    // --- [START] WhatsApp Bot Logic ---
+    try {
+      // 1. Fetch the staff member who was just assigned
+      const staff: any = await User.findById(staffId);
+      
+      // 2. Check if the assigned staff is the Bot
+      if (staff && staff.fullname === "Nexo_bot") {
+        const supplier = populated.supplierId;
+
+        // 3. If supplier has a phone number, construct and send message
+        if (supplier && supplier.phone1) {
+          
+          // Format the items list string
+          const itemsList = populated.items
+            .map((item: any) => {
+              const pName = item.productId?.name || "Product";
+              // const pUnit = item.productId?.unit || "units"; 
+              const qty = item.quantity;
+              return `- ${pName}: ${qty}`;
+            })
+            .join("\n");
+
+          // Construct the message body
+          const messageBody = `*New Order Request*\n` +
+            `Order No: ${populated.orderNumber}\n` +
+            `Date: ${new Date().toISOString().split('T')[0]}\n\n` +
+            `*Items:*\n${itemsList}\n\n` +
+            `Please confirm availability.`;
+
+          // Clean the phone number (remove + and -) for the API
+          const cleanPhone = supplier.phone1.replace(/[^0-9]/g, "");
+
+          await sendWhatsAppMessage(cleanPhone, messageBody);
+        } else {
+          console.log("Nexo_bot assigned, but supplier has no phone1.");
+        }
+      }
+
+      // --- [END] WhatsApp Bot Logic ---
+
+      // Existing Push Notification Logic
+      if (staff && staff.fcmToken) {
+        await sendPushNotification(
+          staff.fcmToken,
+          "New Order Assigned",
+          `Order #${order.orderNumber} has been assigned to you`,
+          {
+            orderId: order._id.toString(),
+            orderNumber: String(order.orderNumber),
+          }
+        );
+      }
+    } catch (notificationError) {
+      console.error("Failed to send notification (push or whatsapp):", notificationError);
+      // We do not return here, so the response still returns success for the assignment
+    }
+
+    res
+      .status(200)
+      .json({ message: "Order assigned successfully", order: populated });
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+/* ------------- SUBMIT FOR REVIEW (assigned -> pending_review) ------------- */
+/* Supports item quantity/unitCost adjustments via itemsUpdates JSON */
+export const submitOrderForReview = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const orderId = req.params.orderId;
+    const { totalAmount } = req.body;
+
+    let itemsUpdates: { itemId: string; quantity: number; unitCost: number }[] =
+      [];
+    if (req.body.itemsUpdates) {
+      try {
+        itemsUpdates = JSON.parse(req.body.itemsUpdates);
+      } catch {
+        res.status(400).json({ message: "Invalid itemsUpdates JSON format" });
+        return;
+      }
+    }
+
+    const order = await Order.findById(orderId).populate({
+      path: "items",
+      populate: { path: "productId" },
+    });
+
+    if (!order) {
+      res.status(404).json({ message: "Order not found" });
+      return;
+    }
+    if (order.status !== "assigned" && order.status !== "not assigned") {
+      res
+        .status(400)
+        .json({ message: "Order must be assigned or not assigned before submitting for review" });
+      return;
+    }
+    
+    // Auto-assign to current user if order is not assigned
+    if (order.status === "not assigned" && req.user?.userId) {
+      order.staffId = req.user.userId as any;
+      order.assignedDate = new Date();
+      pushStatusHistory(order, "not assigned", "assigned", req.user.userId);
+    }
+    
+    // req.file is now optional
+    /*
+    if (!req.file) {
+      res.status(400).json({ message: "Bill file is required" });
+      return;
+    }
+    */
+
+    // Apply item updates
+    if (itemsUpdates.length) {
+      const validItemIds = new Set(
+        order.items.map((it: any) => it._id.toString())
+      );
+      for (const upd of itemsUpdates) {
+        if (!validItemIds.has(upd.itemId)) {
+          res
+            .status(400)
+            .json({ message: `Invalid productOrder itemId: ${upd.itemId}` });
+          return;
+        }
+         if (upd.quantity < 0 || upd.unitCost < 0) {
+          res.status(400).json({ message: "Quantity must be >= 0 and unitCost >= 0" });
+          return;
+        }
+      }
+
+      for (const upd of itemsUpdates) {
+        const po: any = await ProductOrder.findById(upd.itemId);
+        if (!po) continue;
+        po.quantity = upd.quantity;
+        po.unitCost = upd.unitCost;
+        po.remainingQte = upd.quantity;
+        await po.save();
+      }
+
+      // Refresh items
+      const refreshed = await Order.findById(orderId).populate({
+        path: "items",
+        populate: { path: "productId" },
+      });
+      if (refreshed) {
+        (order as any).items = refreshed.items;
+      }
+    }
+
+    if (req.file) {
+      // Replace legacy bill
+      if (order.bon && order.bon.startsWith("/uploads/orders/")) {
+        try {
+          deleteImage(order.bon);
+        } catch {}
+      }
+
+      const key = buildBlobKey(req.file.originalname);
+      const uploaded = await uploadBufferToBlob(
+        key,
+        req.file.buffer,
+        req.file.mimetype
+      );
+      order.bon = uploaded.url;
+    }
+
+    // Recompute total
+    let computedTotal = 0;
+    for (const item of order.items) {
+      const po: any = await ProductOrder.findById((item as any)._id);
+      if (po) computedTotal += po.quantity * po.unitCost;
+    }
+    order.totalAmount = totalAmount
+      ? parseFloat(totalAmount)
+      : parseFloat(computedTotal.toFixed(2));
+
+    const prevStatus = order.status;
+    order.status = "pending_review";
+    order.pendingReviewDate = new Date();
+    pushStatusHistory(order, prevStatus, "pending_review", req.user?.userId);
+
+    await order.save();
+
+    const populated = await populateOrder(order);
+    res.status(200).json({
+      message: "Order submitted for review",
+      order: populated,
+    });
+  } catch (error: any) {
+    console.log(error)
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+/* ------------- VERIFY ORDER (pending_review -> verified) ------------- */
+export const verifyOrder = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const orderId = req.params.orderId;
+    const order = await Order.findById(orderId).populate({
+      path: "items",
+      populate: { path: "productId" },
+    });
+
+    if (!order) {
+      res.status(404).json({ message: "Order not found" });
+      return;
+    }
+    if (order.status !== "pending_review") {
+      res
+        .status(400)
+        .json({ message: "Order must be pending_review to verify" });
+      return;
+    }
+    // removed check for missing bill since it is now optional
+    // if (!order.bon) {
+    //   res.status(400).json({ message: "Bill missing" });
+    //   return;
+    // }
+
+    const prevStatus = order.status;
+    order.status = "verified";
+    order.verifiedDate = new Date();
+    pushStatusHistory(order, prevStatus, "verified", req.user?.userId);
+
+    await order.save();
+
+    const populated = await populateOrder(order);
+    
+    // Notification for product arrival
+    const supplierName = (populated as any).supplierId?.name || "Supplier";
+    await createLocalNotification(
+      `Products from Order #${order.orderNumber} (${supplierName}) have been verified and added to stock.`,
+      "success",
+      "New Products Arrived",
+      "orders"
+    );
+
+    res
+      .status(200)
+      .json({ message: "Order verified successfully", order: populated });
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+/* ------------------------- UPDATE ORDER ------------------------- */
+export const updateOrder = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const orderId = req.params.orderId;
+    const { status, expectedDate, canceledDate, totalAmount } = req.body;
+
+    const validStatuses = [
+      "not assigned",
+      "assigned",
+      "pending_review",
+      "verified",
+      "paid",
+      "canceled",
+    ];
+    if (status && !validStatuses.includes(status)) {
+      res
+        .status(400)
+        .json({
+          message: `Invalid status. Use one of: ${validStatuses.join(", ")}`,
+        });
+      return;
+    }
+
+    const order = await Order.findById(orderId).populate({
+      path: "items",
+      populate: { path: "productId" },
+    });
+    if (!order) {
+      res.status(404).json({ message: "Order not found" });
+      return;
+    }
+
+    // Track previous status for history
+    let prevStatus: string | null = null;
+    if (status && status !== order.status) {
+      prevStatus = order.status;
+    }
+
+    if (status === "paid") {
+      if (order.status !== "verified") {
+        res
+          .status(400)
+          .json({ message: "Order must be verified before paid" });
+        return;
+      }
+      prevStatus = order.status;
+      order.status = "paid";
+      order.paidDate = new Date();
+      pushStatusHistory(order, prevStatus, "paid", req.user?.userId);
+      
+      const populatedForNotification: any = await populateOrder(order);
+      const supplierName = populatedForNotification?.supplierId?.name || "Supplier";
+      await createLocalNotification(
+        `Order #${order.orderNumber} for ${supplierName} has been paid. Total: ${order.totalAmount}`,
+        "success",
+        "Payment Completed",
+        "orders"
+      );
+    } else if (status === "canceled") {
+      if (["verified", "paid"].includes(order.status)) {
+        res
+          .status(400)
+          .json({ message: "Cannot cancel a verified or paid order" });
+        return;
+      }
+      prevStatus = order.status;
+      order.status = "canceled";
+      order.canceledDate = canceledDate ? new Date(canceledDate) : new Date();
+      pushStatusHistory(order, prevStatus, "canceled", req.user?.userId);
+    } else if (status && status !== order.status) {
+      order.status = status;
+      if (status === "assigned") order.assignedDate = new Date();
+      if (status === "pending_review") order.pendingReviewDate = new Date();
+      if (status === "verified") order.verifiedDate = new Date(); // (prefer verify endpoint)
+      pushStatusHistory(order, prevStatus, status, req.user?.userId);
+    }
+
+    if (expectedDate !== undefined) {
+      order.expectedDate =
+        expectedDate !== null ? new Date(expectedDate) : undefined;
+    }
+
+    if (req.file) {
+      if (order.bon && order.bon.startsWith("/uploads/orders/")) {
+        try {
+          deleteImage(order.bon);
+        } catch {}
+      }
+      const key = buildBlobKey(req.file.originalname);
+      const uploaded = await uploadBufferToBlob(
+        key,
+        req.file.buffer,
+        req.file.mimetype
+      );
+      order.bon = uploaded.url;
+    }
+
+    if (totalAmount) {
+      order.totalAmount = parseFloat(totalAmount);
+    }
+
+    await order.save();
+    const populated = await populateOrder(order);
+    res
+      .status(200)
+      .json({ message: "Order updated successfully", order: populated });
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+/* ------------------------- DELETE ORDER ------------------------- */
+export const deleteOrder = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const orderId = req.params.orderId;
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      res.status(404).json({ message: "Order not found" });
+      return;
+    }
+
+    // Prevent deleting finalized orders to avoid data inconsistencies.
+    if (["verified", "paid"].includes(order.status)) {
+      res.status(400).json({ message: "Cannot delete a verified or paid order" });
+      return;
+    }
+
+    if (Array.isArray(order.items) && order.items.length > 0) {
+      await ProductOrder.deleteMany({ _id: { $in: order.items } });
+    }
+
+    await Order.findByIdAndDelete(orderId);
+
+    res.status(200).json({ message: "Order deleted successfully" });
+  } catch (error: any) {
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+/* ------------------------- FILTER ORDERS ------------------------- */
+export const getOrdersByFilter = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const {
+      orderNumber,
+      staffId,
+      status,
+      supplierIds,
+      sortBy,
+      order,
+      page = 1,
+      limit = 10,
+    } = req.query;
+
+    if (Number(page) < 1 || Number(limit) < 1) {
+      res
+        .status(400)
+        .json({ message: "Page and limit must be > 0" });
+      return;
+    }
+
+    const query: any = req.user?.isAdmin ? {} : { staffId: req.user?.userId };
+
+    if (status) query.status = status;
+    if (staffId) query.staffId = staffId;
+    if (orderNumber) {
+      query.orderNumber = { $regex: orderNumber, $options: "i" };
+    }
+
+    if (supplierIds) {
+      let supplierIdArray: string[] = [];
+      if (Array.isArray(supplierIds)) supplierIdArray = supplierIds as string[];
+      else if (typeof supplierIds === "string")
+        supplierIdArray = (supplierIds as string).split(",");
+      else supplierIdArray = [String(supplierIds)];
+
+      supplierIdArray = supplierIdArray
+        .map((id) => id.trim())
+        .filter((id) => id.length > 0);
+
+      if (supplierIdArray.length > 0) {
+        query.supplierId = { $in: supplierIdArray };
+      }
+    }
+
+    const skip = (Number(page) - 1) * Number(limit);
+    const sortField = sortBy?.toString() || "createdAt";
+    const sortOrder = order === "asc" ? 1 : -1;
+
+    const orders = await Order.find(query)
+      .populate([
+        { path: "staffId", select: "avatar email fullname" },
+        {
+          path: "supplierId",
+          select:
+            "email name image contactPerson address phone1 phone2 phone3 city",
+        },
+        {
+          path: "items",
+          populate: {
+            path: "productId",
+            select: "name imageUrl barcode",
+          },
+        },
+      ])
+      .sort({ [sortField]: sortOrder })
+      .skip(skip)
+      .limit(Number(limit));
+
+    const total = await Order.countDocuments(query);
+    res.status(200).json({
+      orders,
+      total,
+      pages: Math.ceil(total / Number(limit)),
+    });
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+/* ------------------------- ORDER STATS ------------------------- */
+export const getOrderStats = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const baseQuery: any = req.user?.isAdmin
+      ? {}
+      : { staffId: req.user?.userId };
+
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+    const endOfMonth = new Date();
+    endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+    endOfMonth.setDate(0);
+    endOfMonth.setHours(23, 59, 59, 999);
+
+    const notAssignedOrders = await Order.countDocuments({
+      ...baseQuery,
+      status: "not assigned",
+    });
+    const assignedOrders = await Order.countDocuments({
+      ...baseQuery,
+      status: "assigned",
+    });
+    const pendingReviewOrders = await Order.countDocuments({
+      ...baseQuery,
+      status: "pending_review",
+    });
+    const verifiedOrders = await Order.countDocuments({
+      ...baseQuery,
+      status: "verified",
+    });
+    const paidOrders = await Order.countDocuments({
+      ...baseQuery,
+      status: "paid",
+      createdAt: { $gte: startOfMonth, $lte: endOfMonth },
+    });
+
+    const totalValueAgg = await Order.aggregate([
+      {
+        $match: {
+          ...baseQuery,
+          status: "paid",
+          createdAt: { $gte: startOfMonth, $lte: endOfMonth },
+        },
+      },
+      { $group: { _id: null, totalValue: { $sum: "$totalAmount" } } },
+    ]);
+    const totalValue =
+      totalValueAgg.length > 0 ? totalValueAgg[0].totalValue : 0;
+
+    res.status(200).json({
+      notAssignedOrders,
+      assignedOrders,
+      pendingReviewOrders,
+      verifiedOrders,
+      paidOrders,
+      totalValue: parseFloat(totalValue.toFixed(2)),
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      message: "Failed to fetch order statistics",
+      error: error.message,
+    });
+  }
+};
+
+/* ------------------------- GET SINGLE ORDER ------------------------- */
+export const getOrder = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const orderId = req.params.orderId;
+    const order = await Order.findById(orderId).populate([
+      { path: "staffId", select: "avatar email fullname" },
+      {
+        path: "items",
+        populate: {
+          path: "productId",
+          select: "name price quantity",
+        },
+      },
+    ]);
+
+    if (!order) {
+      res.status(404).json({ message: "Order not found" });
+      return;
+    }
+
+    if (order.staffId?.toString() !== req.user?.userId && !req.user?.isAdmin) {
+      res.status(404).json({ message: "You can't access this order" });
+      return;
+    }
+
+    res.status(200).json({ order });
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+/* ------------------------- ORDER ANALYTICS ------------------------- */
+export const getOrderAnalytics = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { period = "month" } = req.query;
+    const validPeriods = ["week", "month", "year"];
+    if (!validPeriods.includes(period as string)) {
+      res
+        .status(400)
+        .json({ message: "Invalid period. Use 'week','month','year'" });
+      return;
+    }
+
+    const totalOrders = await Order.countDocuments();
+    const notAssignedOrders = await Order.countDocuments({
+      status: "not assigned",
+    });
+    const assignedOrders = await Order.countDocuments({ status: "assigned" });
+    const pendingReviewOrders = await Order.countDocuments({
+      status: "pending_review",
+    });
+    const verifiedOrders = await Order.countDocuments({ status: "verified" });
+    const paidOrders = await Order.countDocuments({ status: "paid" });
+
+    const totalSpendingAgg = await Order.aggregate([
+      { $match: { status: "paid" } },
+      { $group: { _id: null, total: { $sum: "$totalAmount" } } },
+    ]);
+    const totalSpent =
+      totalSpendingAgg.length > 0 ? totalSpendingAgg[0].total : 0;
+
+    let groupStage: any = {};
+    let sortStage: any = {};
+    let limitCount = 12;
+    let periodLabel: any = {};
+
+    if (period === "week") {
+      groupStage._id = {
+        year: { $year: "$createdAt" },
+        week: { $week: "$createdAt" },
+      };
+      sortStage = { "_id.year": -1, "_id.week": -1 };
+      limitCount = 8;
+      periodLabel = {
+        $concat: [{ $toString: "$_id.year" }, "-W", { $toString: "$_id.week" }],
+      };
+    } else if (period === "month") {
+      groupStage._id = {
+        year: { $year: "$createdAt" },
+        month: { $month: "$createdAt" },
+      };
+      sortStage = { "_id.year": -1, "_id.month": -1 };
+      limitCount = 12;
+      periodLabel = {
+        $concat: [
+          { $toString: "$_id.year" },
+          "-",
+          {
+            $cond: [
+              { $lt: ["$_id.month", 10] },
+              { $concat: ["0", { $toString: "$_id.month" }] },
+              { $toString: "$_id.month" },
+            ],
+          },
+        ],
+      };
+    } else {
+      groupStage._id = { year: { $year: "$createdAt" } };
+      sortStage = { "_id.year": -1 };
+      limitCount = 5;
+      periodLabel = { $toString: "$_id.year" };
+    }
+
+    groupStage.totalOrders = { $sum: 1 };
+    groupStage.totalSpent = {
+      $sum: {
+        $cond: [{ $eq: ["$status", "paid"] }, "$totalAmount", 0],
+      },
+    };
+    groupStage.notAssignedOrders = {
+      $sum: { $cond: [{ $eq: ["$status", "not assigned"] }, 1, 0] },
+    };
+    groupStage.assignedOrders = {
+      $sum: { $cond: [{ $eq: ["$status", "assigned"] }, 1, 0] },
+    };
+    groupStage.pendingReviewOrders = {
+      $sum: { $cond: [{ $eq: ["$status", "pending_review"] }, 1, 0] },
+    };
+    groupStage.verifiedOrders = {
+      $sum: { $cond: [{ $eq: ["$status", "verified"] }, 1, 0] },
+    };
+    groupStage.paidOrders = {
+      $sum: { $cond: [{ $eq: ["$status", "paid"] }, 1, 0] },
+    };
+
+    const periodData = await Order.aggregate([
+      { $group: groupStage },
+      { $sort: sortStage },
+      { $limit: limitCount },
+      { $addFields: { periodLabel } },
+      {
+        $project: {
+          _id: 0,
+          periodLabel: 1,
+          totalOrders: 1,
+          totalSpent: 1,
+          notAssignedOrders: 1,
+          assignedOrders: 1,
+          pendingReviewOrders: 1,
+          verifiedOrders: 1,
+          paidOrders: 1,
+        },
+      },
+    ]);
+
+    periodData.reverse();
+
+    res.status(200).json({
+      summary: {
+        totalOrders,
+        notAssignedOrders,
+        assignedOrders,
+        pendingReviewOrders,
+        verifiedOrders,
+        paidOrders,
+        totalSpent,
+      },
+      period,
+      data: periodData,
+    });
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
+  }
+};

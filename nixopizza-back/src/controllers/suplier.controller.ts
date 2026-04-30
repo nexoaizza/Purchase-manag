@@ -1,0 +1,372 @@
+import { Request, Response } from "express";
+import Supplier from "../models/supplier.model";
+import crypto from "crypto";
+import { uploadBufferToBlob } from "../utils/blob";
+import { deleteImage } from "../utils/Delete";
+import { addProductToSupplier, removeProductFromSupplier } from "../utils/supplierSync";
+import { createLocalNotification } from "./notification.controller";
+import { Types } from "mongoose";
+import Product from "../models/product.model";
+
+/**
+ * Normalize email: empty -> undefined
+ */
+const normalizeEmail = (value: any): string | undefined => {
+  if (!value) return undefined;
+  const t = String(value).trim();
+  return t === "" ? undefined : t.toLowerCase();
+};
+
+/**
+ * GET /api/suppliers
+ */
+export const getSuppliers = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { name, status, categoryIds, page = 1, limit = 10 } = req.query;
+
+    // Build filter query
+    const filter: any = {};
+
+    // Filter by name (case-insensitive search)
+    if (name && typeof name === 'string') {
+      filter.name = { $regex: name, $options: 'i' };
+    }
+
+    // Filter by status (active/inactive)
+    if (status && status !== 'all') {
+      filter.isActive = status === 'active';
+    }
+
+    // Filter by categories
+    if (categoryIds && typeof categoryIds === 'string') {
+      const categoryIdArray = categoryIds.split(',').filter(Boolean);
+      if (categoryIdArray.length > 0) {
+        filter.categoryIds = { $in: categoryIdArray };
+      }
+    }
+
+    // Calculate pagination
+    const pageNum = parseInt(page as string, 10) || 1;
+    const limitNum = parseInt(limit as string, 10) || 10;
+    const skip = (pageNum - 1) * limitNum;
+
+    // Get total count and suppliers
+    const totalSuppliers = await Supplier.countDocuments(filter);
+    const suppliers = await Supplier.find(filter)
+      .populate({
+        path: "productIds",
+        select: "name imageUrl minQty barcode",
+      })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum);
+
+    const totalPages = Math.ceil(totalSuppliers / limitNum);
+
+    res.status(200).json({
+      suppliers,
+      pages: totalPages,
+      total: totalSuppliers,
+      currentPage: pageNum
+    });
+  } catch (e: any) {
+    res.status(500).json({ message: "Internal server error", error: e.message });
+  }
+};
+
+/**
+ * GET /api/suppliers/:supplierId
+ */
+export const getSupplierById = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const supplier = await Supplier.findById(req.params.supplierId).populate({
+      path: "productIds",
+      select: "name imageUrl"
+    });
+    if (!supplier) {
+      res.status(404).json({ message: "Supplier not found" });
+      return;
+    }
+    res.status(200).json({ supplier });
+  } catch (e: any) {
+    res.status(500).json({ message: "Internal server error", error: e.message });
+  }
+};
+
+/**
+ * POST /api/suppliers
+ * Email optional, duplicates allowed.
+ */
+export const createSupplier = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const {
+      name,
+      contactPerson,
+      email,
+      phone1,
+      phone2,
+      phone3,
+      address,
+      city,
+      notes,
+      isActive,
+      categoryIds,
+    } = req.body;
+
+    if (!name || !contactPerson || !phone1) {
+      res.status(400).json({ message: "Missing required fields: name, contactPerson, phone1" });
+      return;
+    }
+
+    const normalizedEmail = normalizeEmail(email);
+
+    let imageUrl: string | undefined;
+    if (req.file) {
+      const ext = (req.file.originalname.match(/\.[^/.]+$/) || [".bin"])[0];
+      const key = `${Date.now()}-${crypto.randomBytes(6).toString("hex")}${ext}`;
+      const uploaded = await uploadBufferToBlob(key, req.file.buffer, req.file.mimetype);
+      imageUrl = uploaded.url;
+    }
+
+    const parsedCategoryIds = Array.isArray(categoryIds) ? categoryIds : (categoryIds ? [categoryIds] : []);
+    
+    // Find all products that belong to the selected categories
+    const productsInCategories = await Product.find({ categoryId: { $in: parsedCategoryIds } }, '_id');
+    const productIdsToAdd = productsInCategories.map(p => p._id);
+
+    const supplier = await Supplier.create({
+      name,
+      contactPerson,
+      email: normalizedEmail,
+      phone1,
+      phone2: phone2 || undefined,
+      phone3: phone3 || undefined,
+      address,
+      city: city || undefined,
+      notes: notes || undefined,
+      isActive: isActive !== undefined ? isActive : true,
+      categoryIds: parsedCategoryIds,
+      productIds: productIdsToAdd,
+      image: imageUrl,
+    });
+
+    // Trigger local notification for new supplier
+    await createLocalNotification(
+        `New supplier ${ supplier.name } has been added.`,
+        "info",
+        "New Supplier Added",
+        "suppliers"
+    );
+
+    res.status(201).json({ message: "Supplier created successfully", supplier });
+  } catch (e: any) {
+    // No uniqueness conflict expected now
+    res.status(500).json({ message: "Internal server error", error: e.message });
+  }
+};
+
+/**
+ * PUT /api/suppliers/:supplierId
+ * Removing email (blank) sets it to undefined.
+ */
+export const updateSupplier = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { supplierId } = req.params;
+    const {
+      name,
+      contactPerson,
+      email,
+      phone1,
+      phone2,
+      phone3,
+      address,
+      city,
+      notes,
+      isActive,
+      categoryIds,
+      removeEmail,
+    } = req.body;
+
+    const supplier = await Supplier.findById(supplierId);
+    if (!supplier) {
+      res.status(404).json({ message: "Supplier not found" });
+      return;
+    }
+
+    const normalizedEmail = normalizeEmail(email);
+
+    if (removeEmail === "true" || (!normalizedEmail && supplier.email)) {
+      supplier.email = undefined;
+    } else if (normalizedEmail) {
+      supplier.email = normalizedEmail;
+    }
+
+    if (name) supplier.name = name;
+    if (contactPerson) supplier.contactPerson = contactPerson;
+    if (phone1) supplier.phone1 = phone1;
+    supplier.phone2 = phone2 ? phone2 : undefined;
+    supplier.phone3 = phone3 ? phone3 : undefined;
+    if (address) supplier.address = address;
+    supplier.city = city ? city : undefined;
+    supplier.notes = notes ? notes : undefined;
+    if (isActive !== undefined) supplier.isActive = isActive === "true" || isActive === true;
+
+    if (categoryIds !== undefined) {
+      const validCategoryIds = Array.isArray(categoryIds)
+        ? categoryIds
+        : [categoryIds].filter(Boolean);
+
+      const oldCategoryIds = supplier.categoryIds.map((id: any) => id.toString());
+      const newCategoryIds = validCategoryIds.map((id: any) => id.toString());
+      
+      const removedCategories = oldCategoryIds.filter((id: string) => !newCategoryIds.includes(id));
+      const addedCategories = newCategoryIds.filter((id: string) => !oldCategoryIds.includes(id));
+      
+      supplier.categoryIds = validCategoryIds;
+
+      if (removedCategories.length > 0) {
+        const productsToRemove = await Product.find({ categoryId: { $in: removedCategories } }, '_id');
+        const idsToRemove = productsToRemove.map(p => p._id.toString());
+        supplier.productIds = supplier.productIds.filter((pid: any) => !idsToRemove.includes(pid.toString()));
+      }
+      
+      if (addedCategories.length > 0) {
+        const productsToAdd = await Product.find({ categoryId: { $in: addedCategories } }, '_id');
+        const idsToAdd = productsToAdd.map(p => p._id.toString());
+        const currentProductIds = supplier.productIds.map((pid: any) => pid.toString());
+        
+        for (const newId of idsToAdd) {
+          if (!currentProductIds.includes(newId)) {
+            supplier.productIds.push(new Types.ObjectId(newId));
+          }
+        }
+      }
+    }
+
+    if (req.file) {
+      if (supplier.image && supplier.image.startsWith("/uploads/")) {
+        try {
+          deleteImage(supplier.image);
+        } catch (err) {
+          console.warn("Failed to delete legacy image:", err);
+        }
+      }
+      const ext = (req.file.originalname.match(/\.[^/.]+$/) || [".bin"])[0];
+      const key = `${Date.now()}-${crypto.randomBytes(6).toString("hex")}${ext}`;
+      const uploaded = await uploadBufferToBlob(key, req.file.buffer, req.file.mimetype);
+      supplier.image = uploaded.url;
+    }
+
+    await supplier.save();
+    res.status(200).json({ message: "Supplier updated successfully", supplier });
+  } catch (e: any) {
+    res.status(500).json({ message: "Internal server error", error: e.message });
+  }
+};
+
+/**
+ * POST /api/suppliers/:supplierId/products
+ * Add a product to a supplier
+ */
+export const addProductToSupplierController = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { supplierId } = req.params;
+    const { productId } = req.body;
+
+    if (!productId) {
+      res.status(400).json({ message: "Product ID is required" });
+      return;
+    }
+
+    await addProductToSupplier(supplierId, productId);
+
+    const updatedSupplier = await Supplier.findById(supplierId).populate("productIds");
+    res.status(200).json({
+      message: "Product added to supplier successfully",
+      supplier: updatedSupplier
+    });
+  } catch (e: any) {
+    res.status(500).json({ message: e.message || "Internal server error" });
+  }
+};
+
+/**
+ * DELETE /api/suppliers/:supplierId/products/:productId
+ * Remove a product from a supplier
+ */
+export const removeProductFromSupplierController = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { supplierId, productId } = req.params;
+
+    await removeProductFromSupplier(supplierId, productId);
+
+    const updatedSupplier = await Supplier.findById(supplierId).populate("productIds");
+    res.status(200).json({
+      message: "Product removed from supplier successfully",
+      supplier: updatedSupplier
+    });
+  } catch (e: any) {
+    res.status(500).json({ message: e.message || "Internal server error" });
+  }
+};
+
+/**
+ * GET /api/suppliers/:supplierId/products
+ * Get all products for a supplier
+ */
+export const getSupplierProducts = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { supplierId } = req.params;
+
+    const supplier = await Supplier.findById(supplierId).populate({
+      path: "productIds",
+      populate: { path: "categoryId" }
+    });
+
+    if (!supplier) {
+      res.status(404).json({ message: "Supplier not found" });
+      return;
+    }
+
+    res.status(200).json({ products: supplier.productIds });
+  } catch (e: any) {
+    res.status(500).json({ message: "Internal server error", error: e.message });
+  }
+};
+
+/**
+ * PUT /api/suppliers/:supplierId/products
+ * Replace the full product list for a supplier.
+ */
+export const setSupplierProductsController = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { supplierId } = req.params;
+    const { productIds } = req.body;
+
+    if (!Array.isArray(productIds)) {
+      res.status(400).json({ message: "productIds must be an array" });
+      return;
+    }
+
+    const supplier = await Supplier.findById(supplierId);
+    if (!supplier) {
+      res.status(404).json({ message: "Supplier not found" });
+      return;
+    }
+
+    supplier.productIds = productIds.map((id: string) => new Types.ObjectId(id));
+    await supplier.save();
+
+    const updated = await Supplier.findById(supplierId).populate({
+      path: "productIds",
+      populate: { path: "categoryId" },
+    });
+
+    res.status(200).json({
+      message: "Supplier products saved successfully",
+      supplier: updated,
+    });
+  } catch (e: any) {
+    res.status(500).json({ message: e.message || "Internal server error" });
+  }
+};

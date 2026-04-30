@@ -1,0 +1,224 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Package,
+} from "lucide-react";
+import { resolveImage } from "@/lib/resolveImage";
+import { IProduct } from "@/app/[locale]/dashboard/products/page";
+import { Pagination } from "../ui/pagination";
+
+interface ProductsTableProps {
+  products: IProduct[];
+  onEdit: (p: IProduct) => void;
+  onDelete: (id: string) => Promise<void>;
+  totalPages: number;
+  currentPage: number;
+  setCurrentPage: (page: number) => void;
+  limit: number;
+  setLimit: (l: number) => void;
+}
+
+export function ProductsTable({
+  products,
+  onEdit,
+  onDelete,
+  totalPages,
+  currentPage,
+  setCurrentPage,
+  limit,
+  setLimit,
+}: ProductsTableProps) {
+  const t = useTranslations("products");
+  const getInventoryStatusClass = (status?: IProduct["inventoryStatus"]) => {
+    if (status === "Rupture") return "bg-red-100 text-red-800 hover:bg-red-100";
+    if (status === "Shortage") return "bg-amber-100 text-amber-800 hover:bg-amber-100";
+    return "bg-green-100 text-green-800 hover:bg-green-100";
+  };
+  const getInventoryStatusLabel = (status?: IProduct["inventoryStatus"]) => {
+    if (status === "Rupture") return t("ruptureStatus");
+    if (status === "Shortage") return t("shortageStatus");
+    return t("availableStatus");
+  };
+
+  if (products.length === 0) {
+    return (
+      <Card className="border-0 shadow-sm">
+        <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="mb-4 p-3 bg-muted rounded-full">
+            <Package className="h-10 w-10 text-muted-foreground" />
+          </div>
+          <h3 className="text-xl font-semibold mb-1">{t("noProductsFound")}</h3>
+          <p className="text-muted-foreground mb-4">
+            {t("noProductsMessage")}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="border-0 shadow-sm">
+      <CardContent>
+        <div className="rounded-lg border bg-card">
+          <Table>
+            <TableHeader className="bg-muted/50">
+              <TableRow>
+                <TableHead>{t("product")}</TableHead>
+                <TableHead>{t("categoryHeader")}</TableHead>
+                <TableHead>{t("unit")}</TableHead>
+                <TableHead>{t("minQty")}</TableHead>
+                <TableHead>{t("recommendedQty")}</TableHead>
+                <TableHead>{t("inStockHeader")}</TableHead>
+                <TableHead>{t("statusHeader")}</TableHead>
+                <TableHead>{t("stockLocationsHeader")}</TableHead>
+                <TableHead className="text-right">{t("actions")}</TableHead>
+              </TableRow>
+            </TableHeader>
+
+            <TableBody>
+              {products.map((product) => {
+                return (
+                  <TableRow key={product._id}>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-3">
+                        <div className="relative">
+                          {resolveImage(product.imageUrl) ? (
+                            <img
+                              src={resolveImage(product.imageUrl)}
+                              alt={product.name}
+                              className="w-14 h-14 rounded-lg object-cover"
+                            />
+                          ) : (
+                            <div className="w-14 h-14 rounded-lg bg-muted flex items-center justify-center">
+                              <Package className="h-6 w-6 text-muted-foreground" />
+                            </div>
+                          )}
+                        </div>
+
+                        <div>
+                          <div className="font-medium">{product.name}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {t("barcode")}: {product.barcode || t("notAvailable")}
+                          </div>
+                        </div>
+                      </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={resolveImage(product.categoryId?.image)}
+                          alt={product.categoryId?.name}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                        <span>{product.categoryId?.name}</span>
+                      </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <span className="capitalize">{t(`unit_${product.unit}`)}</span>
+                    </TableCell>
+
+                    <TableCell>
+                      <span>{product.minQty}</span>
+                    </TableCell>
+
+                    <TableCell>
+                      <span>{product.recommendedQty}</span>
+                    </TableCell>
+
+                    <TableCell>
+                      <span>{product.totalQuantity ?? 0}</span>
+                    </TableCell>
+
+                    <TableCell>
+                      <Badge className={getInventoryStatusClass(product.inventoryStatus)}>
+                        {getInventoryStatusLabel(product.inventoryStatus)}
+                      </Badge>
+                    </TableCell>
+
+                    <TableCell>
+                      {product.storedIn && product.storedIn.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {product.storedIn.map((location) => (
+                            <Badge key={location} variant="outline">
+                              {location}
+                            </Badge>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
+
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-muted"
+                            type="button"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </button>
+                        </DropdownMenuTrigger>
+
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => onEdit(product)}>
+                            <Edit className="h-4 w-4 mr-2" /> {t("edit")}
+                          </DropdownMenuItem>
+
+                          <DropdownMenuItem
+                            onClick={() => onDelete(product._id)}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" /> {t("delete")}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* PAGINATION */}
+        <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="text-sm text-muted-foreground">
+            {t("showingProducts")} {products.length} {t("of")}{" "}
+            {totalPages * limit} {t("products")}
+          </div>
+
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            limit={limit}
+            onLimitChange={setLimit}
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

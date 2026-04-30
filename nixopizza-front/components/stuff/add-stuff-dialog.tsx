@@ -1,0 +1,278 @@
+"use client";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Plus, Upload } from "lucide-react";
+import toast from "react-hot-toast";
+import { createStuff } from "@/lib/apis/stuff";
+import { useTranslations } from "next-intl";
+
+interface AddStuffDialogProps {
+  addNewStuff: (s: any) => void;
+}
+
+export function AddStuffDialog({ addNewStuff }: AddStuffDialogProps) {
+  const t = useTranslations("staff");
+  const [open, setOpen] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+
+  const [formData, setFormData] = useState({
+    fullname: "",
+    email: "",
+    password: "",
+    phone1: "",
+    phone2: "",
+    phone3: "",
+    address: "",
+    status: "Active",
+    role: "staff",
+    notes: "",
+    avatar: null as File | null,
+  });
+
+  const handleInputChange = (field: string, value: string) =>
+    setFormData((prev) => ({ ...prev, [field]: value }));
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error(t("selectValidImage"));
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error(t("imageExceeds5MB"));
+      return;
+    }
+    setFormData((prev) => ({ ...prev, avatar: file }));
+    const reader = new FileReader();
+    reader.onloadend = () => setAvatarPreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const resetForm = () => {
+    setFormData({
+      fullname: "",
+      email: "",
+      password: "",
+      phone1: "",
+      phone2: "",
+      phone3: "",
+      address: "",
+      status: "Active",
+      role: "staff",
+      notes: "",
+      avatar: null,
+    });
+    setAvatarPreview(null);
+  };
+
+  const handleCreateStuff = async () => {
+    if (!formData.fullname || (!formData.email && !formData.phone1) || !formData.password) {
+      toast.error(t("fullnameEmailPhonePasswordRequired", { fallback: "Full name, Password, and either Email or Phone 1 are required" }));
+      return;
+    }
+    const payload = new FormData();
+    payload.append("fullname", formData.fullname);
+    payload.append("email", formData.email);
+    payload.append("password", formData.password);
+    if (formData.phone1) payload.append("phone1", formData.phone1);
+    if (formData.phone2) payload.append("phone2", formData.phone2);
+    if (formData.phone3) payload.append("phone3", formData.phone3);
+    if (formData.address) payload.append("address", formData.address);
+    payload.append("status", formData.status);
+    payload.append("role", formData.role);
+    if (formData.notes) payload.append("notes", formData.notes);
+    if (formData.avatar) payload.append("image", formData.avatar);
+
+    const data = await createStuff(payload);
+    if (data.success) {
+      addNewStuff(data.staff);
+      toast.success(t("staffMemberAdded"));
+      setOpen(false);
+      resetForm();
+    } else {
+      toast.error(data.message);
+    }
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        setOpen(isOpen);
+        if (!isOpen) resetForm();
+      }}
+    >
+      <DialogTrigger asChild>
+        <Button className="gap-2">
+          <Plus className="h-4 w-4" />
+          {t("addStaffButton")}
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="font-heading">{t("addStaffTitle")}</DialogTitle>
+          <DialogDescription>
+            {t("addStaffDescriptionText")}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-6 py-4">
+          {/* Avatar Upload */}
+          <div className="space-y-2">
+            <Label>{t("profilePicture")}</Label>
+            <label
+              htmlFor="staff-avatar"
+              className="flex flex-col items-center justify-center gap-3 p-6 border-2 border-dashed border-muted-foreground/25 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
+            >
+              {avatarPreview ? (
+                <img
+                  src={avatarPreview}
+                  alt="Avatar preview"
+                  className="w-24 h-24 rounded-full object-cover shadow"
+                />
+              ) : (
+                <>
+                  <div className="p-3 bg-primary/10 rounded-full">
+                    <Upload className="h-6 w-6 text-primary" />
+                  </div>
+                  <p className="text-xs text-muted-foreground">{t("clickToUploadText")}</p>
+                </>
+              )}
+            </label>
+            <Input
+              id="staff-avatar"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileChange}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>{t("fullNameRequired")}</Label>
+              <Input
+                value={formData.fullname}
+                onChange={(e) => handleInputChange("fullname", e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{t("emailRequired")} ({t("optionalIfPhone", { fallback: "Optional if Phone 1 is provided" })})</Label>
+              <Input
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleInputChange("email", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{t("passwordRequired")}</Label>
+              <Input
+                type="password"
+                value={formData.password}
+                onChange={(e) => handleInputChange("password", e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{t("phone1")} ({t("optionalIfEmail", { fallback: "Optional if Email is provided" })})</Label>
+              <Input
+                value={formData.phone1}
+                onChange={(e) => handleInputChange("phone1", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{t("phone2")}</Label>
+              <Input
+                value={formData.phone2}
+                onChange={(e) => handleInputChange("phone2", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{t("phone3")}</Label>
+              <Input
+                value={formData.phone3}
+                onChange={(e) => handleInputChange("phone3", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{t("addressField")}</Label>
+              <Input
+                value={formData.address}
+                onChange={(e) => handleInputChange("address", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{t("statusField")}</Label>
+              <Select
+                value={formData.status}
+                onValueChange={(value) => handleInputChange("status", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t("selectStatusPlaceholder")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Active">{t("active")}</SelectItem>
+                  <SelectItem value="Inactive">{t("inactive")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>{t("role")}</Label>
+              <Select
+                value={formData.role}
+                onValueChange={(value) => handleInputChange("role", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t("selectRolePlaceholder")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="staff">{t("staff")}</SelectItem>
+                  <SelectItem value="admin">{t("admin")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>{t("notesField")}</Label>
+            <Textarea
+              rows={3}
+              value={formData.notes}
+              onChange={(e) => handleInputChange("notes", e.target.value)}
+              placeholder={t("optionalNotesPlaceholder")}
+            />
+          </div>
+
+          <div className="flex justify-end gap-3">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              {t("cancel")}
+            </Button>
+            <Button type="button" onClick={handleCreateStuff}>
+              {t("saveButton")}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

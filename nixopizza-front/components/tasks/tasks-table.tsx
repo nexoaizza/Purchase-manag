@@ -1,0 +1,319 @@
+// components/tasks/tasks-table.tsx
+"use client";
+
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  CheckCircle,
+  XCircle,
+  Eye,
+  Calendar,
+  Plus,
+} from "lucide-react";
+import { Pagination } from "@/components/ui/pagination";
+import { ITask } from "@/app/[locale]/dashboard/tasks/page";
+import { updateTaskStatus, deleteTask } from "@/lib/apis/task";
+import toast from "react-hot-toast";
+import { useAuth } from "@/hooks/useAuth";
+
+import { TaskDetailDialog } from "./task-detail-dialog";
+
+interface TasksTableProps {
+  tasks: ITask[];
+  setTasks: any;
+  totalPages: number;
+  currentPage: number;
+  setCurrentPage: any;
+  limit: number;
+  setLimit: any;
+  onUpdateTask: (task: ITask) => void;
+  onAssignTask: () => void;
+}
+
+export function TasksTable({
+  tasks,
+  setTasks,
+  totalPages,
+  currentPage,
+  setCurrentPage,
+  limit,
+  setLimit,
+  onUpdateTask,
+  onAssignTask,
+}: TasksTableProps) {
+  const t = useTranslations("tasks");
+  const { user } = useAuth();
+  const [selectedTask, setSelectedTask] = useState<ITask | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "secondary";
+      case "completed":
+        return "default";
+      case "canceled":
+        return "destructive";
+      default:
+        return "secondary";
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "pending":
+        return t("pending");
+      case "completed":
+        return t("completed");
+      case "canceled":
+        return t("canceled");
+      default:
+        return status;
+    }
+  };
+
+  const handleViewTask = (task: ITask) => {
+    setSelectedTask(task);
+    setIsViewDialogOpen(true);
+  };
+
+  const handleMarkAsCompleted = async (taskId: string) => {
+    try {
+      const { success, task, message } = await updateTaskStatus(taskId, "completed");
+      if (success) {
+        toast.success(t("taskCompleted") || "Task completed successfully");
+        onUpdateTask(task);
+      } else {
+        toast.error(message || "Failed to complete task");
+      }
+    } catch (error) {
+      toast.error("An error occurred");
+    }
+  };
+
+  const handleCancelTask = async (taskId: string) => {
+    if (!confirm(t("confirmCancel") || "Are you sure you want to cancel this task?")) return;
+    try {
+      const { success, task, message } = await updateTaskStatus(taskId, "canceled");
+      if (success) {
+        toast.success(t("taskCanceled") || "Task canceled successfully");
+        onUpdateTask(task);
+      } else {
+        toast.error(message || "Failed to cancel task");
+      }
+    } catch (error) {
+      toast.error("An error occurred");
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    if (!confirm(t("confirmDeleteTask") || "Are you sure you want to delete this task?")) return;
+    try {
+      const { success, message } = await deleteTask(taskId);
+      if (success) {
+        toast.success(t("taskDeleted") || "Task deleted successfully");
+        // Remove from local state
+        setTasks((prev: ITask[]) => prev.filter((t) => t._id !== taskId));
+      } else {
+        toast.error(message || "Failed to delete task");
+      }
+    } catch (error) {
+      toast.error("An error occurred");
+    }
+  };
+
+  if (tasks.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-heading">{t("taskDirectory")}</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="mb-4 p-3 bg-muted rounded-full">
+            <Calendar className="h-10 w-10 text-muted-foreground" />
+          </div>
+          <h3 className="text-xl font-semibold mb-1">{t("noTasksFound")}</h3>
+          <p className="text-muted-foreground mb-4">
+            {t("noTasksYet")}
+          </p>
+          <Button onClick={onAssignTask}>
+            <Plus className="h-4 w-4 mr-2" />
+            {t("assignTask")}
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-heading">{t("taskDirectory")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t("taskId")}</TableHead>
+                  <TableHead>{t("assignedToHeader")}</TableHead>
+                  <TableHead>{t("description")}</TableHead>
+                  <TableHead>{t("deadlineHeader")}</TableHead>
+                  <TableHead>{t("statusHeader")}</TableHead>
+                  <TableHead className="w-[50px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {tasks.map((task) => (
+                  <TableRow key={task._id}>
+                    <TableCell>
+                      <div className="font-mono font-medium">
+                        {task.taskNumber}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={
+                            process.env.NEXT_PUBLIC_BASE_URL +
+                            task.staffId.avatar
+                          }
+                          alt={task.staffId.fullname}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                        <div>
+                          <div className="font-medium">
+                            {task.staffId.fullname}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {task.staffId.email}
+                          </div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="max-w-xs truncate text-muted-foreground">
+                        {task.description || (
+                          <span className="italic text-muted-foreground/60">
+                            {t("noDescription") || "No description"}
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span>
+                          {task.deadline ? (
+                            new Date(task.deadline).toLocaleDateString("en-GB")
+                          ) : (
+                            <span className="text-muted-foreground/60 italic text-sm">
+                              {t("noDeadline") || "No deadline"}
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={getStatusColor(task.status) as any}>
+                        {getStatusLabel(task.status)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => handleViewTask(task)}
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            {t("viewDetails")}
+                          </DropdownMenuItem>
+                          {task.status === "pending" && (
+                            <>
+                              {(user?.role === "admin" || user?._id === task.staffId._id) && (
+                                <DropdownMenuItem
+                                  onClick={() => handleMarkAsCompleted(task._id)}
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  {t("markAsCompleted")}
+                                </DropdownMenuItem>
+                              )}
+                              {user?.role === "admin" && (
+                                <DropdownMenuItem
+                                  onClick={() => handleCancelTask(task._id)}
+                                  className="text-destructive"
+                                >
+                                  <XCircle className="h-4 w-4 mr-2" />
+                                  {t("cancelTask")}
+                                </DropdownMenuItem>
+                              )}
+                            </>
+                          )}
+                          {user?.role === "admin" && (
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteTask(task._id)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              {t("deleteTask")}
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Pagination */}
+          <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-sm text-muted-foreground">
+              {t("showing")} {tasks.length} {t("of")} {totalPages * limit} {t("tasks")}
+            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              limit={limit}
+              onLimitChange={setLimit}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <TaskDetailDialog
+        task={selectedTask}
+        open={isViewDialogOpen}
+        onOpenChange={setIsViewDialogOpen}
+      />
+    </>
+  );
+}

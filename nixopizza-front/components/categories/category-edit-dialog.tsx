@@ -1,0 +1,211 @@
+"use client";
+
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import toast from "react-hot-toast";
+import { updateCategory } from "@/lib/apis/categories";
+import { Upload, X } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { Textarea } from "../ui/textarea";
+
+interface CategoryEditDialogProps {
+  category: any;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  setCategory: any;
+}
+
+const resolveCategoryImage = (image?: string) =>
+  !image
+    ? ""
+    : image.startsWith("http")
+    ? image
+    : process.env.NEXT_PUBLIC_BASE_URL + image;
+
+export function CategoryEditDialog({
+  category,
+  open,
+  onOpenChange,
+  setCategory,
+}: CategoryEditDialogProps) {
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+  });
+  const t = useTranslations("categories");
+
+  const [isBudgetAllocated, setIsBudgetAllocated] = useState(false);
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (category) {
+      setFormData({
+        name: category.name,
+        description: category.description,
+      });
+      setPhoto(null);
+      setPhotoPreview(null);
+    }
+  }, [category]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!category) return;
+
+    const formDataToSend = new FormData();
+    formDataToSend.append("name", formData.name);
+    formDataToSend.append("description", formData.description);
+    if (photo) formDataToSend.append("image", photo);
+
+    const { success, message, category: updatedCategory } = await updateCategory(
+      category._id,
+      formDataToSend
+    );
+
+    if (success) {
+      toast.success(t("updatedSuccessfully"));
+      setCategory(updatedCategory);
+      onOpenChange(false);
+      setPhoto(null);
+      setPhotoPreview(null);
+    } else {
+      toast.error(message);
+    }
+  };
+
+  const handleInputChange = (field: string, value: string) =>
+    setFormData((prev) => ({ ...prev, [field]: value }));
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        toast.error("Please select an image file");
+        return;
+      }
+      setPhoto(file);
+      setPhotoPreview(URL.createObjectURL(file));
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="font-heading text-2xl">
+            {category ? t("editCategory") : t("addNewCategory")}
+          </DialogTitle>
+          <DialogDescription>
+            {category
+              ? t("updateMessage")
+              : t("addMessage")}
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <Label>{t("description")}</Label>
+            <div className="flex items-center gap-4">
+              {photoPreview || category?.image ? (
+                <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200">
+                  <img
+                    src={
+                      photoPreview
+                        ? photoPreview
+                        : resolveCategoryImage(category?.image)
+                    }
+                    alt="Category preview"
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPhoto(null);
+                      setPhotoPreview(null);
+                    }}
+                    className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center w-24 h-24 border-2 border-dashed border-gray-300 rounded-lg">
+                  <Upload className="h-8 w-8 text-gray-400" />
+                </div>
+              )}
+
+              <div className="flex flex-col gap-2">
+                <Label
+                  htmlFor="image-upload"
+                  className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md cursor-pointer hover:opacity-90 transition-opacity"
+                >
+                  <Upload className="h-4 w-4" />
+                  {photoPreview || category?.image
+                    ? t("changeImage")
+                    : t("uploadImage")}
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  {t("imageFormat")}
+                </p>
+                <input
+                  id="image-upload"
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="name">{t("categoryName")}</Label>
+            <Input
+              value={formData.name}
+              onChange={(e) => handleInputChange("name", e.target.value)}
+              placeholder={t("categoryNamePlaceholder")}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">{t("description")}</Label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => handleInputChange("description", e.target.value)}
+              placeholder={t("descriptionPlaceholder")}
+              rows={3}
+              className="resize-y"
+            />
+          </div>
+
+          <div className="flex justify-end gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
+              {t("cancel")}
+            </Button>
+            <Button type="submit">
+              {category ? t("update") : t("addNewCategory")}
+            </Button>
+            </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}

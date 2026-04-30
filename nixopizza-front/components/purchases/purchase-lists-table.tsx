@@ -1,0 +1,534 @@
+"use client";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
+
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow
+} from "@/components/ui/table";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import {
+  MoreHorizontal,
+  Eye,
+  Download,
+  Trash2,
+  Receipt,
+  Package,
+  UserPlus,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
+import { PurchaseOrderDialog } from "@/components/purchases/purchase-order-dialog";
+import { ReceiptPreviewDialog } from "./receipt-preview-dialog";
+import { AssignStaffDialog } from "./assign-staff-dialog";
+import { Pagination } from "@/components/ui/pagination";
+import { resolveImage } from "@/lib/resolveImage";
+import { useAuth } from "@/hooks/useAuth";
+import { SubmitReviewDialog } from "./submit-review-dialog";
+import { VerifyOrderDialog } from "./verify-order-dialog";
+import { MarkPaidDialog } from "./mark-paid-dialog";
+import { updateOrder, deleteOrder } from "@/lib/apis/purchase-list";
+import toast from "react-hot-toast";
+import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
+
+export function PurchaseListsTable({
+  purchaseOrders,
+  setPurchaseOrders,
+  totalPages,
+  currentPage,
+  setCurrentPage,
+  limit,
+  setLimit,
+}: {
+  purchaseOrders: IOrder[];
+  setPurchaseOrders: React.Dispatch<React.SetStateAction<IOrder[]>>;
+  totalPages: number;
+  currentPage: number;
+  setCurrentPage: (p: number) => void;
+  limit: number;
+  setLimit: (l: number) => void;
+}) {
+  const t = useTranslations("purchases");
+  const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
+  const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
+  const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
+  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+  const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
+  const [isVerifyDialogOpen, setIsVerifyDialogOpen] = useState(false);
+  const [isMarkPaidDialogOpen, setIsMarkPaidDialogOpen] = useState(false);
+  const [isCancelLoading, setIsCancelLoading] = useState(false);
+  const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null);
+
+  const { user } = useAuth();
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "not assigned":
+        return "secondary";
+      case "assigned":
+        return "default";
+      case "pending_review":
+        return "outline";
+      case "verified":
+        return "default";
+      case "paid":
+        return "default";
+      case "canceled":
+        return "destructive";
+      default:
+        return "secondary";
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "not assigned":
+        return t("statusNotAssigned");
+      case "assigned":
+        return t("statusAssigned");
+      case "pending_review":
+        return t("statusPendingReview");
+      case "verified":
+        return t("statusVerified");
+      case "paid":
+        return t("statusPaid");
+      case "pending":
+        return t("statusPending");
+      case "canceled":
+        return t("statusCanceled");
+      default:
+        return status;
+    }
+  };
+
+  const handleOrderUpdated = (updatedOrder: any) => {
+    setPurchaseOrders(prevOrders =>
+      prevOrders.map(ord => (ord._id === updatedOrder._id ? updatedOrder : ord))
+    );
+  };
+
+  const handleCancelOrder = async (order: IOrder) => {
+    if (!["not assigned", "assigned", "pending_review"].includes(order.status)) {
+      toast.error(t("canOnlyCancelBeforeVerification"));
+      return;
+    }
+    setIsCancelLoading(true);
+    try {
+      const { success, order: updated, message } = await updateOrder(order._id, {
+        status: "canceled",
+        canceledDate: new Date().toISOString(),
+      });
+      if (success && updated) {
+        toast.success(t("canceledSuccessfully"));
+        handleOrderUpdated(updated);
+      } else {
+        toast.error(message || t("failedToCancelOrder"));
+      }
+    } catch {
+      toast.error(t("errorCancelingOrder"));
+    } finally {
+      setIsCancelLoading(false);
+    }
+  };
+
+  const handleDeleteOrder = async (order: IOrder) => {
+    const confirmed = window.confirm(t("confirmDeleteOrder"));
+    if (!confirmed) return;
+
+    setDeletingOrderId(order._id);
+    try {
+      const { success, message } = await deleteOrder(order._id);
+      if (success) {
+        setPurchaseOrders((prev) => prev.filter((ord) => ord._id !== order._id));
+        toast.success(t("orderDeleted"));
+      } else {
+        toast.error(message || t("failedToDeleteOrder"));
+      }
+    } catch {
+      toast.error(t("failedToDeleteOrder"));
+    } finally {
+      setDeletingOrderId(null);
+    }
+  };
+
+  const getLatestStatusUpdate = (order: IOrder) => {
+    const dates = [
+      order.assignedDate,
+      order.pendingReviewDate,
+      order.verifiedDate,
+      order.paidDate,
+      order.canceledDate,
+    ].filter(Boolean) as Date[];
+    if (dates.length === 0) return new Date(order.createdAt);
+    return new Date(Math.max(...dates.map(d => new Date(d).getTime())));
+  };
+
+  const getStatusAction = (order: IOrder) => {
+    switch (order.status) {
+      case "not assigned":
+        return (
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setSelectedOrder(order);
+                setIsAssignDialogOpen(true);
+              }}
+              className="gap-2"
+            >
+              <UserPlus className="h-3 w-3" />
+              {t("assignButton")}
+            </Button>
+            <Button
+              size="sm"
+              className="gap-2 bg-orange-600 text-white hover:bg-orange-700"
+              onClick={() => {
+                setSelectedOrder(order);
+                setIsSubmitDialogOpen(true);
+              }}
+            >
+              <CheckCircle className="h-3 w-3" />
+              {t("submitBillButton")}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={isCancelLoading}
+              className="gap-2 border-red-600 text-red-600 hover:bg-red-50"
+              onClick={() => handleCancelOrder(order)}
+            >
+              <XCircle className="h-3 w-3" />
+              {isCancelLoading ? t("cancelingButton") : t("cancelButton")}
+            </Button>
+          </div>
+        );
+      case "assigned":
+        return (
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              className="gap-2 bg-orange-600 text-white hover:bg-orange-700"
+              onClick={() => {
+                setSelectedOrder(order);
+                setIsSubmitDialogOpen(true);
+              }}
+            >
+              <CheckCircle className="h-3 w-3" />
+              {t("submitBillButton")}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={isCancelLoading}
+              className="gap-2 border-red-600 text-red-600 hover:bg-red-50"
+              onClick={() => handleCancelOrder(order)}
+            >
+              <XCircle className="h-3 w-3" />
+              {isCancelLoading ? t("cancelingButton") : t("cancelButton")}
+            </Button>
+          </div>
+        );
+      case "pending_review":
+        return user?.role === "admin" ? (
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              className="gap-2 bg-orange-600 text-white hover:bg-orange-700"
+              onClick={() => {
+                setSelectedOrder(order);
+                setIsVerifyDialogOpen(true);
+              }}
+            >
+              <CheckCircle className="h-3 w-3" />
+              {t("verifyButton")}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={isCancelLoading}
+              className="gap-2 border-red-600 text-red-600 hover:bg-red-50"
+              onClick={() => handleCancelOrder(order)}
+            >
+              <XCircle className="h-3 w-3" />
+              {isCancelLoading ? t("cancelingButton") : t("cancelButton")}
+            </Button>
+          </div>
+        ) : (
+          <Badge variant="outline">{t("waitingVerification")}</Badge>
+        );
+      case "verified":
+        return (
+          <Button
+            size="sm"
+            className="gap-2 bg-orange-600 text-white hover:bg-orange-700"
+            onClick={() => {
+              setSelectedOrder(order);
+              setIsMarkPaidDialogOpen(true);
+            }}
+          >
+            {t("markPaidButton")}
+          </Button>
+        );
+      case "paid":
+        return (
+          <Badge variant="outline" className="gap-1">
+            <CheckCircle className="h-3 w-3" />
+            {t("paidBadge")}
+          </Badge>
+        );
+      case "canceled":
+        return (
+          <Badge variant="destructive" className="gap-1">
+            {t("canceledBadge")}
+          </Badge>
+        );
+      default:
+        return null;
+    }
+  };
+
+  if (purchaseOrders.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-heading">{t("purchaseOrders")}</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="mb-4 p-3 bg-muted rounded-full">
+            <Package className="h-10 w-10 text-muted-foreground" />
+          </div>
+          <h3 className="text-xl font-semibold mb-1">
+            {t("noPurchaseOrders")}
+          </h3>
+          <p className="text-muted-foreground mb-4">
+            {t("noPurchaseOrdersMessage")}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-heading">{t("purchaseOrders")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t("orderIdHeader")}</TableHead>
+                  <TableHead>{t("supplierHeader")}</TableHead>
+                  <TableHead>{t("staffHeader")}</TableHead>
+                  <TableHead>{t("itemsHeader")}</TableHead>
+                  <TableHead>{t("totalValueHeader")}</TableHead>
+                  <TableHead>{t("lastUpdateHeader")}</TableHead>
+                  <TableHead>{t("statusHeader")}</TableHead>
+                  <TableHead>{t("actionHeader")}</TableHead>
+                  <TableHead></TableHead>
+                  <TableHead></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {purchaseOrders.map(order => (
+                  <TableRow key={order._id}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {order?.bon ? (
+                          <img
+                            src={resolveImage(order.bon)}
+                            alt={order?.orderNumber}
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="p-2 bg-muted rounded-lg">
+                            <Receipt className="h-4 w-4" />
+                          </div>
+                        )}
+                        <span className="font-mono font-medium">
+                          {order.orderNumber}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="font-medium flex items-center gap-2">
+                          {order.supplierId?.image && (
+                            <img
+                              src={resolveImage(order.supplierId.image)}
+                              alt={order.supplierId?.name}
+                              className="w-10 h-10 rounded-full object-cover"
+                            />
+                          )}
+                          {order.supplierId?.name}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {order.staffId ? (
+                        <div className="flex items-center gap-2">
+                          {order.staffId?.avatar && (
+                            <img
+                              src={resolveImage(order.staffId.avatar)}
+                              alt={order.staffId?.fullname}
+                              className="w-8 h-8 rounded-full object-cover"
+                            />
+                          )}
+                          <span className="text-sm">
+                            {order.staffId?.fullname}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">
+                          {t("notAssigned")}
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-medium">{order.items.length}</span>
+                      <span className="text-muted-foreground text-sm ml-1">
+                        {t("items")}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs font-bold text-muted-foreground">DA</span>
+                        <span className="font-medium">
+                          {order.totalAmount.toFixed(2)} {t("da")}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {getLatestStatusUpdate(order).toLocaleString("en-GB")}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={getStatusColor(order.status) as any}>
+                        {getStatusLabel(order.status)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{getStatusAction(order)}</TableCell>
+                    <TableCell>
+                      {order.bon && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setSelectedOrder(order);
+                            setIsReceiptDialogOpen(true);
+                          }}
+                          title={t("previewReceipt")}
+                        >
+                          <Receipt className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedOrder(order);
+                              setIsOrderDialogOpen(true);
+                            }}
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            {t("viewDetails")}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              console.log("Export order:", order._id)
+                            }
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            {t("exportPDF")}
+                          </DropdownMenuItem>
+                          {user?.role === "admin" && (
+                            <DropdownMenuItem
+                              className="text-red-600 focus:text-red-600"
+                              disabled={deletingOrderId === order._id}
+                              onClick={() => handleDeleteOrder(order)}
+                            >
+                              {deletingOrderId === order._id ? (
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-4 w-4 mr-2" />
+                              )}
+                              {t("delete")}
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-sm text-muted-foreground">
+              {t("showing")} {purchaseOrders.length} {t("of")} {totalPages * limit} {t("orders")}
+            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              limit={limit}
+              onLimitChange={setLimit}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <PurchaseOrderDialog
+        order={selectedOrder}
+        open={isOrderDialogOpen}
+        onOpenChange={setIsOrderDialogOpen}
+        setPurchaseOrders={setPurchaseOrders}
+      />
+      <ReceiptPreviewDialog
+        order={selectedOrder}
+        open={isReceiptDialogOpen}
+        onOpenChange={setIsReceiptDialogOpen}
+      />
+      <AssignStaffDialog
+        order={selectedOrder}
+        open={isAssignDialogOpen}
+        onOpenChange={setIsAssignDialogOpen}
+        onOrderUpdated={handleOrderUpdated}
+      />
+      <SubmitReviewDialog
+        order={selectedOrder}
+        open={isSubmitDialogOpen}
+        onOpenChange={setIsSubmitDialogOpen}
+        onOrderUpdated={handleOrderUpdated}
+      />
+      <VerifyOrderDialog
+        order={selectedOrder}
+        open={isVerifyDialogOpen}
+        onOpenChange={setIsVerifyDialogOpen}
+        onOrderUpdated={handleOrderUpdated}
+      />
+      <MarkPaidDialog
+        order={selectedOrder}
+        open={isMarkPaidDialogOpen}
+        onOpenChange={setIsMarkPaidDialogOpen}
+        onOrderUpdated={handleOrderUpdated}
+      />
+    </>
+  );
+}
