@@ -2,11 +2,8 @@ import { Request, Response } from "express";
 import { Types } from "mongoose";
 import StockItem from "../models/stock-item.model";
 import Stock from "../models/stock.model";
-<<<<<<< HEAD
 import { createLocalNotification } from "./notification.controller";
-=======
 import Product from "../models/product.model";
->>>>>>> development
 
 // CREATE
 export const createStockItem = async (req: Request, res: Response): Promise<void> => {
@@ -195,9 +192,7 @@ export const getAllStockItems = async (req: Request, res: Response): Promise<voi
     const { 
       location, 
       product, 
-      category,
       stock,
-      category,
       minQuantity, 
       maxQuantity,
       minPrice,
@@ -233,7 +228,7 @@ export const getAllStockItems = async (req: Request, res: Response): Promise<voi
     // Filter by category (lookup products in the category first)
     if (category && !product) {
       const productsInCategory = await Product.find({ categoryId: category }).select("_id");
-      const productIds = productsInCategory.map((p) => p._id);
+      const productIds = productsInCategory.map((p: any) => p._id);
       if (productIds.length > 0) {
         query.product = { $in: productIds };
       } else {

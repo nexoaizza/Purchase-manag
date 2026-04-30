@@ -59,15 +59,9 @@ export const newStaffMember = async (
   res: Response
 ): Promise<void> => {
   try {
-<<<<<<< HEAD
-    const { fullname, email, password, phone1, phone2, phone3, address } = req.body;
+    const { fullname, email, password, phone1, phone2, phone3, address, role } = req.body;
     if (!fullname || (!email && !phone1) || !password) {
       res.status(400).json({ message: "fullname, password, and either email or phone1 are required" });
-=======
-    const { fullname, email, password, phone1, phone2, phone3, address, role } = req.body;
-    if (!fullname || !email || !password) {
-      res.status(400).json({ message: "fullname, email and password are required" });
->>>>>>> development
       return;
     }
     if (email) {
