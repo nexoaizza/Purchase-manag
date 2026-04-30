@@ -192,6 +192,7 @@ export const getAllStockItems = async (req: Request, res: Response): Promise<voi
     const { 
       location, 
       product, 
+      category,
       stock,
       minQuantity, 
       maxQuantity,
