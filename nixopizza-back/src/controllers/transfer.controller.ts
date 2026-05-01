@@ -307,7 +307,7 @@ export const getTransferById = async (req: Request, res: Response): Promise<void
 export const updateTransfer = async (req: Request, res: Response): Promise<void> => {
   try {
     const { transferId } = req.params;
-    const { status, quantity, items } = req.body;
+    const { status, quantity, items, assignedTo } = req.body;
 
     const transfer = await Transfer.findById(transferId);
 
@@ -365,6 +365,24 @@ export const updateTransfer = async (req: Request, res: Response): Promise<void>
       transfer.items = items;
     }
 
+    // Update assignedTo if provided
+    let assignedToChanged = false;
+    if (assignedTo !== undefined) {
+      const assignedUser = await User.findById(assignedTo);
+      if (!assignedUser) {
+        res.status(404).json({ message: "Assigned user not found" });
+        return;
+      }
+      if (assignedUser.role !== "staff") {
+        res.status(400).json({ message: "Assigned user must be a staff member" });
+        return;
+      }
+      if (String(transfer.assignedTo) !== String(assignedTo)) {
+        assignedToChanged = true;
+      }
+      transfer.assignedTo = assignedTo;
+    }
+
     await transfer.save();
 
     // Send "Transfer status changed" notification if status was updated
@@ -412,6 +430,22 @@ export const updateTransfer = async (req: Request, res: Response): Promise<void>
           "inventory"
         );
       }
+    }
+
+    // Send "Transfer assigned" notification if assignedTo was changed
+    if (assignedToChanged) {
+      await pushNotification(
+        "Transfer assigned",
+        `A transfer has been assigned to you.`,
+        "transfer",
+        undefined,
+        {
+          subject: "Transfer assigned",
+          recipient: transfer.assignedTo as Types.ObjectId,
+          transfer: transfer._id as Types.ObjectId,
+          status: transfer.status,
+        }
+      );
     }
 
     const updatedTransfer = await Transfer.findById(transferId)

@@ -58,6 +58,7 @@ interface TransferTableProps {
   setCurrentPage: (page: number) => void;
   limit: number;
   setLimit: (l: number) => void;
+  showAdminActions?: boolean;
 }
 
 export function TransferTable({
@@ -70,11 +71,12 @@ export function TransferTable({
   setCurrentPage,
   limit,
   setLimit,
+  showAdminActions = true,
 }: TransferTableProps) {
   const t = useTranslations("transfers");
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
   const [selectedTransfer, setSelectedTransfer] = useState<ITransfer | null>(null);
-  const [newStatus, setNewStatus] = useState<"pending" | "arrived">("pending");
+  const [newStatus, setNewStatus] = useState<"pending" | "in_progress" | "arrived" | "canceled">("pending");
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleStatusChangeClick = (transfer: ITransfer) => {
@@ -112,8 +114,12 @@ export function TransferTable({
     switch (status) {
       case "pending":
         return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">{t("pending")}</Badge>;
+      case "in_progress":
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">{t("inProgress")}</Badge>;
       case "arrived":
         return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">{t("arrived")}</Badge>;
+      case "canceled":
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">{t("canceled")}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -142,6 +148,7 @@ export function TransferTable({
               <TableRow>
                 <TableHead>{t("from")}</TableHead>
                 <TableHead>{t("to")}</TableHead>
+                <TableHead>{t("assignedTo")}</TableHead>
                 <TableHead>{t("items")}</TableHead>
                 <TableHead>{t("quantity")}</TableHead>
                 <TableHead>{t("status")}</TableHead>
@@ -163,6 +170,9 @@ export function TransferTable({
                       <ArrowRight className="h-4 w-4 text-muted-foreground" />
                       {transfer.takenTo?.name || "N/A"}
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    {transfer.assignedTo?.fullname || "—"}
                   </TableCell>
                   <TableCell>
                     <Badge variant="secondary">
@@ -188,17 +198,21 @@ export function TransferTable({
                           <RefreshCw className="mr-2 h-4 w-4" />
                           {t("changeStatus")}
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onEdit(transfer)}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          {t("edit")}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => onDelete(transfer._id)}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          {t("delete")}
-                        </DropdownMenuItem>
+                        {showAdminActions && (
+                          <>
+                            <DropdownMenuItem onClick={() => onEdit(transfer)}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              {t("edit")}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => onDelete(transfer._id)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              {t("delete")}
+                            </DropdownMenuItem>
+                          </>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -236,7 +250,7 @@ export function TransferTable({
               </label>
               <Select
                 value={newStatus}
-                onValueChange={(value: "pending" | "arrived") => setNewStatus(value)}
+                onValueChange={(value: "pending" | "in_progress" | "arrived" | "canceled") => setNewStatus(value)}
               >
                 <SelectTrigger id="status">
                   <SelectValue placeholder={t("selectStatusPlaceholder")} />
@@ -249,10 +263,24 @@ export function TransferTable({
                       </Badge>
                     </div>
                   </SelectItem>
+                  <SelectItem value="in_progress">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                        {t("inProgress")}
+                      </Badge>
+                    </div>
+                  </SelectItem>
                   <SelectItem value="arrived">
                     <div className="flex items-center gap-2">
                       <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                         {t("arrived")}
+                      </Badge>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="canceled">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                        {t("canceled")}
                       </Badge>
                     </div>
                   </SelectItem>

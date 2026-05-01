@@ -24,6 +24,8 @@ import {
   ArrowRightLeft,
   Trash2,
   History,
+  FileSpreadsheet,
+  LayoutDashboard,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -31,6 +33,8 @@ import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { logoutUser } from "@/lib/apis/auth";
 import { getProfile, useAuth } from "@/hooks/useAuth";
+import { Badge } from "@/components/ui/badge";
+import { getPendingSummary } from "@/lib/apis/pending-summary";
 
 import {
   DropdownMenu,
@@ -50,6 +54,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const isRTL = locale === "ar";
   const t = useTranslations("navigation");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [pendingTotal, setPendingTotal] = useState(0);
   const pathname = usePathname();
   const [unreadCount, setUnreadCount] = useState(0);
   const [pendingTransfersCount, setPendingTransfersCount] = useState(0);
@@ -75,9 +80,22 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (user?.role !== "admin") return;
+    getPendingSummary().then((res) => {
+      if (res.success && res.data) setPendingTotal(res.data.total);
+    });
+  }, [user?.role]);
+
   const navigation =
     user?.role === "admin"
       ? [
+          {
+            name: t("quickAccess"),
+            href: "/dashboard/quick-access",
+            icon: LayoutDashboard,
+            badge: pendingTotal,
+          },
           { name: t("dashboard"), href: "/dashboard", icon: BarChart3 },
           { name: t("categories"), href: "/dashboard/categories", icon: Shapes },
           { name: t("products"), href: "/dashboard/products", icon: Package },
@@ -101,10 +119,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             href: "/dashboard/notifications",
             icon: Bell,
           },
+          {
+            name: t("reports"),
+            href: "/dashboard/reports",
+            icon: FileSpreadsheet,
+          },
         ]
       : [
           { name: t("dashboard"), href: "/dashboardstaff", icon: BarChart3 },
           { name: t("orders"), href: "/dashboardstaff/orders", icon: Users },
+          { name: t("transfers"), href: "/dashboardstaff/transfers", icon: ArrowRightLeft },
         ];
 
   return (
@@ -206,7 +230,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                             </span>
                           )}
                         </div>
-                        {item.name}
+                        <span className="flex-1">{item.name}</span>
+                        {(item as any).badge > 0 && (
+                          <Badge
+                            variant="destructive"
+                            className="ml-auto h-5 min-w-5 px-1.5 text-[10px] font-bold"
+                          >
+                            {(item as any).badge}
+                          </Badge>
+                        )}
                       </Link>
                     </li>
                   );

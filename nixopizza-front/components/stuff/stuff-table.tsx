@@ -144,7 +144,7 @@ export function StuffTable({
                         {user.email}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">{user.role}</Badge>
+                        <Badge variant="outline">{t(user.role)}</Badge>
                       </TableCell>
                       <TableCell>
                         <Badge variant={accountStatus.variant}>

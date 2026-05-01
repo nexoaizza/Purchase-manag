@@ -3,6 +3,7 @@ import { Types } from "mongoose";
 import StockItem from "../models/stock-item.model";
 import Stock from "../models/stock.model";
 import { createLocalNotification } from "./notification.controller";
+import Product from "../models/product.model";
 
 // CREATE
 export const createStockItem = async (req: Request, res: Response): Promise<void> => {
@@ -223,6 +224,23 @@ export const getAllStockItems = async (req: Request, res: Response): Promise<voi
         return;
       }
       query.product = new Types.ObjectId(product as string);
+    }
+
+    // Filter by category (lookup products in the category first)
+    if (category && !product) {
+      const productsInCategory = await Product.find({ categoryId: category }).select("_id");
+      const productIds = productsInCategory.map((p: any) => p._id);
+      if (productIds.length > 0) {
+        query.product = { $in: productIds };
+      } else {
+        // No products in this category — return empty result
+        res.status(200).json({
+          total: 0,
+          pages: 0,
+          stockItems: [],
+        });
+        return;
+      }
     }
 
     // Filter by stock

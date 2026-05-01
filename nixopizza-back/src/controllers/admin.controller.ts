@@ -1,4 +1,6 @@
 import Order from "../models/order.model";
+import Task from "../models/task.model";
+import Transfer from "../models/transfer.model";
 import { Request, Response } from "express";
 import User from "../models/user.model";
 import { deleteImage } from "../utils/Delete";
@@ -57,7 +59,7 @@ export const newStaffMember = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { fullname, email, password, phone1, phone2, phone3, address } = req.body;
+    const { fullname, email, password, phone1, phone2, phone3, address, role } = req.body;
     if (!fullname || (!email && !phone1) || !password) {
       res.status(400).json({ message: "fullname, password, and either email or phone1 are required" });
       return;
@@ -85,6 +87,7 @@ export const newStaffMember = async (
       phone2,
       phone3,
       address,
+      role: role || "staff",
     });
 
     if (req.file) {
@@ -127,6 +130,7 @@ export const updateStaff = async (
       status,
       notes,      // optional; not stored unless you added field
       password,   // optional new password
+      role,       // role update
     } = req.body;
 
     const staff = await User.findById(staffId).select("+password");
@@ -170,6 +174,9 @@ export const updateStaff = async (
     if (typeof status !== "undefined") {
       staff.isActive = status === "Active";
     }
+    if (role) {
+      staff.role = role;
+    }
 
     // Optional password update
     if (password && password.trim().length > 0) {
@@ -207,6 +214,7 @@ export const updateStaff = async (
         address: staff.address,
         isActive: staff.isActive,
         avatar: staff.avatar,
+        role: staff.role,
       },
     });
   } catch (error: any) {
@@ -618,3 +626,66 @@ function fillMissingMonths(data: any[], startDate: Date, endDate: Date) {
 
   return filledData;
 }
+
+/** GET /api/admin/pending-summary */
+export const getPendingSummary = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    // Count pending items
+    const [tasks, transfers, orders] = await Promise.all([
+      Task.countDocuments({ status: "pending" }),
+      Transfer.countDocuments({ status: "pending" }),
+      Order.countDocuments({ status: { $in: ["not assigned", "assigned"] } }),
+    ]);
+
+    // Fetch latest 5 pending items with populated fields
+    const [latestTasks, latestTransfers, latestOrders] = await Promise.all([
+      Task.find({ status: "pending" })
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .populate("staffId", "fullname avatar email"),
+      Transfer.find({ status: "pending" })
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .populate("takenFrom", "name location")
+        .populate("takenTo", "name location")
+        .populate("assignedTo", "fullname email")
+        .populate({
+          path: "items",
+          populate: { path: "product", select: "name" },
+        }),
+      Order.find({ status: { $in: ["not assigned", "assigned"] } })
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .populate("supplierId", "name contactPerson")
+        .populate("staffId", "fullname email")
+        .populate({
+          path: "items",
+          populate: { path: "productId", select: "name" },
+        }),
+    ]);
+
+    const total = tasks + transfers + orders;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        tasks,
+        transfers,
+        orders,
+        total,
+        latestTasks,
+        latestTransfers,
+        latestOrders,
+      },
+    });
+  } catch (error: any) {
+    console.error("getPendingSummary error:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch pending summary" });
+  }
+};
+

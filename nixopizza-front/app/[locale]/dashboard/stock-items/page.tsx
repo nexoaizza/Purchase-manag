@@ -12,6 +12,7 @@ export default function StockItemsPage() {
   const [productName, setProductName] = useState("");
   const [category, setCategory] = useState("");
   const [stock, setStock] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [expirationStatus, setExpirationStatus] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -37,6 +38,7 @@ export default function StockItemsPage() {
     if (maxPrice !== undefined && maxPrice !== "") params.maxPrice = maxPrice;
     if (productName) params.productName = productName;
     if (expirationStatus && expirationStatus !== "all") params.expirationStatus = expirationStatus;
+    if (categoryFilter && categoryFilter !== "all") params.category = categoryFilter;
 
     const { stockItems: fetchedItems, pages, message, success } = await getStockItems(params);
 
@@ -50,7 +52,7 @@ export default function StockItemsPage() {
 
   useEffect(() => {
     fetchStockItems();
-  }, [limit, currentPage, productName, category, stock, expirationStatus, sortBy, order, minPrice, maxPrice]);
+  }, [limit, currentPage, productName, category, categoryFilter, stock, expirationStatus, sortBy, order, minPrice, maxPrice]);
 
   const handleEdit = (stockItem: IStockItem) => {
     setSelectedStockItem(stockItem);
@@ -86,6 +88,8 @@ export default function StockItemsPage() {
           onMinPriceChange={setMinPrice}
           onMaxPriceChange={setMaxPrice}
           onStockItemCreated={handleStockItemCreated}
+          categoryFilter={categoryFilter}
+          setCategoryFilter={setCategoryFilter}
         />
         <StockItemTable
           stockItems={stockItems}

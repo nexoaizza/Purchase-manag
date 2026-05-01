@@ -72,6 +72,12 @@ export function EditTransferDialog({
   });
 
   useEffect(() => {
+    if (open) {
+      fetchStaff();
+    }
+  }, [open]);
+
+  useEffect(() => {
     if (transfer) {
       setFormData({
         items: transfer.items?.map((item: any) => typeof item === "object" ? item._id : item) || [],
@@ -155,7 +161,6 @@ export function EditTransferDialog({
     if (!fromId || loadingMoreItems || !hasMoreItems) return;
     await fetchStockItems(fromId, itemsPage + 1, true, selectedCategory);
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -299,7 +304,9 @@ export function EditTransferDialog({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="pending">{t("pending")}</SelectItem>
+                <SelectItem value="in_progress">{t("inProgress")}</SelectItem>
                 <SelectItem value="arrived">{t("arrived")}</SelectItem>
+                <SelectItem value="canceled">{t("canceled")}</SelectItem>
               </SelectContent>
             </Select>
           </div>

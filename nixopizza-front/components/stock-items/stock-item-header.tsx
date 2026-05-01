@@ -25,6 +25,8 @@ export function StockItemHeader({
   onMinPriceChange,
   onMaxPriceChange,
   onStockItemCreated,
+  categoryFilter,
+  setCategoryFilter,
 }: {
   onProductNameChange: (productName: string) => void;
   onCategoryChange: (category: string) => void;
@@ -33,6 +35,8 @@ export function StockItemHeader({
   onMinPriceChange: (minPrice: string) => void;
   onMaxPriceChange: (maxPrice: string) => void;
   onStockItemCreated: () => void;
+  categoryFilter: string;
+  setCategoryFilter: (category: string) => void;
 }) {
   const t = useTranslations("stockItems");
   const [productName, setProductName] = useState("");
@@ -58,9 +62,9 @@ export function StockItemHeader({
   };
 
   const fetchCategories = async () => {
-    const { success, categories: fetchedCategories } = await getCategories();
+    const { success, categories: fetchedCategories } = await getCategories({ limit: 1000 } as any);
     if (success) {
-      setCategories(fetchedCategories);
+      setCategories(fetchedCategories || []);
     }
   };
 
@@ -151,7 +155,7 @@ export function StockItemHeader({
             ))}
           </SelectContent>
         </Select>
-        <Select value={selectedCategory} onValueChange={handleCategoryChange}>
+        <Select value={categoryFilter || selectedCategory} onValueChange={(val) => { setCategoryFilter(val); handleCategoryChange(val); }}>
           <SelectTrigger className="flex-1 border-2 border-input focus:ring-2 focus:ring-primary/30">
             <SelectValue placeholder={t("selectCategory")} />
           </SelectTrigger>

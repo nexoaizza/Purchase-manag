@@ -1,12 +1,14 @@
 import api from "../axios.ts";
 
+export type TransferStatus = "pending" | "in_progress" | "arrived" | "canceled";
+
 export interface ITransfer {
   _id: string;
   items: any[];
   takenFrom: any;
   takenTo: any;
   quantity: number;
-  status: "pending" | "arrived";
+  status: TransferStatus;
   assignedTo?: any;
   startTime?: Date | string;
   createdAt?: Date;
@@ -19,7 +21,7 @@ export const createTransfer = async (data: {
   takenFrom: string;
   takenTo: string;
   quantity: number;
-  status?: "pending" | "arrived";
+  status?: TransferStatus;
   assignedTo: string;
   startTime: string;
 }) => {
@@ -69,7 +71,7 @@ export const updateTransfer = async (
     takenFrom?: string;
     takenTo?: string;
     quantity?: number;
-    status?: "pending" | "arrived";
+    status?: TransferStatus;
     assignedTo?: string;
     startTime?: string;
   }
@@ -105,6 +107,19 @@ export const getTransfersByStock = async (stockId: string) => {
     return { success: true, transfers };
   } catch (error: any) {
     const message = error.response?.data?.message || "Failed to fetch transfers";
+    return { success: false, message };
+  }
+};
+
+// Get transfers assigned to the logged-in staff member
+export const getMyTransfers = async (params?: { page?: number; limit?: number }) => {
+  try {
+    const {
+      data: { transfers, pagination },
+    } = await api.get("/transfers/my", { params });
+    return { success: true, transfers, pagination };
+  } catch (error: any) {
+    const message = error.response?.data?.message || "Failed to fetch your transfers";
     return { success: false, message };
   }
 };

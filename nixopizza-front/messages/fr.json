@@ -32,7 +32,9 @@
         "templates": "Modèles",
         "signOut": "Déconnexion",
         "parameters": "Paramètres",
-        "pendingTransfersAriaLabel": "{count} transferts en attente"
+        "pendingTransfersAriaLabel": "{count} transferts en attente",
+        "reports": "Rapports",
+        "quickAccess": "Accès Rapide"
     },
     "dashboard": {
         "title": "Tableau de bord",
@@ -220,7 +222,11 @@
         "failedToAssignTask": "Échec de l'attribution de la tâche",
         "staffMember": "Membre du personnel",
         "selectProduct": "Sélectionner un produit",
-        "assignTaskButton": "Attribuer la tâche"
+        "assignTaskButton": "Attribuer la tâche",
+        "role": "Rôle",
+        "admin": "Admin",
+        "staff": "Personnel",
+        "selectRolePlaceholder": "Sélectionnez un rôle"
     },
     "tasks": {
         "title": "Gestion des tâches",
@@ -893,7 +899,8 @@
         "prevButton": "Précédent",
         "nextButton": "Suivant",
         "staffDeletedSuccess": "Personnel supprimé avec succès",
-        "failedDeleteStaff": "Échec de la suppression du personnel"
+        "failedDeleteStaff": "Échec de la suppression du personnel",
+        "confirmButton": "Confirmer"
     },
     "notifications": {
         "title": "Notifications",
@@ -1167,7 +1174,14 @@
         "selectStaffMember": "Sélectionner un membre du personnel",
         "staffRequired": "Veuillez sélectionner un membre du personnel",
         "startTime": "Heure de début",
-        "startTimePlaceholder": "Sélectionner l'heure de début"
+        "startTimePlaceholder": "Sélectionner l'heure de début",
+        "selectStaff": "Sélectionner un membre du personnel",
+        "inProgress": "En cours",
+        "canceled": "Annulé",
+        "myTransfers": "Mes Transferts",
+        "assignedTransfers": "Transferts qui vous sont assignés",
+        "assignedTransfersSubtitle": "Voir et gérer les transferts qui vous sont assignés",
+        "noMyTransfers": "Aucun transfert ne vous a encore été assigné"
     },
     "waste": {
         "title": "Gestion des Déchets",
@@ -1213,7 +1227,10 @@
         "wasteCreated": "Enregistrement de déchet créé avec succès",
         "wasteUpdated": "Enregistrement de déchet mis à jour avec succès",
         "fillAllFields": "Veuillez remplir tous les champs obligatoires",
-        "noStock": "Aucun entrepôt spécifié"
+        "noStock": "Aucun entrepôt spécifié",
+        "dateFrom": "Date de début",
+        "dateTo": "Date de fin",
+        "clearDates": "Effacer les dates"
     },
     "purchaseStats": {
         "pendingTotal": "En attente (Non assigné + Assigné)",
@@ -1280,5 +1297,72 @@
         "ordersCount": "Commandes",
         "totalAmount": "Montant total",
         "viewOrders": "Voir les commandes"
+    },
+    "reports": {
+        "title": "Rapports",
+        "subtitle": "Sélectionnez les types de données et une période, puis téléchargez un rapport Excel organisé",
+        "selectData": "Sélectionner les données à exporter",
+        "selectAll": "Tout sélectionner",
+        "deselectAll": "Tout désélectionner",
+        "types": {
+            "orders": "Bons de commande",
+            "waste": "Registre des déchets",
+            "stockItems": "Articles en stock",
+            "transfers": "Transferts",
+            "products": "Produits",
+            "suppliers": "Fournisseurs"
+        },
+        "typesDesc": {
+            "orders": "Commandes, montants, fournisseurs et statut",
+            "waste": "Produits gaspillés et raisons",
+            "stockItems": "Quantités en inventaire et expiration",
+            "transfers": "Mouvements de stock entre emplacements",
+            "products": "Catalogue produits et seuils",
+            "suppliers": "Répertoire des fournisseurs et contacts"
+        },
+        "dateRange": "Période (Optionnel)",
+        "dateRangeHint": "Filtrer les données chronologiques (commandes, déchets, articles en stock, transferts). Les produits et fournisseurs sont toujours exportés en totalité.",
+        "fromDate": "Date de début",
+        "toDate": "Date de fin",
+        "download": "Télécharger le rapport Excel",
+        "generating": "Génération",
+        "downloaded": "Téléchargé !",
+        "downloadSuccess": "Rapport téléchargé avec succès",
+        "downloadError": "Échec de la génération du rapport. Veuillez réessayer.",
+        "selectAtLeast": "Veuillez sélectionner au moins un type de données",
+        "sheetsSelected": "feuille(s) seront générées"
+    },
+    "quickAccess": {
+        "title": "Accès Rapide",
+        "subtitle": "Aperçu de tous les éléments en attente qui nécessitent votre attention",
+        "refresh": "Actualiser",
+        "pending": "en attente",
+        "pendingTasks": "Tâches en attente",
+        "pendingTransfers": "Transferts en attente",
+        "pendingOrders": "Commandes en attente",
+        "totalPending": "Total en attente",
+        "noTasks": "Aucune tâche en attente",
+        "noTransfers": "Aucun transfert en attente",
+        "noOrders": "Aucune commande en attente",
+        "noDescription": "Pas de description",
+        "markComplete": "Terminer",
+        "taskCompleted": "Tâche marquée comme terminée",
+        "taskCompleteFailed": "Échec de la complétion de la tâche",
+        "view": "Voir",
+        "process": "Traiter",
+        "viewAll": "Voir tout",
+        "assigned": "Assignée",
+        "notAssigned": "Non assignée",
+        "items": "articles",
+        "transfer": "Transfert",
+        "cancelTask": "Annuler la tâche",
+        "markInProgress": "Marquer En Cours",
+        "markArrived": "Marquer Arrivé",
+        "cancelTransfer": "Annuler le Transfert",
+        "assignToMe": "M'assigner",
+        "cancelOrder": "Annuler la Commande",
+        "transferUpdated": "Transfert mis à jour avec succès",
+        "orderUpdated": "Commande mise à jour avec succès",
+        "actionFailed": "L'action a échoué"
     }
 }

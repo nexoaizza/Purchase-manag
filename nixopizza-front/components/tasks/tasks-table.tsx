@@ -196,18 +196,19 @@ export function TasksTable({
                       <div className="flex items-center gap-3">
                         <img
                           src={
-                            process.env.NEXT_PUBLIC_BASE_URL +
-                            task.staffId.avatar
+                            task.staffId?.avatar
+                              ? process.env.NEXT_PUBLIC_BASE_URL + task.staffId.avatar
+                              : "/default-avatar.png" // Fallback avatar or handle null gracefully
                           }
-                          alt={task.staffId.fullname}
+                          alt={task.staffId?.fullname || "Unknown Staff"}
                           className="w-8 h-8 rounded-full object-cover"
                         />
                         <div>
                           <div className="font-medium">
-                            {task.staffId.fullname}
+                            {task.staffId?.fullname || "Unknown Staff"}
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            {task.staffId.email}
+                            {task.staffId?.email || "No email"}
                           </div>
                         </div>
                       </div>
@@ -256,7 +257,7 @@ export function TasksTable({
                           </DropdownMenuItem>
                           {task.status === "pending" && (
                             <>
-                              {(user?.role === "admin" || user?._id === task.staffId._id) && (
+                              {(user?.role === "admin" || user?._id === task.staffId?._id) && (
                                 <DropdownMenuItem
                                   onClick={() => handleMarkAsCompleted(task._id)}
                                 >

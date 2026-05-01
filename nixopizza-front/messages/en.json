@@ -32,7 +32,9 @@
         "templates": "Templates",
         "signOut": "Sign Out",
         "parameters": "Parameters",
-        "pendingTransfersAriaLabel": "{count} pending transfers"
+        "pendingTransfersAriaLabel": "{count} pending transfers",
+        "reports": "Reports",
+        "quickAccess": "Quick Access"
     },
     "dashboard": {
         "title": "Dashboard",
@@ -222,7 +224,11 @@
         "failedToAssignTask": "Failed to assign task",
         "staffMember": "Staff Member",
         "selectProduct": "Select a product",
-        "assignTaskButton": "Assign Task"
+        "assignTaskButton": "Assign Task",
+        "role": "Role",
+        "admin": "Admin",
+        "staff": "Staff",
+        "selectRolePlaceholder": "Select a role"
     },
     "tasks": {
         "title": "Task Management",
@@ -520,7 +526,8 @@
         "newQuantity": "new quantity",
         "remainingInSource": "remaining in source",
         "assignedTo": "Assigned Staff",
-        "selectStaffMember": "Select staff member"
+        "selectStaffMember": "Select staff member",
+        "allCategories": "All Categories"
     },
     "purchases": {
         "delete": "Delete",
@@ -1176,7 +1183,14 @@
         "selectStaffMember": "Select staff member",
         "staffRequired": "Please select a staff member",
         "startTime": "Start Time",
-        "startTimePlaceholder": "Select start time"
+        "startTimePlaceholder": "Select start time",
+        "selectStaff": "Select staff member",
+        "inProgress": "In Progress",
+        "canceled": "Canceled",
+        "myTransfers": "My Transfers",
+        "assignedTransfers": "Transfers Assigned to You",
+        "assignedTransfersSubtitle": "View and manage transfers assigned to you",
+        "noMyTransfers": "No transfers assigned to you yet"
     },
     "waste": {
         "title": "Waste Management",
@@ -1222,7 +1236,10 @@
         "wasteCreated": "Waste record created successfully",
         "wasteUpdated": "Waste record updated successfully",
         "fillAllFields": "Please fill in all required fields",
-        "noStock": "No stock specified"
+        "noStock": "No stock specified",
+        "dateFrom": "From Date",
+        "dateTo": "To Date",
+        "clearDates": "Clear Dates"
     },
     "purchaseStats": {
         "pendingTotal": "Pending (Not Assigned + Assigned)",
@@ -1289,5 +1306,72 @@
         "ordersCount": "Orders",
         "totalAmount": "Total Amount",
         "viewOrders": "View Orders"
+    },
+    "reports": {
+        "title": "Reports",
+        "subtitle": "Select data types and a time period, then download an organized Excel report",
+        "selectData": "Select Data to Export",
+        "selectAll": "Select All",
+        "deselectAll": "Deselect All",
+        "types": {
+            "orders": "Purchase Orders",
+            "waste": "Waste Records",
+            "stockItems": "Stock Items",
+            "transfers": "Transfers",
+            "products": "Products",
+            "suppliers": "Suppliers"
+        },
+        "typesDesc": {
+            "orders": "Orders, amounts, suppliers & status",
+            "waste": "Wasted products & reasons",
+            "stockItems": "Inventory quantities & expiry",
+            "transfers": "Stock movements between locations",
+            "products": "Product catalog & thresholds",
+            "suppliers": "Vendor directory & contacts"
+        },
+        "dateRange": "Date Range (Optional)",
+        "dateRangeHint": "Filter time-sensitive data (orders, waste, stock items, transfers). Products and suppliers are always exported in full.",
+        "fromDate": "From Date",
+        "toDate": "To Date",
+        "download": "Download Excel Report",
+        "generating": "Generating",
+        "downloaded": "Downloaded!",
+        "downloadSuccess": "Report downloaded successfully",
+        "downloadError": "Failed to generate report. Please try again.",
+        "selectAtLeast": "Please select at least one data type",
+        "sheetsSelected": "sheet(s) will be generated"
+    },
+    "quickAccess": {
+        "title": "Quick Access",
+        "subtitle": "Overview of all pending items that need your attention",
+        "refresh": "Refresh",
+        "pending": "pending",
+        "pendingTasks": "Pending Tasks",
+        "pendingTransfers": "Pending Transfers",
+        "pendingOrders": "Pending Orders",
+        "totalPending": "Total Pending",
+        "noTasks": "No pending tasks",
+        "noTransfers": "No pending transfers",
+        "noOrders": "No pending orders",
+        "noDescription": "No description",
+        "markComplete": "Complete",
+        "taskCompleted": "Task marked as completed",
+        "taskCompleteFailed": "Failed to complete task",
+        "view": "View",
+        "process": "Process",
+        "viewAll": "View All",
+        "assigned": "Assigned",
+        "notAssigned": "Not Assigned",
+        "items": "items",
+        "transfer": "Transfer",
+        "cancelTask": "Cancel Task",
+        "markInProgress": "Mark In Progress",
+        "markArrived": "Mark Arrived",
+        "cancelTransfer": "Cancel Transfer",
+        "assignToMe": "Assign to me",
+        "cancelOrder": "Cancel Order",
+        "transferUpdated": "Transfer updated successfully",
+        "orderUpdated": "Order updated successfully",
+        "actionFailed": "Action failed"
     }
 }
