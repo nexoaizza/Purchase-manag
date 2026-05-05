@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
 
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
@@ -45,6 +46,7 @@ export function PurchaseListsTable({
   setCurrentPage,
   limit,
   setLimit,
+  targetItemId,
 }: {
   purchaseOrders: IOrder[];
   setPurchaseOrders: React.Dispatch<React.SetStateAction<IOrder[]>>;
@@ -53,11 +55,26 @@ export function PurchaseListsTable({
   setCurrentPage: (p: number) => void;
   limit: number;
   setLimit: (l: number) => void;
+  targetItemId?: string;
 }) {
   const t = useTranslations("purchases");
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
   const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
+  const [highlightedId, setHighlightedId] = useState<string | undefined>(targetItemId);
+  const rowRefs = useRef<Map<string, HTMLTableRowElement>>(new Map());
+  const scrolledRef = useRef(false);
+
+  useEffect(() => {
+    if (!targetItemId || scrolledRef.current || purchaseOrders.length === 0) return;
+    const el = rowRefs.current.get(targetItemId);
+    if (!el) return;
+    scrolledRef.current = true;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    setHighlightedId(targetItemId);
+    const timer = setTimeout(() => setHighlightedId(undefined), 2000);
+    return () => clearTimeout(timer);
+  }, [targetItemId, purchaseOrders]);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
   const [isVerifyDialogOpen, setIsVerifyDialogOpen] = useState(false);
@@ -340,7 +357,17 @@ export function PurchaseListsTable({
               </TableHeader>
               <TableBody>
                 {purchaseOrders.map(order => (
-                  <TableRow key={order._id}>
+                  <TableRow
+                    key={order._id}
+                    ref={(el) => {
+                      if (el) rowRefs.current.set(order._id, el);
+                      else rowRefs.current.delete(order._id);
+                    }}
+                    className={cn(
+                      "transition-colors duration-500",
+                      highlightedId === order._id && "bg-yellow-50 dark:bg-yellow-950/30"
+                    )}
+                  >
                     <TableCell>
                       <div className="flex items-center gap-2">
                         {order?.bon ? (
