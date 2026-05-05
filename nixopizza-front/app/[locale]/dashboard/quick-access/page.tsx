@@ -292,7 +292,7 @@ export default function QuickAccessPage() {
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem asChild>
-                              <Link href={`/${locale}/dashboard/tasks`} className="cursor-pointer w-full">
+                              <Link href={`/${locale}/dashboard/tasks?highlight=${task._id}`} className="cursor-pointer w-full">
                                 <ExternalLink className="h-4 w-4 mr-2" />
                                 {t("view")}
                               </Link>
@@ -413,7 +413,7 @@ export default function QuickAccessPage() {
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem asChild>
-                              <Link href={`/${locale}/dashboard/transfers`} className="cursor-pointer w-full">
+                              <Link href={`/${locale}/dashboard/transfers?highlight=${tr._id}`} className="cursor-pointer w-full">
                                 <ExternalLink className="h-4 w-4 mr-2" />
                                 {t("view")}
                               </Link>
@@ -536,7 +536,7 @@ export default function QuickAccessPage() {
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem asChild>
-                              <Link href={`/${locale}/dashboard/purchases`} className="cursor-pointer w-full">
+                              <Link href={`/${locale}/dashboard/purchases?highlight=${order._id}`} className="cursor-pointer w-full">
                                 <ExternalLink className="h-4 w-4 mr-2" />
                                 {t("process")}
                               </Link>

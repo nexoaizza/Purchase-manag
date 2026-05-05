@@ -6,6 +6,7 @@ import { TasksHeader } from "@/components/tasks/tasks-header";
 import { TasksTable } from "@/components/tasks/tasks-table";
 import { getTasks } from "@/lib/apis/task";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 import toast from "react-hot-toast";
 
@@ -35,6 +36,9 @@ export interface ITask {
 }
 
 export default function TasksPage() {
+  const searchParams = useSearchParams();
+  const targetItemId = searchParams.get("highlight") ?? undefined;
+
   const [tasks, setTasks] = useState<ITask[]>([]);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
@@ -106,6 +110,7 @@ export default function TasksPage() {
           setLimit={setLimit}
           onUpdateTask={handleUpdateTask}
           onAssignTask={() => setIsCreateTaskDialogOpen(true)}
+          targetItemId={targetItemId}
         />
       </div>
     </DashboardLayout>

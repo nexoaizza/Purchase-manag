@@ -192,21 +192,6 @@ export function WasteHeader({
           </SelectContent>
         </Select>
 
-        <div className="flex items-center gap-2 flex-1">
-          <Input
-            type="date"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-            className="flex-1"
-          />
-          <span className="text-muted-foreground">-</span>
-          <Input
-            type="date"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-            className="flex-1"
-          />
-        </div>
       </div>
 
       {/* Date range filters */}

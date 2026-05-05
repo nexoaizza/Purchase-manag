@@ -1,11 +1,12 @@
 // components/tasks/tasks-table.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -48,6 +49,7 @@ interface TasksTableProps {
   setLimit: any;
   onUpdateTask: (task: ITask) => void;
   onAssignTask: () => void;
+  targetItemId?: string;
 }
 
 export function TasksTable({
@@ -60,11 +62,26 @@ export function TasksTable({
   setLimit,
   onUpdateTask,
   onAssignTask,
+  targetItemId,
 }: TasksTableProps) {
   const t = useTranslations("tasks");
   const { user } = useAuth();
   const [selectedTask, setSelectedTask] = useState<ITask | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [highlightedId, setHighlightedId] = useState<string | undefined>(targetItemId);
+  const rowRefs = useRef<Map<string, HTMLTableRowElement>>(new Map());
+  const scrolledRef = useRef(false);
+
+  useEffect(() => {
+    if (!targetItemId || scrolledRef.current || tasks.length === 0) return;
+    const el = rowRefs.current.get(targetItemId);
+    if (!el) return;
+    scrolledRef.current = true;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    setHighlightedId(targetItemId);
+    const timer = setTimeout(() => setHighlightedId(undefined), 2000);
+    return () => clearTimeout(timer);
+  }, [targetItemId, tasks]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -186,7 +203,17 @@ export function TasksTable({
               </TableHeader>
               <TableBody>
                 {tasks.map((task) => (
-                  <TableRow key={task._id}>
+                  <TableRow
+                    key={task._id}
+                    ref={(el) => {
+                      if (el) rowRefs.current.set(task._id, el);
+                      else rowRefs.current.delete(task._id);
+                    }}
+                    className={cn(
+                      "transition-colors duration-500",
+                      highlightedId === task._id && "bg-yellow-50 dark:bg-yellow-950/30"
+                    )}
+                  >
                     <TableCell>
                       <div className="font-mono font-medium">
                         {task.taskNumber}
