@@ -61,6 +61,12 @@ export function PurchaseListsTable({
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
   const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
+  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+  const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
+  const [isVerifyDialogOpen, setIsVerifyDialogOpen] = useState(false);
+  const [isMarkPaidDialogOpen, setIsMarkPaidDialogOpen] = useState(false);
+  const [isCancelLoading, setIsCancelLoading] = useState(false);
+  const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null);
   const [highlightedId, setHighlightedId] = useState<string | undefined>(targetItemId);
   const rowRefs = useRef<Map<string, HTMLTableRowElement>>(new Map());
   const scrolledRef = useRef(false);
@@ -75,12 +81,6 @@ export function PurchaseListsTable({
     const timer = setTimeout(() => setHighlightedId(undefined), 2000);
     return () => clearTimeout(timer);
   }, [targetItemId, purchaseOrders]);
-  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
-  const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
-  const [isVerifyDialogOpen, setIsVerifyDialogOpen] = useState(false);
-  const [isMarkPaidDialogOpen, setIsMarkPaidDialogOpen] = useState(false);
-  const [isCancelLoading, setIsCancelLoading] = useState(false);
-  const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null);
 
   const { user } = useAuth();
 

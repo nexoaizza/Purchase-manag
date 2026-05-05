@@ -81,7 +81,7 @@ export default function PurchasesPage() {
     from: null,
     to: null,
   });
-  const highlightScrolled = useRef(false);
+  const hasScrolledToHighlight = useRef(false);
   const highlightId = searchParams.get("highlight") ?? undefined;
 
   useEffect(() => {
@@ -166,10 +166,10 @@ export default function PurchasesPage() {
 
   // Navigate to the correct page when a highlight target is specified
   useEffect(() => {
-    if (!highlightId || highlightScrolled.current || filteredOrders.length === 0) return;
+    if (!highlightId || hasScrolledToHighlight.current || filteredOrders.length === 0) return;
     const idx = filteredOrders.findIndex((o) => o._id === highlightId);
     if (idx < 0) return;
-    highlightScrolled.current = true;
+    hasScrolledToHighlight.current = true;
     const page = Math.floor(idx / limit) + 1;
     setCurrentPage(page);
   }, [highlightId, filteredOrders, limit]);
