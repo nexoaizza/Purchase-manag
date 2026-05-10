@@ -11,11 +11,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Upload, X, Package, Receipt, Download } from "lucide-react";
+import { Package } from "lucide-react";
 import toast from "react-hot-toast";
 import { IOrder } from "@/app/[locale]/dashboard/purchases/page";
 import { submitForReview } from "@/lib/apis/purchase-list";
-import { resolveImage } from "@/lib/resolveImage";
 import { useTranslations } from "next-intl";
 
 interface EditableItem {
@@ -40,8 +39,6 @@ export function SubmitReviewDialog({
   onOrderUpdated,
 }: SubmitReviewDialogProps) {
   const t = useTranslations("purchases");
-  const [billFile, setBillFile] = useState<File | null>(null);
-  const [billPreview, setBillPreview] = useState<string | null>(null);
 
   // Editable items state (derived from order items)
   const [items, setItems] = useState<EditableItem[]>([]);
@@ -62,8 +59,6 @@ export function SubmitReviewDialog({
         }))
       );
       setOverrideTotal("");
-      setBillFile(null);
-      setBillPreview(null);
     }
   }, [open, order]);
 
@@ -75,22 +70,6 @@ export function SubmitReviewDialog({
       ),
     [items]
   );
-
-  const handleBillUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.match("image.*") && !file.type.match("application/pdf")) {
-      toast.error(t("selectImageOrPdf"));
-      return;
-    }
-    setBillFile(file);
-    setBillPreview(URL.createObjectURL(file));
-  };
-
-  const removeBill = () => {
-    setBillFile(null);
-    setBillPreview(null);
-  };
 
   const updateItemField = (
     itemId: string,
@@ -117,9 +96,6 @@ export function SubmitReviewDialog({
     setSaving(true);
     try {
       const fd = new FormData();
-      if (billFile) {
-        fd.append("image", billFile);
-      }
       // Provide updated items
       const itemsUpdates = items.map((i) => ({
         itemId: i.itemId,
@@ -157,18 +133,13 @@ export function SubmitReviewDialog({
     <Dialog
       open={open}
       onOpenChange={(v) => {
-        if (!v && !saving) {
-          // Reset when closing
-          setBillFile(null);
-          setBillPreview(null);
-        }
         onOpenChange(v);
       }}
     >
       <DialogContent className="sm:max-w-[880px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-heading flex items-center gap-2">
-            <Receipt className="h-5 w-5" />
+            <Package className="h-5 w-5" />
             {t("submitBillAdjust")}
           </DialogTitle>
           <DialogDescription>
@@ -274,78 +245,6 @@ export function SubmitReviewDialog({
               {t("overrideTotalHint")}
             </p>
           </div>
-
-          {/* Bill Upload */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">{t("billRequired")} ({t("optional", { fallback: "Optional" })})</Label>
-            <div className="flex items-center gap-4">
-              {billPreview ? (
-                <div className="relative w-24 h-24 rounded-xl overflow-hidden border">
-                  {billFile?.type === "application/pdf" ? (
-                    <div className="w-full h-full flex items-center justify-center bg-red-50">
-                      <span className="text-red-600 font-medium">PDF</span>
-                    </div>
-                  ) : (
-                    <img
-                      src={billPreview}
-                      alt="Bill preview"
-                      className="w-full h-full object-cover"
-                    />
-                  )}
-                  <button
-                    type="button"
-                    onClick={removeBill}
-                    className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 hover:opacity-85"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </div>
-              ) : (
-                <div className="flex items-center justify-center w-24 h-24 border-2 border-dashed border-input rounded-xl bg-muted/20">
-                  <Upload className="h-8 w-8 text-muted-foreground" />
-                </div>
-              )}
-
-              <div className="flex flex-col gap-2">
-                <Label
-                  htmlFor="bill-file"
-                  className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md cursor-pointer hover:opacity-90 transition-opacity text-sm"
-                >
-                  <Upload className="h-4 w-4" />
-                  {t("selectBill")}
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  PNG, JPG, PDF up to 5MB
-                </p>
-                <Input
-                  id="bill-file"
-                  type="file"
-                  accept="image/*,.pdf"
-                  onChange={handleBillUpload}
-                  className="hidden"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Existing bill (if originally had one) */}
-          {order.bon && (
-            <div className="bg-muted/40 rounded-lg p-3 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm">
-                <Receipt className="h-4 w-4" />
-                {t("previousBillPresent")}
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => window.open(resolveImage(order.bon!), "_blank")}
-                className="gap-2"
-              >
-                <Download className="h-4 w-4" />
-                {t("viewReceipt")}
-              </Button>
-            </div>
-          )}
         </div>
 
         <DialogFooter>
@@ -367,7 +266,7 @@ export function SubmitReviewDialog({
             }
             className="bg-orange-600 hover:bg-orange-700 text-white"
           >
-            {saving ? t("submittingReview") : t("submitForReview")}
+            {saving ? t("submittingReview") : t("confirmPurchase")}
           </Button>
         </DialogFooter>
       </DialogContent>

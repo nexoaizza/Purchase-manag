@@ -137,7 +137,17 @@ export function ManualOrderDialog({
 
   const handleSupplierChange = (supplier: ISupplier | null) => {
     setSelectedSupplier(supplier);
-    if (supplier) setError(null);
+    if (supplier) {
+      setError(null);
+      // Pre-fill notes with supplier name and phone numbers
+      const phones = [supplier.phone1, supplier.phone2, supplier.phone3]
+        .filter(Boolean)
+        .join(", ");
+      const supplierInfo = `${t("supplierHeader")}: ${supplier.name}\n${t("phoneLabel")}: ${phones}`;
+      setNotes(supplierInfo);
+    } else {
+      setNotes("");
+    }
   };
 
   const handleBillUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

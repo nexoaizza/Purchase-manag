@@ -195,7 +195,7 @@ export function PurchaseListsTable({
               }}
             >
               <CheckCircle className="h-3 w-3" />
-              {t("submitBillButton")}
+              {t("confirmPurchase")}
             </Button>
             <Button
               size="sm"
@@ -221,7 +221,7 @@ export function PurchaseListsTable({
               }}
             >
               <CheckCircle className="h-3 w-3" />
-              {t("submitBillButton")}
+              {t("confirmPurchase")}
             </Button>
             <Button
               size="sm"

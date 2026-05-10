@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { verifyOrder } from "@/lib/apis/purchase-list";
+import { verifyOrder, submitForReview } from "@/lib/apis/purchase-list";
 import { createMultipleStockItems } from "@/lib/apis/stock-items";
 import { useAuth } from "@/hooks/useAuth";
 import toast from "react-hot-toast";
@@ -68,7 +68,7 @@ export interface IOrder {
 }
 import { resolveImage } from "@/lib/resolveImage";
 import { getStocks } from "@/lib/apis/stocks";
-import { ShieldCheck, Package, Receipt, DollarSign, User, Building2, Warehouse, Calendar } from "lucide-react";
+import { ShieldCheck, Package, Receipt, User, Building2, Warehouse, Calendar, Upload, X, Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 interface VerifyOrderDialogProps {
@@ -89,6 +89,11 @@ export function VerifyOrderDialog({
   const [stocks, setStocks] = useState<any[]>([]);
   const [selectedStock, setSelectedStock] = useState<string>("");
   const [expireDates, setExpireDates] = useState<Record<number, string>>({});
+
+  // Bill upload state
+  const [billFile, setBillFile] = useState<File | null>(null);
+  const [billPreview, setBillPreview] = useState<string | null>(null);
+
   const { user } = useAuth();
 
   useEffect(() => {
@@ -96,6 +101,8 @@ export function VerifyOrderDialog({
       fetchStocks();
       setSelectedStock("");
       setExpireDates({});
+      setBillFile(null);
+      setBillPreview(null);
     }
   }, [open]);
 
@@ -104,6 +111,22 @@ export function VerifyOrderDialog({
     if (success) {
       setStocks(fetchedStocks);
     }
+  };
+
+  const handleBillUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.match("image.*") && !file.type.match("application/pdf")) {
+      toast.error(t("selectImageOrPdf"));
+      return;
+    }
+    setBillFile(file);
+    setBillPreview(URL.createObjectURL(file));
+  };
+
+  const removeBill = () => {
+    setBillFile(null);
+    setBillPreview(null);
   };
 
   if (!order) return null;
@@ -115,6 +138,25 @@ export function VerifyOrderDialog({
 
     setLoading(true);
     try {
+      // If a new bill file is provided, upload it first via submitForReview
+      if (billFile) {
+        const fd = new FormData();
+        fd.append("image", billFile);
+        // Keep existing item values
+        const itemsUpdates = order.items.map((it: any) => ({
+          itemId: it._id,
+          quantity: it.quantity,
+          unitCost: it.unitCost,
+        }));
+        fd.append("itemsUpdates", JSON.stringify(itemsUpdates));
+        const { success: uploadSuccess, message: uploadMessage } = await submitForReview(order._id, fd);
+        if (!uploadSuccess) {
+          toast.error(uploadMessage || t("failedToSubmit"));
+          setLoading(false);
+          return;
+        }
+      }
+
       // Prepare stock items — use the expiration date entered at arrival time
       const stockItems = order.items.map((item: any, idx: number) => ({
         product: item.productId._id,
@@ -267,37 +309,95 @@ export function VerifyOrderDialog({
             </div>
           </div>
 
-          {/* Receipt */}
-          <div className="border rounded-lg p-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <Receipt className="h-4 w-4" />
-                {t("receiptLabel")}
-              </div>
-              {order.bon && (
+          {/* Receipt Upload */}
+          <div className="border rounded-lg p-3 space-y-3">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <Receipt className="h-4 w-4" />
+              {t("receiptLabel")}
+            </div>
+
+            {/* Existing receipt (read-only view) */}
+            {order.bon && !billFile && (
+              <div className="bg-muted/40 rounded-lg p-3 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm">
+                  <Receipt className="h-4 w-4" />
+                  {t("previousBillPresent")}
+                </div>
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={() => window.open(resolveImage(order.bon!), "_blank")}
+                  className="gap-2"
                 >
+                  <Download className="h-4 w-4" />
                   {t("viewReceipt")}
                 </Button>
+              </div>
+            )}
+
+            {/* New bill upload */}
+            <div className="space-y-2">
+              <Label className="text-sm text-muted-foreground">
+                {t("billRequired")} ({t("optional", { fallback: "Optional" })})
+              </Label>
+              <div className="flex items-center gap-4">
+                {billPreview ? (
+                  <div className="relative w-24 h-24 rounded-xl overflow-hidden border">
+                    {billFile?.type === "application/pdf" ? (
+                      <div className="w-full h-full flex items-center justify-center bg-red-50">
+                        <span className="text-red-600 font-medium">PDF</span>
+                      </div>
+                    ) : (
+                      <img
+                        src={billPreview}
+                        alt="Bill preview"
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                    <button
+                      type="button"
+                      onClick={removeBill}
+                      className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 hover:opacity-85"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center w-24 h-24 border-2 border-dashed border-input rounded-xl bg-muted/20">
+                    <Upload className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-2">
+                  <Label
+                    htmlFor="verify-bill-file"
+                    className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md cursor-pointer hover:opacity-90 transition-opacity text-sm"
+                  >
+                    <Upload className="h-4 w-4" />
+                    {t("selectBill")}
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    PNG, JPG, PDF up to 5MB
+                  </p>
+                  <Input
+                    id="verify-bill-file"
+                    type="file"
+                    accept="image/*,.pdf"
+                    onChange={handleBillUpload}
+                    className="hidden"
+                  />
+                </div>
+              </div>
+
+              {/* Preview of newly selected receipt (if image) */}
+              {billPreview && billFile?.type !== "application/pdf" && (
+                <img
+                  className="mt-2 max-h-48 rounded border object-contain"
+                  src={billPreview}
+                  alt="New receipt preview"
+                />
               )}
             </div>
-            {!order.bon ? (
-              <div className="text-sm text-muted-foreground mt-2">
-                {t("noReceiptUploaded")}
-              </div>
-            ) : order.bon.toLowerCase().endsWith(".pdf") ? (
-              <div className="mt-3 text-sm">
-                {t("pdfUploaded")}
-              </div>
-            ) : (
-              <img
-                className="mt-3 max-h-64 rounded border object-contain"
-                src={resolveImage(order.bon)}
-                alt="Receipt"
-              />
-            )}
           </div>
         </div>
 
