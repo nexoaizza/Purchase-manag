@@ -22,6 +22,7 @@ import wasteRouter from "./routes/waste.router";
 import repitiveTaskRouter from "./routes/repetitive-tasks.router";
 import telegramRouter from "./routes/telegram.router";
 import stockUsageRouter from "./routes/stock-usage.router";
+import cronRouter from "./routes/cron.router";
 
 import blobUploadRouter from "./routes/blobUpload.router";
 import User from "./models/user.model";
@@ -104,6 +105,9 @@ app.use("/api/wastes", wasteRouter);
 app.use("/api/repetitive-tasks", repitiveTaskRouter);
 app.use("/api/telegram", telegramRouter);
 app.use("/api/stock-usages", stockUsageRouter);
+
+// Cron endpoints (used by scheduled jobs)
+app.use("/api/cron", cronRouter);
 
 const PORT = process.env.PORT || 5000;
 
