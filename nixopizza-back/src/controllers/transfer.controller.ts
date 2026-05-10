@@ -12,7 +12,7 @@ import { createLocalNotification } from "./notification.controller";
 // CREATE - Create a transfer request from one stock to another
 export const createTransfer = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { items, takenFrom, takenTo, quantity, status, assignedTo, startTime } = req.body;
+    const { items, takenFrom, takenTo, status, assignedTo, startTime } = req.body;
 
     // Validation
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -20,13 +20,21 @@ export const createTransfer = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    if (!takenFrom || !takenTo) {
-      res.status(400).json({ message: "Both source (takenFrom) and destination (takenTo) stocks are required" });
-      return;
+    // Validate each item has stockItem and quantity
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (!item.stockItem) {
+        res.status(400).json({ message: `Item at index ${i} is missing stockItem` });
+        return;
+      }
+      if (!item.quantity || item.quantity < 1) {
+        res.status(400).json({ message: `Item at index ${i} must have quantity >= 1` });
+        return;
+      }
     }
 
-    if (!quantity || quantity < 1) {
-      res.status(400).json({ message: "Quantity must be at least 1" });
+    if (!takenFrom || !takenTo) {
+      res.status(400).json({ message: "Both source (takenFrom) and destination (takenTo) stocks are required" });
       return;
     }
 
@@ -70,9 +78,10 @@ export const createTransfer = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    // Verify all items exist
-    const stockItems = await StockItem.find({ _id: { $in: items } });
-    if (stockItems.length !== items.length) {
+    // Verify all referenced stock items exist
+    const stockItemIds = items.map((it: any) => it.stockItem);
+    const foundStockItems = await StockItem.find({ _id: { $in: stockItemIds } });
+    if (foundStockItems.length !== stockItemIds.length) {
       res.status(404).json({ message: "One or more stock items not found" });
       return;
     }
@@ -81,7 +90,6 @@ export const createTransfer = async (req: Request, res: Response): Promise<void>
       items,
       takenFrom,
       takenTo,
-      quantity,
       status: status || "pending",
       assignedTo,
       startTime: new Date(startTime),
@@ -116,16 +124,16 @@ export const createTransfer = async (req: Request, res: Response): Promise<void>
       .populate("takenTo", "name location")
       .populate("assignedTo", "fullname email")
       .populate({
-        path: "items",
+        path: "items.stockItem",
         populate: {
           path: "product",
           select: "name",
         },
       });
 
-    res.status(201).json({ 
-      message: "Transfer created successfully", 
-      transfer: populatedTransfer 
+    res.status(201).json({
+      message: "Transfer created successfully",
+      transfer: populatedTransfer
     });
   } catch (error: any) {
     console.error("Transfer create error:", error);
@@ -248,7 +256,7 @@ export const getAllTransfers = async (req: Request, res: Response): Promise<void
         .populate("takenTo", "name location")
         .populate("assignedTo", "fullname email")
         .populate({
-          path: "items",
+          path: "items.stockItem",
           populate: {
             path: "product",
             select: "name",
@@ -284,7 +292,7 @@ export const getTransferById = async (req: Request, res: Response): Promise<void
       .populate("takenTo", "name location description")
       .populate("assignedTo", "fullname email")
       .populate({
-        path: "items",
+        path: "items.stockItem",
         populate: {
           path: "product",
           select: "name description",
@@ -307,7 +315,7 @@ export const getTransferById = async (req: Request, res: Response): Promise<void
 export const updateTransfer = async (req: Request, res: Response): Promise<void> => {
   try {
     const { transferId } = req.params;
-    const { status, quantity, items, assignedTo } = req.body;
+    const { status, items, assignedTo } = req.body;
 
     const transfer = await Transfer.findById(transferId);
 
@@ -331,19 +339,6 @@ export const updateTransfer = async (req: Request, res: Response): Promise<void>
       transfer.status = status;
     }
 
-    // Update quantity if provided (only if still pending or in_progress)
-    if (quantity !== undefined) {
-      if (transfer.status === "arrived" || transfer.status === "canceled") {
-        res.status(400).json({ message: "Cannot update quantity after transfer has arrived or been canceled" });
-        return;
-      }
-      if (quantity < 1) {
-        res.status(400).json({ message: "Quantity must be at least 1" });
-        return;
-      }
-      transfer.quantity = quantity;
-    }
-
     // Update items if provided (only if still pending or in_progress)
     if (items !== undefined) {
       if (transfer.status === "arrived" || transfer.status === "canceled") {
@@ -355,9 +350,23 @@ export const updateTransfer = async (req: Request, res: Response): Promise<void>
         return;
       }
 
-      // Verify all items exist
-      const stockItems = await StockItem.find({ _id: { $in: items } });
-      if (stockItems.length !== items.length) {
+      // Validate each item has stockItem and quantity
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (!item.stockItem) {
+          res.status(400).json({ message: `Item at index ${i} is missing stockItem` });
+          return;
+        }
+        if (!item.quantity || item.quantity < 1) {
+          res.status(400).json({ message: `Item at index ${i} must have quantity >= 1` });
+          return;
+        }
+      }
+
+      // Verify all referenced stock items exist
+      const stockItemIds = items.map((it: any) => it.stockItem);
+      const foundItems = await StockItem.find({ _id: { $in: stockItemIds } });
+      if (foundItems.length !== stockItemIds.length) {
         res.status(404).json({ message: "One or more stock items not found" });
         return;
       }
@@ -415,14 +424,14 @@ export const updateTransfer = async (req: Request, res: Response): Promise<void>
       if (transfer.status === "arrived") {
         const fromStock = (transfer as any).takenFrom?.name || "Source";
         const toStock = (transfer as any).takenTo?.name || "Destination";
-        
+
         await createLocalNotification(
           `Transfer from ${fromStock} to ${toStock} completed.`,
           "success",
           "Transfer Completed",
           "inventory"
         );
-        
+
         await createLocalNotification(
           `New products have arrived at ${toStock} from ${fromStock}.`,
           "info",
@@ -453,16 +462,16 @@ export const updateTransfer = async (req: Request, res: Response): Promise<void>
       .populate("takenTo", "name location")
       .populate("assignedTo", "fullname email")
       .populate({
-        path: "items",
+        path: "items.stockItem",
         populate: {
           path: "product",
           select: "name",
         },
       });
 
-    res.status(200).json({ 
-      message: "Transfer updated successfully", 
-      transfer: updatedTransfer 
+    res.status(200).json({
+      message: "Transfer updated successfully",
+      transfer: updatedTransfer
     });
   } catch (error: any) {
     console.error("Transfer update error:", error);
@@ -541,7 +550,7 @@ export const getTransfersByStock = async (req: Request, res: Response): Promise<
         .populate("takenTo", "name location")
         .populate("assignedTo", "fullname email")
         .populate({
-          path: "items",
+          path: "items.stockItem",
           populate: {
             path: "product",
             select: "name",
@@ -594,7 +603,7 @@ export const getMyTransfers = async (req: Request, res: Response): Promise<void>
         .populate("takenTo", "name location")
         .populate("assignedTo", "fullname email")
         .populate({
-          path: "items",
+          path: "items.stockItem",
           populate: {
             path: "product",
             select: "name",

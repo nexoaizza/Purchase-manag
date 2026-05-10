@@ -7,7 +7,6 @@ export interface ITransfer {
   items: any[];
   takenFrom: any;
   takenTo: any;
-  quantity: number;
   status: TransferStatus;
   assignedTo?: any;
   startTime?: Date | string;
@@ -17,10 +16,9 @@ export interface ITransfer {
 
 // Create transfer
 export const createTransfer = async (data: {
-  items: string[];
+  items: { stockItem: string; quantity: number }[];
   takenFrom: string;
   takenTo: string;
-  quantity: number;
   status?: TransferStatus;
   assignedTo: string;
   startTime: string;
@@ -67,10 +65,9 @@ export const getTransfer = async (transferId: string) => {
 export const updateTransfer = async (
   transferId: string,
   data: {
-    items?: string[];
+    items?: { stockItem: string; quantity: number }[];
     takenFrom?: string;
     takenTo?: string;
-    quantity?: number;
     status?: TransferStatus;
     assignedTo?: string;
     startTime?: string;

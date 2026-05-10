@@ -149,7 +149,7 @@ export function TransferTable({
                 <TableHead>{t("from")}</TableHead>
                 <TableHead>{t("to")}</TableHead>
                 <TableHead>{t("assignedTo")}</TableHead>
-                <TableHead>{t("items")}</TableHead>
+                <TableHead>{t("products")}</TableHead>
                 <TableHead>{t("quantity")}</TableHead>
                 <TableHead>{t("status")}</TableHead>
                 <TableHead>{t("date")}</TableHead>
@@ -176,10 +176,15 @@ export function TransferTable({
                   </TableCell>
                   <TableCell>
                     <Badge variant="secondary">
-                      {transfer.items?.length || 0} {t("itemsCount")}
+                      {transfer.items?.length || 0} {t("productsCount")}
                     </Badge>
                   </TableCell>
-                  <TableCell>{transfer.quantity}</TableCell>
+                  <TableCell>
+                    {transfer.items?.reduce(
+                      (sum: number, it: any) => sum + (it.quantity || 0),
+                      0
+                    ) || 0}
+                  </TableCell>
                   <TableCell>{getStatusBadge(transfer.status)}</TableCell>
                   <TableCell>
                     {transfer.createdAt
@@ -227,7 +232,7 @@ export function TransferTable({
             totalPages={totalPages}
             onPageChange={setCurrentPage}
             limit={limit}
-            setLimit={setLimit}
+            onLimitChange={setLimit}
           />
         </div>
       </CardContent>

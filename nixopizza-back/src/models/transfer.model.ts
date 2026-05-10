@@ -1,10 +1,14 @@
 import { Schema, model, Document, Types } from "mongoose";
 
+export interface ITransferItem {
+  stockItem: Types.ObjectId;
+  quantity: number;
+}
+
 export interface ITransfer extends Document {
-  items: Types.ObjectId[];
+  items: ITransferItem[];
   takenFrom: Types.ObjectId;
   takenTo: Types.ObjectId;
-  quantity: number;
   status: "pending" | "in_progress" | "arrived" | "canceled";
   assignedTo: Types.ObjectId;
   startTime: Date;
@@ -12,15 +16,32 @@ export interface ITransfer extends Document {
   updatedAt?: Date;
 }
 
+const transferItemSchema = new Schema<ITransferItem>(
+  {
+    stockItem: {
+      type: Schema.Types.ObjectId,
+      ref: "StockItem",
+      required: [true, "Stock item reference is required"],
+    },
+    quantity: {
+      type: Number,
+      required: [true, "Quantity is required"],
+      min: [1, "Quantity must be at least 1"],
+    },
+  },
+  { _id: false }
+);
+
 const transferSchema = new Schema<ITransfer>(
   {
-    items: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "StockItem",
-        required: [true, "At least one stock item is required"],
+    items: {
+      type: [transferItemSchema],
+      required: [true, "At least one item is required"],
+      validate: {
+        validator: (v: ITransferItem[]) => Array.isArray(v) && v.length > 0,
+        message: "At least one stock item is required",
       },
-    ],
+    },
     takenFrom: {
       type: Schema.Types.ObjectId,
       ref: "Stock",
@@ -30,11 +51,6 @@ const transferSchema = new Schema<ITransfer>(
       type: Schema.Types.ObjectId,
       ref: "Stock",
       required: [true, "Destination stock is required"],
-    },
-    quantity: {
-      type: Number,
-      required: [true, "Quantity is required"],
-      min: [1, "Quantity must be at least 1"],
     },
     status: {
       type: String,

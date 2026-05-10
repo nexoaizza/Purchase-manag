@@ -4,6 +4,7 @@ import StockItem from "../models/stock-item.model";
 import Stock from "../models/stock.model";
 import { createLocalNotification } from "./notification.controller";
 import Product from "../models/product.model";
+import Transfer from "../models/transfer.model";
 
 // CREATE
 export const createStockItem = async (req: Request, res: Response): Promise<void> => {
@@ -204,6 +205,7 @@ export const getAllStockItems = async (req: Request, res: Response): Promise<voi
       expireAtTo,
       productName,
       expirationStatus,
+      excludePendingTransfer,
       sortBy = "product",
       order = "asc",
       page = 1, 
@@ -308,6 +310,21 @@ export const getAllStockItems = async (req: Request, res: Response): Promise<voi
         query.expireAt.$lte = in7Days;
       } else if (expirationStatus === "fresh") {
         query.expireAt.$gt = in7Days;
+      }
+    }
+
+    // Exclude items that are already part of a pending or in_progress transfer
+    if (excludePendingTransfer === "true") {
+      const activeTransfers = await Transfer.find({
+        status: { $in: ["pending", "in_progress"] },
+      }).select("items.stockItem");
+
+      const lockedItemIds = activeTransfers.flatMap((t) =>
+        t.items.map((it: any) => it.stockItem)
+      );
+
+      if (lockedItemIds.length > 0) {
+        query._id = { $nin: lockedItemIds };
       }
     }
 

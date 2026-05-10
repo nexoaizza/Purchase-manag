@@ -20,8 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowRightLeft } from "lucide-react";
-import { TimePickerInput } from "@/components/ui/time-picker-input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowRightLeft, Plus, Trash2, AlertCircle } from "lucide-react";
+import { CustomTimePicker } from "@/components/ui/custom-time-picker";
 import toast from "react-hot-toast";
 import { createTransfer } from "@/lib/apis/transfers";
 import { getStocks, IStock } from "@/lib/apis/stocks";
@@ -38,6 +39,11 @@ interface IStaff {
 interface ICategory {
   _id: string;
   name: string;
+}
+
+interface ITransferItem {
+  stockItemId: string;
+  quantity: number;
 }
 
 interface AddTransferDialogProps {
@@ -61,11 +67,15 @@ export function AddTransferDialog({
   const [itemsPage, setItemsPage] = useState(1);
   const [hasMoreItems, setHasMoreItems] = useState(true);
   const [loadingMoreItems, setLoadingMoreItems] = useState(false);
+
+  // Multi-item state
+  const [transferItems, setTransferItems] = useState<ITransferItem[]>([
+    { stockItemId: "", quantity: 1 },
+  ]);
+
   const [formData, setFormData] = useState({
-    items: [] as string[],
     takenFrom: "",
     takenTo: "",
-    quantity: 1,
     assignedTo: "",
     startTime: "",
     status: "pending" as "pending" | "in_progress" | "arrived" | "canceled",
@@ -113,7 +123,12 @@ export function AddTransferDialog({
     category = "all"
   ) => {
     setLoadingMoreItems(true);
-    const params: any = { stock: stockId, limit: 50, page };
+    const params: any = {
+      stock: stockId,
+      limit: 50,
+      page,
+      excludePendingTransfer: "true",
+    };
     if (category && category !== "all") {
       params.category = category;
     }
@@ -133,18 +148,51 @@ export function AddTransferDialog({
     await fetchStockItems(formData.takenFrom, itemsPage + 1, true, selectedCategory);
   };
 
+  // Get already-selected stock item IDs to prevent duplicates
+  const selectedStockItemIds = new Set(
+    transferItems.map((i) => i.stockItemId).filter(Boolean)
+  );
+
+  const addTransferItem = () => {
+    setTransferItems((prev) => [...prev, { stockItemId: "", quantity: 1 }]);
+  };
+
+  const removeTransferItem = (index: number) => {
+    if (transferItems.length <= 1) return;
+    setTransferItems((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const updateTransferItem = (
+    index: number,
+    field: keyof ITransferItem,
+    value: string | number
+  ) => {
+    setTransferItems((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+  };
+
+  const resetForm = () => {
+    setFormData({
+      takenFrom: "",
+      takenTo: "",
+      assignedTo: "",
+      startTime: "",
+      status: "pending",
+    });
+    setTransferItems([{ stockItemId: "", quantity: 1 }]);
+    setSelectedCategory("all");
+    setStockItems([]);
+    setItemsPage(1);
+    setHasMoreItems(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const isFormValid =
-      formData.takenFrom &&
-      formData.takenTo &&
-      formData.items.length > 0 &&
-      formData.quantity >= 1 &&
-      formData.assignedTo &&
-      formData.startTime;
-
-    if (!isFormValid) {
+    if (!formData.takenFrom || !formData.takenTo) {
       toast.error(t("fillAllFields"));
       return;
     }
@@ -164,25 +212,34 @@ export function AddTransferDialog({
       return;
     }
 
+    // Validate all transfer items
+    if (transferItems.some((item) => !item.stockItemId)) {
+      toast.error(t("fillAllFields"));
+      return;
+    }
+
+    if (transferItems.some((item) => item.quantity < 1)) {
+      toast.error(t("fillAllFields"));
+      return;
+    }
+
     setLoading(true);
-    const { success, message } = await createTransfer(formData);
+    const { success, message } = await createTransfer({
+      items: transferItems.map((item) => ({
+        stockItem: item.stockItemId,
+        quantity: item.quantity,
+      })),
+      takenFrom: formData.takenFrom,
+      takenTo: formData.takenTo,
+      status: formData.status,
+      assignedTo: formData.assignedTo,
+      startTime: formData.startTime,
+    });
     setLoading(false);
 
     if (success) {
       toast.success(t("transferCreated"));
-      setFormData({ 
-        items: [], 
-        takenFrom: "", 
-        takenTo: "", 
-        quantity: 1,
-        status: "pending" as any,
-        assignedTo: "",
-        startTime: "",
-      });
-      setSelectedCategory("all");
-      setStockItems([]);
-      setItemsPage(1);
-      setHasMoreItems(true);
+      resetForm();
       onTransferCreated();
     } else {
       toast.error(message);
@@ -191,7 +248,7 @@ export function AddTransferDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[620px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center gap-2">
             <div className="p-2 bg-primary/10 rounded-lg">
@@ -205,13 +262,15 @@ export function AddTransferDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Source Stock */}
           <div className="space-y-2">
             <Label htmlFor="takenFrom">{t("fromStock")}</Label>
             <Select
               value={formData.takenFrom}
-              onValueChange={(value) =>
-                setFormData({ ...formData, takenFrom: value, items: [] })
-              }
+              onValueChange={(value) => {
+                setFormData({ ...formData, takenFrom: value });
+                setTransferItems([{ stockItemId: "", quantity: 1 }]);
+              }}
             >
               <SelectTrigger>
                 <SelectValue placeholder={t("selectSourceStock")} />
@@ -226,6 +285,7 @@ export function AddTransferDialog({
             </Select>
           </div>
 
+          {/* Destination Stock */}
           <div className="space-y-2">
             <Label htmlFor="takenTo">{t("toStock")}</Label>
             <Select
@@ -249,77 +309,149 @@ export function AddTransferDialog({
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="items">{t("selectItems")}</Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <Select
-                value={selectedCategory}
-                onValueChange={(value) => {
-                  setSelectedCategory(value);
-                  setFormData({ ...formData, items: [] });
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t("selectCategory")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t("allCategories")}</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category._id} value={category._id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select
-                value={formData.items[0] || ""}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, items: [value] })
-                }
-                disabled={!formData.takenFrom}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t("selectItemsPlaceholder")} />
-                </SelectTrigger>
-                <SelectContent
-                  className="max-h-72 overflow-y-auto"
-                  onScrollCapture={(event) => {
-                    const target = event.target as HTMLElement;
-                    if (target.scrollTop + target.clientHeight >= target.scrollHeight - 24) {
-                      loadMoreItems();
-                    }
+          {/* Transfer Items */}
+          <Card className="border-0 shadow-sm rounded-xl">
+            <CardHeader className="px-4">
+              <CardTitle className="text-base font-semibold">
+                {t("selectItems")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-4">
+              {/* Category filter + Add button */}
+              <div className="flex items-center gap-2 mb-4">
+                <Select
+                  value={selectedCategory}
+                  onValueChange={(value) => {
+                    setSelectedCategory(value);
+                    setTransferItems([{ stockItemId: "", quantity: 1 }]);
                   }}
                 >
-                  {stockItems.map((item) => (
-                    <SelectItem key={item._id} value={item._id}>
-                      {item.product?.name || "Unknown"} - Qty: {item.quantity}
-                    </SelectItem>
-                  ))}
-                  {loadingMoreItems && (
-                    <div className="px-2 py-2 text-xs text-muted-foreground">
-                      {t("loadingMore")}
+                  <SelectTrigger className="h-8 w-[150px] text-xs border-2">
+                    <SelectValue placeholder={t("selectCategory")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("allCategories")}</SelectItem>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat._id} value={cat._id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+ 
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addTransferItem}
+                  disabled={!formData.takenFrom}
+                  className="ml-auto h-8 gap-1 text-xs rounded-full border-2"
+                >
+                  <Plus className="h-3 w-3" />
+                  {t("addItem")}
+                </Button>
+              </div>
+ 
+              {/* Empty states */}
+              {!formData.takenFrom && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/40 rounded-lg px-3 py-2.5">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  {t("selectSourceFirst")}
+                </div>
+              )}
+              {formData.takenFrom && stockItems.length === 0 && !loadingMoreItems && (
+                <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 rounded-lg px-3 py-2.5 border border-amber-200 mt-2">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  {t("noItemsAvailable")}
+                </div>
+              )}
+ 
+              {/* Item rows */}
+              {formData.takenFrom && (
+                <div className="space-y-2 mt-2">
+                  {/* Column labels — only show when there are items */}
+                  {transferItems.length > 0 && stockItems.length > 0 && (
+                    <div className="flex items-center gap-2 px-1">
+                      <span className="flex-1 text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                        {t("product")}
+                      </span>
+                      <span className="w-24 text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                        {t("quantity")}
+                      </span>
+                      <span className="w-10" />
                     </div>
                   )}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+ 
+                  {transferItems.map((item, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-2 p-2.5 rounded-xl border bg-muted/20"
+                    >
+                      <Select
+                        value={item.stockItemId}
+                        onValueChange={(value) =>
+                          updateTransferItem(index, "stockItemId", value)
+                        }
+                        disabled={!formData.takenFrom}
+                      >
+                        <SelectTrigger className="flex-1 border-2 h-9">
+                          <SelectValue placeholder={t("selectItemsPlaceholder")} />
+                        </SelectTrigger>
+                        <SelectContent
+                          className="max-h-56 overflow-y-auto"
+                          onScrollCapture={(e) => {
+                            const target = e.target as HTMLElement;
+                            if (target.scrollTop + target.clientHeight >= target.scrollHeight - 24)
+                              loadMoreItems();
+                          }}
+                        >
+                          {stockItems
+                            .filter(
+                              (si) =>
+                                si._id === item.stockItemId ||
+                                !selectedStockItemIds.has(si._id)
+                            )
+                            .map((si) => (
+                              <SelectItem key={si._id} value={si._id}>
+                                {si.product?.name || "Unknown"} — Qty: {si.quantity}
+                              </SelectItem>
+                            ))}
+                          {loadingMoreItems && (
+                            <div className="px-2 py-2 text-xs text-muted-foreground">
+                              {t("loadingMore")}
+                            </div>
+                          )}
+                        </SelectContent>
+                      </Select>
+ 
+                      <Input
+                        type="number"
+                        min="1"
+                        value={item.quantity}
+                        onChange={(e) =>
+                          updateTransferItem(index, "quantity", parseInt(e.target.value) || 1)
+                        }
+                        className="w-24 border-2 h-9 px-3"
+                      />
+ 
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeTransferItem(index)}
+                        disabled={transferItems.length <= 1}
+                        className="w-9 h-9 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-          <div className="space-y-2">
-            <Label htmlFor="quantity">{t("quantity")}</Label>
-            <Input
-              id="quantity"
-              type="number"
-              min="1"
-              placeholder={t("quantityPlaceholder")}
-              value={formData.quantity}
-              onChange={(e) =>
-                setFormData({ ...formData, quantity: parseInt(e.target.value) || 1 })
-              }
-              required
-            />
-          </div>
-
+          {/* Assigned To */}
           <div className="space-y-2">
             <Label htmlFor="assignedTo">{t("assignedTo")}</Label>
             <Select
@@ -341,19 +473,7 @@ export function AddTransferDialog({
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="startTime">{t("startTime")}</Label>
-            <Input
-              id="startTime"
-              type="datetime-local"
-              value={formData.startTime}
-              onChange={(e) =>
-                setFormData({ ...formData, startTime: e.target.value })
-              }
-              required
-            />
-          </div>
-
+          {/* Status */}
           <div className="space-y-2">
             <Label htmlFor="status">{t("status")}</Label>
             <Select
@@ -374,46 +494,61 @@ export function AddTransferDialog({
             </Select>
           </div>
 
+          {/* Start Time */}
           <div className="space-y-2">
-            <Label htmlFor="assignedTo">{t("assignedTo")}</Label>
-            <Select
-              value={formData.assignedTo}
-              onValueChange={(value) =>
-                setFormData({ ...formData, assignedTo: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={t("selectStaffMember")} />
-              </SelectTrigger>
-              <SelectContent>
-                {staffList.map((staff) => (
-                  <SelectItem key={staff._id} value={staff._id}>
-                    {staff.fullname} ({staff.email})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="startTime">{t("startTime")}</Label>
-            <TimePickerInput
-              value={formData.startTime}
-              onChange={(val) => setFormData({ ...formData, startTime: val })}
-              required
-            />
+            <Label htmlFor="startTime" className="text-sm font-medium">
+              {t("startTime")} <span className="text-destructive">*</span>
+            </Label>
+            <div className="flex gap-2 items-center">
+              <Input
+                type="date"
+                value={formData.startTime.split("T")[0] || ""}
+                onChange={(e) => {
+                  const date = e.target.value;
+                  const time = formData.startTime.split("T")[1] || "00:00";
+                  setFormData({
+                    ...formData,
+                    startTime: date ? `${date}T${time}` : "",
+                  });
+                }}
+                className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg flex-1"
+                required
+              />
+              <CustomTimePicker
+                value={formData.startTime.split("T")[1] || ""}
+                onChange={(time) => {
+                  const date =
+                    formData.startTime.split("T")[0] ||
+                    new Date().toISOString().split("T")[0];
+                  setFormData({ ...formData, startTime: `${date}T${time}` });
+                }}
+              />
+            </div>
           </div>
 
           <DialogFooter>
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={() => {
+                resetForm();
+                onOpenChange(false);
+              }}
               disabled={loading}
             >
               {t("cancel")}
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button
+              type="submit"
+              disabled={
+                loading ||
+                !formData.takenFrom ||
+                !formData.takenTo ||
+                !formData.assignedTo ||
+                !formData.startTime ||
+                transferItems.some((item) => !item.stockItemId)
+              }
+            >
               {loading ? t("creating") : t("create")}
             </Button>
           </DialogFooter>
