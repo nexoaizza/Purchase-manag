@@ -3,7 +3,7 @@ import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { PurchasesHeader } from "@/components/purchases/purchases-header";
 import { PurchaseListsTable } from "@/components/purchases/purchase-lists-table";
 import { PurchaseStats } from "@/components/purchases/purchase-stats";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { getOrders } from "@/lib/apis/purchase-list";
 import toast from "react-hot-toast";
 import { useSearchParams } from "next/navigation";
@@ -81,6 +81,8 @@ export default function PurchasesPage() {
     from: null,
     to: null,
   });
+  const hasScrolledToHighlight = useRef(false);
+  const highlightId = searchParams.get("highlight") ?? undefined;
 
   useEffect(() => {
     const statusParam = searchParams.get("status");
@@ -162,6 +164,16 @@ export default function PurchasesPage() {
     [status, supplierIds, search, dateRange]
   );
 
+  // Navigate to the correct page when a highlight target is specified
+  useEffect(() => {
+    if (!highlightId || hasScrolledToHighlight.current || filteredOrders.length === 0) return;
+    const idx = filteredOrders.findIndex((o) => o._id === highlightId);
+    if (idx < 0) return;
+    hasScrolledToHighlight.current = true;
+    const page = Math.floor(idx / limit) + 1;
+    setCurrentPage(page);
+  }, [highlightId, filteredOrders, limit]);
+
   const addingNewOrder = (newOrder: IOrder) => {
     setAllPurchaseOrders(prev => [newOrder, ...prev]);
   };
@@ -197,6 +209,7 @@ export default function PurchasesPage() {
           setCurrentPage={setCurrentPage}
           limit={limit}
           setLimit={setLimit}
+          targetItemId={highlightId}
         />
       </div>
     </DashboardLayout>

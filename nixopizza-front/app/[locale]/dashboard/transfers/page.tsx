@@ -5,11 +5,15 @@ import { TransferHeader } from "@/components/transfers/transfer-header";
 import { AddTransferDialog } from "@/components/transfers/add-transfer-dialog";
 import { EditTransferDialog } from "@/components/transfers/edit-transfer-dialog";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { getTransfers, deleteTransfer, ITransfer } from "@/lib/apis/transfers";
 import { getStocks, IStock } from "@/lib/apis/stocks";
 
 export default function TransfersPage() {
+  const searchParams = useSearchParams();
+  const targetItemId = searchParams.get("highlight") ?? undefined;
+
   const [transfers, setTransfers] = useState<ITransfer[]>([]);
   const [stocks, setStocks] = useState<IStock[]>([]);
   const [pendingTransfersCount, setPendingTransfersCount] = useState(0);
@@ -130,6 +134,7 @@ export default function TransfersPage() {
           setCurrentPage={setCurrentPage}
           limit={limit}
           setLimit={setLimit}
+          targetItemId={targetItemId}
         />
 
         <AddTransferDialog

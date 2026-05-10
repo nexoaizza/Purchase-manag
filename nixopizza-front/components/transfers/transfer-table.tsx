@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -59,6 +60,7 @@ interface TransferTableProps {
   limit: number;
   setLimit: (l: number) => void;
   showAdminActions?: boolean;
+  targetItemId?: string;
 }
 
 export function TransferTable({
@@ -72,12 +74,27 @@ export function TransferTable({
   limit,
   setLimit,
   showAdminActions = true,
+  targetItemId,
 }: TransferTableProps) {
   const t = useTranslations("transfers");
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
   const [selectedTransfer, setSelectedTransfer] = useState<ITransfer | null>(null);
   const [newStatus, setNewStatus] = useState<"pending" | "in_progress" | "arrived" | "canceled">("pending");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [highlightedId, setHighlightedId] = useState<string | undefined>(targetItemId);
+  const rowRefs = useRef<Map<string, HTMLTableRowElement>>(new Map());
+  const scrolledRef = useRef(false);
+
+  useEffect(() => {
+    if (!targetItemId || scrolledRef.current || transfers.length === 0) return;
+    const el = rowRefs.current.get(targetItemId);
+    if (!el) return;
+    scrolledRef.current = true;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    setHighlightedId(targetItemId);
+    const timer = setTimeout(() => setHighlightedId(undefined), 2000);
+    return () => clearTimeout(timer);
+  }, [targetItemId, transfers]);
 
   const handleStatusChangeClick = (transfer: ITransfer) => {
     setSelectedTransfer(transfer);
@@ -158,7 +175,17 @@ export function TransferTable({
             </TableHeader>
             <TableBody>
               {transfers.map((transfer) => (
-                <TableRow key={transfer._id}>
+                <TableRow
+                  key={transfer._id}
+                  ref={(el) => {
+                    if (el) rowRefs.current.set(transfer._id, el);
+                    else rowRefs.current.delete(transfer._id);
+                  }}
+                  className={cn(
+                    "transition-colors duration-500",
+                    highlightedId === transfer._id && "bg-yellow-50 dark:bg-yellow-950/30"
+                  )}
+                >
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
                       <Package className="h-4 w-4 text-muted-foreground" />

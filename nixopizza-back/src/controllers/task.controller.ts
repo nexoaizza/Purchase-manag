@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import Task from "../models/task.model";
+import User from "../models/user.model";
+import { sendPushNotification } from "../services/firebase.service";
 import { pushNotification } from "../utils/PushNotification";
 
 const generateTaskNumber = () => {
@@ -23,6 +25,22 @@ export const createTask = async (req: Request, res: Response) => {
       description,
       deadline,
     });
+
+    const assignedUser = await User.findById(newTask.staffId).select("fcmToken");
+    if (assignedUser?.fcmToken) {
+      const notificationSent = await sendPushNotification(
+        assignedUser.fcmToken,
+        "New Task Assigned",
+        `Task: ${newTask.description}`,
+        { type: "task_assigned", taskId: newTask._id.toString() }
+      );
+      if (!notificationSent) {
+        console.error("Task created but FCM notification failed", {
+          taskId: newTask._id.toString(),
+          staffId: newTask.staffId.toString(),
+        });
+      }
+    }
 
     res
       .status(200)
