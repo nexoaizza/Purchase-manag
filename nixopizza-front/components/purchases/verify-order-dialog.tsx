@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { verifyOrder, submitForReview } from "@/lib/apis/purchase-list";
+import { verifyOrder, updateOrder } from "@/lib/apis/purchase-list";
 import { createMultipleStockItems } from "@/lib/apis/stock-items";
 import { useAuth } from "@/hooks/useAuth";
 import toast from "react-hot-toast";
@@ -138,18 +138,12 @@ export function VerifyOrderDialog({
 
     setLoading(true);
     try {
-      // If a new bill file is provided, upload it first via submitForReview
+      // If a new bill file is provided, upload it first via updateOrder
       if (billFile) {
         const fd = new FormData();
         fd.append("image", billFile);
-        // Keep existing item values
-        const itemsUpdates = order.items.map((it: any) => ({
-          itemId: it._id,
-          quantity: it.quantity,
-          unitCost: it.unitCost,
-        }));
-        fd.append("itemsUpdates", JSON.stringify(itemsUpdates));
-        const { success: uploadSuccess, message: uploadMessage } = await submitForReview(order._id, fd);
+        
+        const { success: uploadSuccess, message: uploadMessage } = await updateOrder(order._id, fd);
         if (!uploadSuccess) {
           toast.error(uploadMessage || t("failedToSubmit"));
           setLoading(false);
