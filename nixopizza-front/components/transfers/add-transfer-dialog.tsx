@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { StockItemSelect } from "@/components/ui/stock-item-select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRightLeft, Plus, Trash2, AlertCircle } from "lucide-react";
 import { CustomTimePicker } from "@/components/ui/custom-time-picker";
@@ -387,42 +388,20 @@ export function AddTransferDialog({
                       key={index}
                       className="flex items-center gap-2 p-2.5 rounded-xl border bg-muted/20"
                     >
-                      <Select
-                        value={item.stockItemId}
-                        onValueChange={(value) =>
-                          updateTransferItem(index, "stockItemId", value)
+                      <StockItemSelect
+                        stockItems={stockItems}
+                        selectedStockItem={stockItems.find(si => si._id === item.stockItemId) || null}
+                        onSelect={(selectedItem) =>
+                          updateTransferItem(index, "stockItemId", selectedItem?._id || "")
                         }
+                        placeholder={t("selectItemsPlaceholder")}
+                        className="flex-1 h-9"
                         disabled={!formData.takenFrom}
-                      >
-                        <SelectTrigger className="flex-1 border-2 h-9">
-                          <SelectValue placeholder={t("selectItemsPlaceholder")} />
-                        </SelectTrigger>
-                        <SelectContent
-                          className="max-h-56 overflow-y-auto"
-                          onScrollCapture={(e) => {
-                            const target = e.target as HTMLElement;
-                            if (target.scrollTop + target.clientHeight >= target.scrollHeight - 24)
-                              loadMoreItems();
-                          }}
-                        >
-                          {stockItems
-                            .filter(
-                              (si) =>
-                                si._id === item.stockItemId ||
-                                !selectedStockItemIds.has(si._id)
-                            )
-                            .map((si) => (
-                              <SelectItem key={si._id} value={si._id}>
-                                {si.product?.name || "Unknown"} — Qty: {si.quantity}
-                              </SelectItem>
-                            ))}
-                          {loadingMoreItems && (
-                            <div className="px-2 py-2 text-xs text-muted-foreground">
-                              {t("loadingMore")}
-                            </div>
-                          )}
-                        </SelectContent>
-                      </Select>
+                        isLoading={loadingMoreItems}
+                        onLoadMore={loadMoreItems}
+                        hasMore={hasMoreItems}
+                        selectedItemIds={selectedStockItemIds}
+                      />
  
                       <Input
                         type="number"
