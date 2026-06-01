@@ -28,11 +28,11 @@ export const getTasks = async (params?: any) => {
   }
 };
 // ✅ Update task status
-export const updateTaskStatus = async (taskId: string, status: string) => {
+export const updateTaskStatus = async (taskId: string, status: string, historyDescription?: string) => {
   try {
     const {
       data: { task },
-    } = await axiosAPI.put(`/tasks/${taskId}`, { status });
+    } = await axiosAPI.put(`/tasks/${taskId}`, { status, historyDescription });
     return { success: true, task };
   } catch (error: any) {
     console.error("Task status update error:", error);

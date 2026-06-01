@@ -30,7 +30,19 @@ import {
   Eye,
   Calendar,
   Plus,
+  Clock,
+  Pause,
+  Play,
 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Pagination } from "@/components/ui/pagination";
 import { ITask } from "@/app/[locale]/dashboard/tasks/page";
 import { updateTaskStatus, deleteTask } from "@/lib/apis/task";
@@ -69,6 +81,9 @@ export function TasksTable({
   const [selectedTask, setSelectedTask] = useState<ITask | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [highlightedId, setHighlightedId] = useState<string | undefined>(targetItemId);
+  const [completeDialog, setCompleteDialog] = useState<{isOpen: boolean, taskId: string, description: string}>({
+    isOpen: false, taskId: "", description: ""
+  });
   const rowRefs = useRef<Map<string, HTMLTableRowElement>>(new Map());
   const scrolledRef = useRef(false);
 
@@ -91,6 +106,8 @@ export function TasksTable({
         return "default";
       case "canceled":
         return "destructive";
+      case "paused":
+        return "outline";
       default:
         return "secondary";
     }
@@ -104,6 +121,8 @@ export function TasksTable({
         return t("completed");
       case "canceled":
         return t("canceled");
+      case "paused":
+        return "Paused";
       default:
         return status;
     }
@@ -114,14 +133,37 @@ export function TasksTable({
     setIsViewDialogOpen(true);
   };
 
-  const handleMarkAsCompleted = async (taskId: string) => {
+  const handleMarkAsCompleted = (taskId: string) => {
+    setCompleteDialog({ isOpen: true, taskId, description: "" });
+  };
+
+  const submitCompletion = async () => {
     try {
-      const { success, task, message } = await updateTaskStatus(taskId, "completed");
+      const { success, task, message } = await updateTaskStatus(
+        completeDialog.taskId, 
+        "completed", 
+        completeDialog.description
+      );
       if (success) {
         toast.success(t("taskCompleted") || "Task completed successfully");
         onUpdateTask(task);
+        setCompleteDialog({ isOpen: false, taskId: "", description: "" });
       } else {
         toast.error(message || "Failed to complete task");
+      }
+    } catch (error) {
+      toast.error("An error occurred");
+    }
+  };
+
+  const handlePauseResume = async (taskId: string, newStatus: string) => {
+    try {
+      const { success, task, message } = await updateTaskStatus(taskId, newStatus);
+      if (success) {
+        toast.success(`Task ${newStatus === "paused" ? "paused" : "resumed"} successfully`);
+        onUpdateTask(task);
+      } else {
+        toast.error(message || "Failed to update task status");
       }
     } catch (error) {
       toast.error("An error occurred");
@@ -250,17 +292,25 @@ export function TasksTable({
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span>
-                          {task.deadline ? (
-                            new Date(task.deadline).toLocaleDateString("en-GB")
-                          ) : (
-                            <span className="text-muted-foreground/60 italic text-sm">
-                              {t("noDeadline") || "No deadline"}
-                            </span>
-                          )}
-                        </span>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <span>
+                            {task.deadline ? (
+                              new Date(task.deadline).toLocaleDateString("en-GB")
+                            ) : (
+                              <span className="text-muted-foreground/60 italic text-sm">
+                                {t("noDeadline") || "No deadline"}
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                        {task.type === "periodic" && (
+                          <div className="flex items-center gap-1 mt-1 text-xs text-blue-600 bg-blue-50 w-fit px-2 py-0.5 rounded-full">
+                            <Clock className="h-3 w-3" />
+                            <span>Periodic {task.startTime ? `at ${task.startTime}` : ""}</span>
+                          </div>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -282,9 +332,26 @@ export function TasksTable({
                             <Eye className="h-4 w-4 mr-2" />
                             {t("viewDetails")}
                           </DropdownMenuItem>
-                          {task.status === "pending" && (
+
+                          {task.type === "periodic" && user?.role === "admin" && (
                             <>
-                              {(user?.role === "admin" || user?._id === task.staffId?._id) && (
+                              {task.status === "paused" ? (
+                                <DropdownMenuItem onClick={() => handlePauseResume(task._id, "pending")}>
+                                  <Play className="h-4 w-4 mr-2" />
+                                  Resume Task
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem onClick={() => handlePauseResume(task._id, "paused")}>
+                                  <Pause className="h-4 w-4 mr-2" />
+                                  Pause Task
+                                </DropdownMenuItem>
+                              )}
+                            </>
+                          )}
+
+                          {(task.status === "pending" || (task.type === "periodic" && task.status === "completed")) && (
+                            <>
+                              {(user?.role === "admin" || user?._id === task.staffId?._id) && task.status !== "paused" && (
                                 <DropdownMenuItem
                                   onClick={() => handleMarkAsCompleted(task._id)}
                                 >
@@ -342,6 +409,35 @@ export function TasksTable({
         open={isViewDialogOpen}
         onOpenChange={setIsViewDialogOpen}
       />
+
+      <Dialog 
+        open={completeDialog.isOpen} 
+        onOpenChange={(open) => setCompleteDialog(prev => ({...prev, isOpen: open}))}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Complete Task</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Completion Notes (Optional)</Label>
+              <Textarea 
+                placeholder="Add any notes about the task completion..."
+                value={completeDialog.description} 
+                onChange={(e) => setCompleteDialog(prev => ({...prev, description: e.target.value}))} 
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCompleteDialog(prev => ({...prev, isOpen: false}))}>
+              Cancel
+            </Button>
+            <Button onClick={submitCompletion}>
+              Complete Task
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

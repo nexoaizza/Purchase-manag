@@ -28,7 +28,11 @@ export interface ITask {
     };
     quantity: number;
   }[];
-  status: "pending" | "completed" | "canceled";
+  type?: "normal" | "periodic";
+  periodicDays?: number[];
+  startTime?: string;
+  history?: { date: Date; description?: string }[];
+  status: "pending" | "completed" | "canceled" | "paused";
   deadline?: Date;
   notes?: string;
   createdAt: Date;

@@ -62,6 +62,10 @@ export function CreateTaskDialog({
   const [isFetchingData, setIsFetchingData] = useState(false);
   const [repetitiveTasks, setRepetitiveTasks] = useState<IRepetitiveTask[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  
+  const [type, setType] = useState<"normal" | "periodic">("normal");
+  const [periodicDays, setPeriodicDays] = useState<number[]>([]);
+  const [startTime, setStartTime] = useState("");
 
   const deadlineISO = deadlineDate
     ? `${deadlineDate}T${deadlineTime || "00:00"}`
@@ -104,6 +108,9 @@ export function CreateTaskDialog({
         staffId: selectedStaffId,
         description: description || undefined,
         deadline: deadlineISO ? new Date(deadlineISO).toISOString() : undefined,
+        type,
+        periodicDays,
+        startTime: type === "periodic" ? startTime : undefined,
       };
       const { success, task, message } = await createTask(taskData);
       if (success && task) {
@@ -114,6 +121,9 @@ export function CreateTaskDialog({
         setDescription("");
         setDeadlineDate("");
         setDeadlineTime("");
+        setType("normal");
+        setPeriodicDays([]);
+        setStartTime("");
         setTimeout(() => window.location.reload(), 800);
       } else {
         toast.error(message || t("failedCreateTask") || "Failed to create task");
@@ -216,25 +226,77 @@ export function CreateTaskDialog({
               </div>
             </div>
 
-            {/* Deadline */}
+            {/* Type Selection */}
             <div className="space-y-2">
-              <Label className="text-sm font-medium">
-                {t("deadline") || "Deadline"}{" "}
-                <span className="text-muted-foreground text-xs">(Optional)</span>
-              </Label>
-              <div className="flex gap-2 items-center">
-                <Input
-                  id="deadline-date"
-                  type="date"
-                  value={deadlineDate}
-                  onChange={(e) => setDeadlineDate(e.target.value)}
-                  className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg flex-1"
-                  min={new Date().toISOString().slice(0, 10)}
-                />
-                <CustomTimePicker value={deadlineTime} onChange={setDeadlineTime} />
+              <Label className="text-sm font-medium">Task Type</Label>
+              <div className="flex gap-4">
+                <Button 
+                  variant={type === "normal" ? "default" : "outline"} 
+                  onClick={() => setType("normal")}
+                  className="flex-1"
+                >
+                  One-time Task
+                </Button>
+                <Button 
+                  variant={type === "periodic" ? "default" : "outline"} 
+                  onClick={() => setType("periodic")}
+                  className="flex-1"
+                >
+                  Periodic Task
+                </Button>
               </div>
             </div>
+
+            {type === "periodic" && (
+              <>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Days of the week <span className="text-destructive">*</span></Label>
+                  <div className="flex gap-2">
+                    {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, index) => (
+                      <Button
+                        key={index}
+                        variant={periodicDays.includes(index) ? "default" : "outline"}
+                        onClick={() => {
+                          setPeriodicDays((prev) => 
+                            prev.includes(index) ? prev.filter((d) => d !== index) : [...prev, index]
+                          );
+                        }}
+                        className="flex-1 px-0 text-xs"
+                      >
+                        {day}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Start Time <span className="text-destructive">*</span></Label>
+                  <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+                </div>
+              </>
+            )}
+
+            {/* Deadline */}
+            {type === "normal" && (
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">
+                  {t("deadline") || "Deadline"}{" "}
+                  <span className="text-muted-foreground text-xs">(Optional)</span>
+                </Label>
+                <div className="flex gap-2 items-center">
+                  <Input
+                    id="deadline-date"
+                    type="date"
+                    value={deadlineDate}
+                    onChange={(e) => setDeadlineDate(e.target.value)}
+                    className="border-2 border-input focus:ring-2 focus:ring-primary/30 rounded-lg flex-1"
+                    min={new Date().toISOString().slice(0, 10)}
+                  />
+                  <CustomTimePicker value={deadlineTime} onChange={setDeadlineTime} />
+                </div>
+              </div>
+            )}
           </div>
+
         )}
 
         <DialogFooter>

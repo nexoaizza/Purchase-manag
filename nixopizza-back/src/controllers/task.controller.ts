@@ -12,7 +12,7 @@ const generateTaskNumber = () => {
 
 export const createTask = async (req: Request, res: Response) => {
   try {
-    const { staffId, description, deadline } = req.body;
+    const { staffId, description, deadline, type, periodicDays, startTime } = req.body;
 
     if (!staffId) {
       res.status(400).json({ message: "Staff ID is required" });
@@ -24,6 +24,9 @@ export const createTask = async (req: Request, res: Response) => {
       staffId,
       description,
       deadline,
+      type: type || "normal",
+      periodicDays: periodicDays || [],
+      startTime,
     });
 
     const assignedUser = await User.findById(newTask.staffId).select("fcmToken");
@@ -133,9 +136,9 @@ export const getTaskById = async (req: Request, res: Response) => {
 export const updateTaskStatus = async (req: Request, res: Response) => {
   try {
     const { taskId } = req.params;
-    const { status } = req.body;
+    const { status, historyDescription } = req.body;
 
-    if (!["pending", "completed", "canceled"].includes(status)) {
+    if (!["pending", "completed", "canceled", "paused"].includes(status)) {
       res.status(400).json({ message: "Invalid status value" });
       return;
     }
@@ -159,16 +162,19 @@ export const updateTaskStatus = async (req: Request, res: Response) => {
       res.status(403).json({ message: "Only admins can cancel tasks" });
       return;
     }
-    if (
-      status === "completed" &&
-      (task.staffId as any)._id?.toString() === req.user?.userId
-    ) {
-      await pushNotification(
-        ` Task Completed: ${task.taskNumber} `,
-        `The task ${task.taskNumber} has been marked as completed.`,
-        "complited_task",
-        `${process.env}/api/tasks/${task._id}`
-      );
+    if (status === "completed") {
+      task.history.push({
+        date: new Date(),
+        description: historyDescription || "",
+      });
+      if ((task.staffId as any)._id?.toString() === req.user?.userId) {
+        await pushNotification(
+          ` Task Completed: ${task.taskNumber} `,
+          `The task ${task.taskNumber} has been marked as completed.`,
+          "complited_task",
+          `${process.env}/api/tasks/${task._id}`
+        );
+      }
     }
     task.status = status;
     await task.save();

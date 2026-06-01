@@ -186,6 +186,31 @@ export function TaskDetailDialog({
             </div>
           )}
 
+          {/* History Section */}
+          {task.history && task.history.length > 0 && (
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                <Info className="h-3 w-3" />
+                History
+              </h4>
+              <div className="border border-muted rounded-xl overflow-hidden divide-y divide-muted bg-muted/5">
+                {task.history.map((log, index) => (
+                  <div key={index} className="p-3 hover:bg-muted/10 transition-colors space-y-1">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      {format(new Date(log.date), "dd/MM/yyyy HH:mm")}
+                    </div>
+                    {log.description ? (
+                      <p className="text-sm font-medium">{log.description}</p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground italic">Completed without notes</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Last Updated */}
           <div className="pt-4 border-t border-muted/50 flex justify-end">
              <div className="text-[10px] text-muted-foreground italic">
