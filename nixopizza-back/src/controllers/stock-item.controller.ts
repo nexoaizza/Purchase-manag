@@ -47,7 +47,7 @@ export const createStockItem = async (req: Request, res: Response): Promise<void
           `Product ${prod.name} is low in stock in ${ (populatedItem.stock as any).name } (${populatedItem.quantity} left)`,
           "warning",
           "Low Stock Alert",
-          "inventory"
+          "low_stock"
         );
       }
     }
@@ -130,7 +130,7 @@ export const createMultipleStockItems = async (req: Request, res: Response): Pro
           `Product ${prod.name} is low in stock in ${ (item.stock as any).name } (${item.quantity} left)`,
           "warning",
           "Low Stock Alert",
-          "inventory"
+          "low_stock"
         );
       }
     }
@@ -175,7 +175,7 @@ export const updateStockItem = async (req: Request, res: Response): Promise<void
           `Product ${prod.name} is low in stock in ${ (populatedItem.stock as any).name } (${populatedItem.quantity} left)`,
           "warning",
           "Low Stock Alert",
-          "inventory"
+          "low_stock"
         );
       }
     }

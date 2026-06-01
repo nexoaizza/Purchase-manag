@@ -951,7 +951,9 @@
         "categoryOrders": "orders",
         "categorySupliers": "suppliers",
         "categorySystem": "system",
-        "noNotifications": "No notifications"
+        "noNotifications": "No notifications",
+        "lowStock": "Low Stock",
+        "expiringSoon": "Expiring Soon"
     },
     "suppliers": {
         "title": "Suppliers",
@@ -1105,7 +1107,8 @@
             "emailPlaceholder": "your@email.com",
             "phone": "Phone Number",
             "phonePlaceholder": "+1 234 567 8900",
-            "role": "Role"
+            "role": "Role",
+            "updatedSuccess": "Profile updated successfully"
         },
         "language": {
             "title": "Language Settings",

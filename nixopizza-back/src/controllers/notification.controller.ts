@@ -29,7 +29,7 @@ export const createLocalNotification = async (message: string, type: Notificatio
 };
 export const getNotifications = async (req: Request, res: Response) => {
   try {
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 10, category } = req.query;
 
     if (Number(page) < 1 || Number(limit) < 1) {
       res
@@ -40,12 +40,17 @@ export const getNotifications = async (req: Request, res: Response) => {
 
     const skip = (Number(page) - 1) * Number(limit);
 
-    const notifications = await Notification.find()
+    const filter: any = {};
+    if (category && category !== "all") {
+      filter.category = category;
+    }
+
+    const notifications = await Notification.find(filter)
       .sort({ ["createdAt"]: -1 })
       .skip(skip)
       .limit(Number(limit));
 
-    const total = await Notification.countDocuments();
+    const total = await Notification.countDocuments(filter);
 
     res.status(200).json({
       total,

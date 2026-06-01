@@ -942,7 +942,9 @@
         "categoryOrders": "commandes",
         "categorySupliers": "fournisseurs",
         "categorySystem": "système",
-        "noNotifications": "Aucune notification"
+        "noNotifications": "Aucune notification",
+        "lowStock": "Stock Faible",
+        "expiringSoon": "Expire Bientôt"
     },
     "suppliers": {
         "title": "Fournisseurs",
@@ -1096,7 +1098,8 @@
             "emailPlaceholder": "votre@email.com",
             "phone": "Numéro de Téléphone",
             "phonePlaceholder": "+33 1 23 45 67 89",
-            "role": "Rôle"
+            "role": "Rôle",
+            "updatedSuccess": "Profil mis à jour avec succès"
         },
         "language": {
             "title": "Paramètres de Langue",

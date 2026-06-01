@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { AlertTriangle, Package, ShoppingCart, Users, Clock, CheckCircle, X, ChevronLeft, ChevronRight } from "lucide-react"
+import { AlertTriangle, Package, ShoppingCart, Users, Clock, CheckCircle, X, ChevronLeft, ChevronRight, PackageX, Timer } from "lucide-react"
 import { useEffect, useState } from "react"
 import { get_all_notifications, read_notification } from "@/lib/apis/notifications"
 import { useTranslations } from "next-intl"
@@ -13,29 +13,33 @@ interface Notification {
   title: string
   message: string
   type: "critical" | "warning" | "info" | "success"
-  category: "inventory" | "orders" | "suppliers" | "system"
+  category: "inventory" | "orders" | "suppliers" | "system" | "low_stock" | "expiring_soon"
   createdAt: string
   isRead: boolean
 }
 
-
+type CategoryFilter = "all" | "low_stock" | "expiring_soon"
 
 export function NotificationsList() {
   const t = useTranslations("notifications")
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<"all" | "unread" | "critical">("all")
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all")
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
 
   const getIcon = (category: string) => {
     switch (category) {
-      case "inventory":
-        return Package
+      case "low_stock":
+        return PackageX
+      case "expiring_soon":
+        return Timer
       case "orders":
         return ShoppingCart
       case "suppliers":
         return Users
+      case "inventory":
+        return Package
       default:
         return AlertTriangle
     }
@@ -54,11 +58,16 @@ export function NotificationsList() {
     }
   }
 
-  const filteredNotifications = notifications.filter((notification) => {
-    if (filter === "unread") return !notification.isRead
-    if (filter === "critical") return notification.type === "critical"
-    return true
-  })
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case "low_stock":
+        return "bg-red-50 border-red-200"
+      case "expiring_soon":
+        return "bg-orange-50 border-orange-200"
+      default:
+        return "bg-background"
+    }
+  }
 
   const markAsRead = async (id: string) => {
     try {
@@ -74,15 +83,15 @@ export function NotificationsList() {
   const dismissNotification = (id: string) => {
     setNotifications((prev) => prev.filter((notification) => notification._id !== id))
   }
-  
+
   const fetchNotifications = async () => {
     try {
       setLoading(true)
-      const data = await get_all_notifications(currentPage)
+      const data = await get_all_notifications(currentPage, 10, categoryFilter)
       const fetchedNotifications = data?.notifications || []
       setNotifications(fetchedNotifications)
       setTotalPages(data?.pages || 1)
-      
+
       // Automatically mark visible fetched notifications as read
       if (fetchedNotifications.length > 0) {
         const unreadIds = fetchedNotifications.filter((n: Notification) => !n.isRead).map((n: Notification) => n._id)
@@ -103,27 +112,46 @@ export function NotificationsList() {
       setLoading(false)
     }
   }
+
   useEffect(() => {
     fetchNotifications()
-  }, [currentPage])
+  }, [currentPage, categoryFilter])
+
+  const handleCategoryFilter = (filter: CategoryFilter) => {
+    setCategoryFilter(filter)
+    setCurrentPage(1)
+  }
+
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <CardTitle>{t("recentNotifications")}</CardTitle>
-          <div className="flex gap-2">
-            <Button variant={filter === "all" ? "default" : "outline"} size="sm" onClick={() => setFilter("all")}>
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              variant={categoryFilter === "all" ? "default" : "outline"}
+              size="sm"
+              onClick={() => handleCategoryFilter("all")}
+            >
               {t("all")}
             </Button>
-            <Button variant={filter === "unread" ? "default" : "outline"} size="sm" onClick={() => setFilter("unread")}>
-              {t("unread")}
+            <Button
+              variant={categoryFilter === "low_stock" ? "default" : "outline"}
+              size="sm"
+              onClick={() => handleCategoryFilter("low_stock")}
+              className="flex items-center gap-1"
+            >
+              <PackageX className="h-3.5 w-3.5" />
+              {t("lowStock")}
             </Button>
             <Button
-              variant={filter === "critical" ? "default" : "outline"}
+              variant={categoryFilter === "expiring_soon" ? "default" : "outline"}
               size="sm"
-              onClick={() => setFilter("critical")}
+              onClick={() => handleCategoryFilter("expiring_soon")}
+              className="flex items-center gap-1"
             >
-              {t("critical")}
+              <Timer className="h-3.5 w-3.5" />
+              {t("expiringSoon")}
             </Button>
           </div>
         </div>
@@ -134,18 +162,20 @@ export function NotificationsList() {
             <div className="flex justify-center p-8">
               <Clock className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
-          ) : filteredNotifications.length === 0 ? (
+          ) : notifications.length === 0 ? (
             <div className="text-center p-8 text-muted-foreground">
               {t("noNotifications")}
             </div>
           ) : (
-            filteredNotifications.map((notification) => {
+            notifications.map((notification) => {
               const Icon = getIcon(notification.category)
               return (
                 <div
                   key={notification._id}
                   className={`flex items-start gap-4 p-4 rounded-lg border transition-colors ${
-                    notification.isRead ? "bg-muted/30" : "bg-background"
+                    notification.isRead
+                      ? "bg-muted/30"
+                      : getCategoryColor(notification.category)
                   }`}
                 >
                 <div className="p-2 rounded-full bg-muted">
@@ -183,7 +213,7 @@ export function NotificationsList() {
             })
           )}
         </div>
-        
+
         {/* Pagination Controls */}
         {totalPages > 1 && (
           <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t">

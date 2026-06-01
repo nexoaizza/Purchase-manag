@@ -3,7 +3,7 @@ import connectDB from "../config/database";
 import StockItem from "../models/stock-item.model";
 import { createLocalNotification } from "./notification.controller";
 
-// Checks for expired stock items and creates local notifications
+// Checks for already-expired stock items and creates notifications
 export const checkExpiredProducts = async (_req: Request, res: Response): Promise<void> => {
   try {
     await connectDB();
@@ -76,9 +76,8 @@ export const checkExpiredProducts = async (_req: Request, res: Response): Promis
     for (const item of expiredItems) {
       const prod: any = item.product;
       const stock: any = item.stock;
-      const message = `Product ${prod?.name || "<unknown>"} in stock ${stock?.name || "<unknown>"} is expired`;
-      // use string literals matching NotificationTypeEnum/Category
-      await createLocalNotification(message, "warning", "Expired Product", "inventory");
+      const message = `Product ${prod?.name || "<unknown>"} in stock ${stock?.name || "<unknown>"} has expired`;
+      await createLocalNotification(message, "warning", "Expired Product", "expiring_soon");
     }
 
     res.status(200).json({ created: expiredItems.length });
@@ -87,3 +86,35 @@ export const checkExpiredProducts = async (_req: Request, res: Response): Promis
     res.status(500).json({ message: "Internal server error", err: error.message });
   }
 };
+
+// Checks for stock items expiring within the next 30 days and creates notifications daily
+export const checkExpiringSoonProducts = async (_req: Request, res: Response): Promise<void> => {
+  try {
+    await connectDB();
+
+    const now = new Date();
+    const in30Days = new Date();
+    in30Days.setDate(in30Days.getDate() + 30);
+
+    // Find items where expireAt is set and falls within the next 30 days (from now onwards)
+    const expiringSoonItems = await StockItem.find({
+      expireAt: { $exists: true, $ne: null, $gte: now, $lte: in30Days },
+    })
+      .populate("product")
+      .populate("stock");
+
+    for (const item of expiringSoonItems) {
+      const prod: any = item.product;
+      const stock: any = item.stock;
+      const daysLeft = Math.ceil((new Date(item.expireAt!).getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      const message = `Product ${prod?.name || "<unknown>"} in stock ${stock?.name || "<unknown>"} will expire in ${daysLeft} day${daysLeft !== 1 ? "s" : ""}`;
+      await createLocalNotification(message, "warning", "Expiring Soon", "expiring_soon");
+    }
+
+    res.status(200).json({ created: expiringSoonItems.length });
+  } catch (error: any) {
+    console.error("Cron check expiring soon error:", error);
+    res.status(500).json({ message: "Internal server error", err: error.message });
+  }
+};
+

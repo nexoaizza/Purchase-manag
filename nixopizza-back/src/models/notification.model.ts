@@ -9,10 +9,12 @@ export type NotificationTypeEnum =
   ;
 
 export type NotificationCategoryEnum =
-  "inventory"
+  "inventory"      // legacy
   | "orders"
   | "suppliers"
   | "system"
+  | "low_stock"    // quantity fell below minQty
+  | "expiring_soon" // product expiring within 30 days
   ;
 
 export interface INotification {
@@ -43,7 +45,7 @@ const notificationSchema = new Schema<INotification>(
     message: String,
     category: {
       type: String,
-      enum: ["inventory", "orders", "suppliers", "system"],
+      enum: ["inventory", "orders", "suppliers", "system", "low_stock", "expiring_soon"],
     },
     isRead: {
       type: Boolean,

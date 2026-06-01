@@ -941,7 +941,9 @@
         "categoryOrders": "الأوامر",
         "categorySupliers": "الموردون",
         "categorySystem": "النظام",
-        "noNotifications": "لا توجد إشعارات"
+        "noNotifications": "لا توجد إشعارات",
+        "lowStock": "مخزون منخفض",
+        "expiringSoon": "ينتهي قريباً"
     },
     "suppliers": {
         "title": "الموردون",
@@ -1095,7 +1097,8 @@
             "emailPlaceholder": "your@email.com",
             "phone": "رقم الهاتف",
             "phonePlaceholder": "+213 123 456 789",
-            "role": "الدور"
+            "role": "الدور",
+            "updatedSuccess": "تم تحديث الملف الشخصي بنجاح"
         },
         "language": {
             "title": "إعدادات اللغة",

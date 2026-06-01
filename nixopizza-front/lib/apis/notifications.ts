@@ -4,10 +4,14 @@ import axiosAPI from "../axios.ts";
 
 const apiURL = "/notifications";
 
-// get all notifications with pagination
-export const get_all_notifications = async (page: number = 1, limit: number = 10): Promise<any> => {
+// get all notifications with pagination and optional category filter
+export const get_all_notifications = async (page: number = 1, limit: number = 10, category?: string): Promise<any> => {
   try {
-    const res = await axiosAPI.get(`${apiURL}?page=${page}&limit=${limit}`);
+    let url = `${apiURL}?page=${page}&limit=${limit}`;
+    if (category && category !== "all") {
+      url += `&category=${category}`;
+    }
+    const res = await axiosAPI.get(url);
     if (res.status === 200 && res.data) {
       return res.data;
     } else {

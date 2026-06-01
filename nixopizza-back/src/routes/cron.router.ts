@@ -1,8 +1,9 @@
 import { Router } from "express";
-import { checkExpiredProducts } from "../controllers/cron.controller";
+import { checkExpiredProducts, checkExpiringSoonProducts } from "../controllers/cron.controller";
 
 const router = Router();
 
 router.get("/check-expired", checkExpiredProducts);
+router.get("/check-expiring-soon", checkExpiringSoonProducts);
 
 export default router;
