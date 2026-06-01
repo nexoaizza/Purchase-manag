@@ -19,9 +19,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { User, Globe, Save, Upload, X } from "lucide-react";
+import { User, Globe, Save, Upload, X, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { setProfile } from "@/hooks/useAuth";
+import { updateProfile } from "@/lib/apis/auth";
 
 export default function ParametersPage() {
   const t = useTranslations("parameters");
@@ -91,9 +93,32 @@ export default function ParametersPage() {
     setAvatarPreview(user?.avatar || null);
   };
 
+  const [saving, setSaving] = useState(false);
+
   const handleSaveProfile = async () => {
-    // TODO: Implement profile update API call
-    toast.success("Profile updated successfully");
+    if (!profileData.fullname.trim()) {
+      toast.error(t("profile.fullname") + " is required");
+      return;
+    }
+    try {
+      setSaving(true);
+      const result = await updateProfile({ fullname: profileData.fullname.trim() });
+      if (result.success) {
+        // Update the store so the sidebar/header reflects the new name immediately
+        if (result.user) {
+          setProfile(result.user);
+        } else if (user) {
+          setProfile({ ...user, fullname: profileData.fullname.trim() });
+        }
+        toast.success(t("profile.updatedSuccess") || "Profile updated successfully");
+      } else {
+        toast.error(result.message || "Failed to update profile");
+      }
+    } catch (e) {
+      toast.error("Failed to update profile");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -111,10 +136,15 @@ export default function ParametersPage() {
           </div>
           <Button
             onClick={handleSaveProfile}
+            disabled={saving}
             className="gap-2 rounded-full px-6 bg-primary hover:bg-primary/90"
           >
-            <Save className="h-4 w-4" />
-            {t("saveChanges")}
+            {saving ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4" />
+            )}
+            {saving ? "..." : t("saveChanges")}
           </Button>
         </div>
 

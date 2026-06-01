@@ -33,14 +33,15 @@ export const logoutUser = async () => {
 
 // Update profile
 export const updateProfile = async (formData: {
-  password: string;
-  newPassword: string;
+  fullname?: string;
+  password?: string;
+  newPassword?: string;
 }) => {
   try {
     const {
-      data: { message },
+      data: { message, user },
     } = await api.put("/auth/profile", formData);
-    return { success: true, message };
+    return { success: true, message, user };
   } catch (error: any) {
     console.error("Update profile error:", error);
     const message =

@@ -125,7 +125,7 @@ export const updateUser = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { password, newPassword } = req.body;
+    const { password, newPassword, fullname } = req.body;
 
     const userId = req.user?.userId;
     const user = await User.findById(userId).select("+password");
@@ -134,6 +134,12 @@ export const updateUser = async (
       return;
     }
 
+    // Update fullname if provided
+    if (fullname && typeof fullname === "string" && fullname.trim().length > 0) {
+      user.fullname = fullname.trim();
+    }
+
+    // Update password if both current and new password are provided
     if (newPassword && password) {
       const isMatch = await user.comparePassword(password.toString());
 
@@ -149,7 +155,17 @@ export const updateUser = async (
     await user.save();
 
     res.status(200).json({
-      message: " User Updated Successfully",
+      message: "User Updated Successfully",
+      user: {
+        _id: user._id,
+        fullname: user.fullname,
+        email: user.email,
+        role: user.role,
+        isActive: user.isActive,
+        avatar: user.avatar,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
     });
   } catch (error: any) {
     console.error("Update user error:", error);
