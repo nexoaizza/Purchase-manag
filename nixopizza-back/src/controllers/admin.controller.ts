@@ -7,6 +7,7 @@ import { deleteImage } from "../utils/Delete";
 import crypto from "crypto";
 import { uploadBufferToBlob } from "../utils/blob";
 import { createLocalNotification } from "./notification.controller";
+import { sendStaffWelcomeEmail } from "../services/email.service";
 
 function buildBlobKey(originalName: string) {
   const ext = (originalName.match(/\.[^/.]+$/) || [".bin"])[0];
@@ -105,6 +106,11 @@ export const newStaffMember = async (
         "New Staff Member Added",
         "suppliers"
     );
+
+    if (email) {
+      const appLink = process.env.APP_DOWNLOAD_LINK || "https://nixopizza.com/download";
+      await sendStaffWelcomeEmail(email, fullname, password, appLink);
+    }
 
     res.status(201).json({ message: "Staff created successfully", staff });
   } catch (error: any) {
