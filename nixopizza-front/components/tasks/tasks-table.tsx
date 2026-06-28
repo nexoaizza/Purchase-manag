@@ -319,12 +319,24 @@ export function TasksTable({
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
+                      <div className="flex justify-end items-center gap-2">
+                        {(task.status === "pending" || (task.type === "periodic" && task.status === "completed")) && (user?.role === "admin" || user?._id === task.staffId?._id) && task.status !== "paused" && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            title={t("markAsCompleted")}
+                            onClick={() => handleMarkAsCompleted(task._id)}
+                          >
+                            <CheckCircle className="h-4 w-4" />
                           </Button>
-                        </DropdownMenuTrigger>
+                        )}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
                             onClick={() => handleViewTask(task)}
@@ -381,6 +393,7 @@ export function TasksTable({
                           )}
                         </DropdownMenuContent>
                       </DropdownMenu>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
