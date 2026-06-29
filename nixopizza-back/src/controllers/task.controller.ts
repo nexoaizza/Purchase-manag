@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import Task from "../models/task.model";
 import User from "../models/user.model";
 import { sendPushNotification } from "../services/firebase.service";
-import { pushNotification } from "../utils/PushNotification";
+import { createLocalNotification } from "./notification.controller";
 
 const generateTaskNumber = () => {
   const date = new Date().toISOString().split("T")[0].replace(/-/g, "");
@@ -168,10 +168,11 @@ export const updateTaskStatus = async (req: Request, res: Response) => {
         description: historyDescription || "",
       });
       if ((task.staffId as any)._id?.toString() === req.user?.userId) {
-        await pushNotification(
-          ` Task Completed: ${task.taskNumber} `,
+        await createLocalNotification(
           `The task ${task.taskNumber} has been marked as completed.`,
-          "complited_task",
+          "success",
+          ` Task Completed: ${task.taskNumber} `,
+          "inventory",
           `${process.env}/api/tasks/${task._id}`
         );
       }

@@ -5,7 +5,6 @@ import Stock from "../models/stock.model";
 import Product from "../models/product.model";
 import User from "../models/user.model";
 import { Types } from "mongoose";
-import { pushNotification } from "../utils/PushNotification";
 import { sendPushNotification } from "../services/firebase.service";
 import { createLocalNotification } from "./notification.controller";
 
@@ -96,10 +95,11 @@ export const createTransfer = async (req: Request, res: Response): Promise<void>
     });
 
     // Send "Transfer assigned" notification
-    await pushNotification(
-      "Transfer assigned",
+    await createLocalNotification(
       `A new transfer has been assigned to you.`,
-      "transfer",
+      "info",
+      "Transfer assigned",
+      "inventory",
       undefined,
       {
         subject: "Transfer assigned",
@@ -396,10 +396,11 @@ export const updateTransfer = async (req: Request, res: Response): Promise<void>
 
     // Send "Transfer status changed" notification if status was updated
     if (statusChanged) {
-      await pushNotification(
-        "Transfer status changed",
+      await createLocalNotification(
         `Transfer status has been updated to ${transfer.status}.`,
-        "transfer",
+        "info",
+        "Transfer status changed",
+        "inventory",
         undefined,
         {
           subject: "Transfer status changed",
@@ -443,10 +444,11 @@ export const updateTransfer = async (req: Request, res: Response): Promise<void>
 
     // Send "Transfer assigned" notification if assignedTo was changed
     if (assignedToChanged) {
-      await pushNotification(
-        "Transfer assigned",
+      await createLocalNotification(
         `A transfer has been assigned to you.`,
-        "transfer",
+        "info",
+        "Transfer assigned",
+        "inventory",
         undefined,
         {
           subject: "Transfer assigned",

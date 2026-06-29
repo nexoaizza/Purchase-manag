@@ -19,9 +19,16 @@ export const createNotification = async (req: Request, res: Response) => {
   }
 };
 
-export const createLocalNotification = async (message: string, type: NotificationTypeEnum, title: string, category: NotificationCategoryEnum) => {
+export const createLocalNotification = async (
+  message: string,
+  type: NotificationTypeEnum,
+  title: string,
+  category: NotificationCategoryEnum,
+  actionUrl?: string,
+  extra?: any
+) => {
   try {
-    const notification = new Notification({ message, type, title, category });
+    const notification = new Notification({ message, type, title, category, actionUrl, ...extra });
     await notification.save();
   } catch (error: any) {
     console.error("Error creating notification:", error);

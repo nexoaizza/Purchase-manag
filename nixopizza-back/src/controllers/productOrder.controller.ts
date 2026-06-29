@@ -2,7 +2,7 @@ import cron from "node-cron";
 import ProductOrder, { IProductOrder } from "../models/productOrder.model";
 import { Request, Response } from "express";
 import Product from "../models/product.model";
-import { pushNotification } from "../utils/PushNotification";
+import { createLocalNotification } from "./notification.controller";
 
 export const handleExpiredProduct = async (
   product: IProductOrder
@@ -16,10 +16,11 @@ export const handleExpiredProduct = async (
       remainingQte: 0,
     });
 
-    await pushNotification(
-      `Product Expired: ${product.productId}`,
+    await createLocalNotification(
       `Product with ID ${product.productId} has expired. Expired quantity: ${expiredQuantity}`,
-      "expiry_warning",
+      "warning",
+      `Product Expired: ${product.productId}`,
+      "expiring_soon",
       `${process.env.CLIENT_ORIGIN}/api/products/${product.productId}`
     );
 
